@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strategien — Signal-Dashboard</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c232d; --line:#2b3440;
+    --txt:#e6edf3; --muted:#8b949e; --accent:#3b82f6;
+    --green:#2ea043; --red:#e5484d; --amber:#d29922; --violet:#a371f7; --cash:#6e7681;
+    --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+  :root[data-theme="light"]{
+    --bg:#f6f8fa; --panel:#fff; --panel2:#f0f3f6; --line:#d0d7de;
+    --txt:#1f2328; --muted:#636c76; --cash:#8c959f; --shadow:0 1px 3px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5;padding:0 16px 48px}
+  header{max-width:1200px;margin:0 auto;padding:24px 0 8px;display:flex;
+    align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  h1{font-size:1.5rem;margin:0;font-weight:700}
+  .sub{color:var(--muted);font-size:.85rem;margin-top:2px}
+  .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  button{background:var(--panel);color:var(--txt);border:1px solid var(--line);
+    border-radius:8px;padding:8px 12px;font-size:.85rem;cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  .grid{max-width:1200px;margin:16px auto;display:grid;gap:16px;
+    grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr))}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;min-width:0}
+  .card.err{opacity:.7}
+  .chead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .cname{font-weight:700;font-size:1.05rem}
+  .ckind{color:var(--muted);font-size:.75rem;margin-top:2px}
+  .badge{font-size:.72rem;font-weight:600;padding:4px 9px;border-radius:20px;white-space:nowrap}
+  .b-invested{background:rgba(46,160,67,.16);color:var(--green)}
+  .b-cash{background:rgba(110,118,129,.2);color:var(--cash)}
+  .alloc{display:flex;flex-wrap:wrap;gap:7px;align-content:flex-start}
+  .chip{display:flex;align-items:center;gap:6px;background:var(--panel2);
+    border:1px solid var(--line);border-radius:9px;padding:6px 10px;font-size:.82rem}
+  .chip b{font-weight:700;font-variant-numeric:tabular-nums}
+  .lev{font-size:.68rem;color:var(--muted);background:var(--bg);border-radius:5px;padding:1px 5px}
+  .tnote{font-size:.7rem;color:var(--muted);line-height:1.35;margin:4px 0 8px}
+  td:first-child{white-space:nowrap}
+  .vbox{margin:8px 0 4px}
+  .vbar{position:relative;height:10px;border-radius:5px;background:var(--panel2);margin:6px 0 4px;overflow:visible}
+  .vfill{height:100%;border-radius:5px;background:var(--green)}
+  .vfill.over{background:var(--amber)}
+  .vcap{position:absolute;top:-3px;width:2px;height:16px;background:var(--txt)}
+  .vcap-l{font-size:.7rem;color:var(--muted);line-height:1.35}
+  .rowline{display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted);
+    border-top:1px solid var(--line);padding-top:9px;gap:10px;flex-wrap:wrap}
+  .rowline .v{color:var(--txt);font-weight:600;text-align:right}
+  .change{font-size:.8rem;padding:8px 10px;border-radius:8px;font-weight:600}
+  .ch-buy{background:rgba(46,160,67,.14);color:var(--green)}
+  .ch-sell{background:rgba(229,72,77,.14);color:var(--red)}
+  .ch-switch{background:rgba(163,113,247,.14);color:var(--violet)}
+  .ch-none{background:var(--panel2);color:var(--muted)}
+  details{border-top:1px solid var(--line);padding-top:8px}
+  summary{cursor:pointer;font-size:.8rem;color:var(--muted);user-select:none}
+  .tw{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:.78rem}
+  th,td{text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .pos{color:var(--green)} .neg{color:var(--red)}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .fresh{background:var(--green)} .stale{background:var(--amber)}
+  .timeline{display:flex;gap:1px;margin-top:10px;height:22px;align-items:stretch;overflow:hidden;border-radius:5px}
+  .tl{flex:1 1 0;min-width:1px}
+  .tlcap{font-size:.7rem;color:var(--muted);margin-top:5px}
+  .tlleg{display:flex;gap:10px;flex-wrap:wrap;font-size:.7rem;color:var(--muted);margin-top:4px}
+  .tlleg span{display:flex;align-items:center;gap:4px}
+  .sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .foot{max-width:1200px;margin:24px auto 0;color:var(--muted);font-size:.78rem;
+    border-top:1px solid var(--line);padding-top:14px}
+  .err-msg{color:var(--amber);font-size:.8rem}
+  .warn{color:var(--amber);font-size:.75rem}
+  code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-size:.85em}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Strategien — Signal-Dashboard</h1>
+    <div class="sub">levGTAA · levTipsRegime · MR-Rebound-GTAA · 1xGTAA — Signale auf US-1x-Schlusskursen · <b>KEINE ANLAGEBERATUNG</b></div>
+  </div>
+  <div class="controls">
+    <span class="sub" id="updated">lädt…</span>
+    <button id="refresh">↻ Aktualisieren</button>
+    <button id="theme">◐ Theme</button>
+  </div>
+</header>
+
+<main class="grid" id="grid"></main>
+
+<div class="foot">
+  Datenquelle: die vier Bot-Repos (GitHub, <code>status_*.json</code>). Jede Karte spiegelt den zuletzt committeten Bot-Stand;
+  das Dashboard rechnet nichts selbst. levGTAA und MR-Rebound-GTAA: Signal = Schlusskurse des letzten Handelstags im Monat,
+  Handel am 1. Handelstag des Folgemonats. levTipsRegime und 1xGTAA: tägliche Entscheidung auf dem Vortages-Schlusskurs.
+</div>
+
+<script>
+/* ======================================================================
+   KONFIG — GitHub-Name und Repos. Je Strategie werden die URLs der Reihe
+   nach probiert (so funktioniert die Seite vor und nach einer Repo-Umbenennung).
+   ====================================================================== */
+const USER = "Sin3qz";
+const RAW = (repo, file) => `https://raw.githubusercontent.com/${USER}/${repo}/main/${file}`;
+const SOURCES = [
+  { name:"levGTAA", kind:"Momentum · monatlich · 3x Nasdaq · 1x BTC · 3x US-Treasury 7-10y (Signal TLT) · 3x Gold",
+    urls:[RAW("levgtaa-signalbot","status_levgtaa.json")] },
+  { name:"levTipsRegime", kind:"täglich · Cooldown 10 · 3x S&P 500 · 1x BTC",
+    urls:[RAW("levspybits-signalbot","letsgo_status.json")] },
+  { name:"MR-Rebound-GTAA", kind:"Mean-Reversion · monatlich · Duo QQQ/EM/TLT | QQQ/India/TLT · 3x Nasdaq/EM/India · 5x TLT",
+    urls:[RAW("mrreboundgtaa-signalbot","status_mrreboundgtaa.json"),
+          RAW("mr-rebound-gtaa-signalbot","status_mrreboundgtaa.json"),
+          RAW("reversegtaa-signalbot","status_mrreboundgtaa.json")] },
+  { name:"1xGTAA", kind:"defensiv · ungehebelt · täglich · Cooldown 10",
+    urls:[RAW("1xgtaa-signalbot","status_1xgtaa.json")] },
+];
+
+/* Farben je Asset (nur Anzeige) */
+const COL = {NASDAQ100:"#3b82f6", BTC:"#f7931a", TLT_LONG:"#06b6d4", UST_IEF:"#06b6d4", GOLD:"#eab308", EM:"#a371f7", INDIA:"#ec4899",
+  EM_SMALLCAP:"#c084fc", EMU_VALUE:"#22c55e", BONDS_7_10:"#0d9488", COMMODITIES:"#b45309", CASH_USD:"#7dd3fc",
+  SP500:"#3b82f6", MARKET:"#2ea043", CASH:"var(--cash)"};
+const NAME = {NASDAQ100:"Nasdaq 100", BTC:"Bitcoin", TLT_LONG:"TLT 20y+", UST_IEF:"UST 7-10y", GOLD:"Gold", EM:"Emerging Markets", INDIA:"India",
+  EM_SMALLCAP:"EM Small Caps", EMU_VALUE:"EMU Value", BONDS_7_10:"UST 7-10y", COMMODITIES:"Rohstoffe", CASH_USD:"Geldmarkt",
+  SP500:"S&P 500", MARKET:"im Markt", CASH:"Cash"};
+const colorOf = a => COL[a] || "#8b949e";
+const pct  = (x,d=0) => (x==null||isNaN(x)) ? "–" : (x*100).toFixed(d)+"%";
+const spct = x => (x==null||isNaN(x)) ? "–" : (x>=0?"+":"")+(x*100).toFixed(1)+"%";
+const deDate = s => { if(!s) return "–"; const d=new Date(s+"T12:00:00"); return isNaN(d)?s:d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"}); };
+const esc = s => String(s??"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+async function fetchFirst(urls){
+  let last;
+  for(const u of urls){
+    try{ const r=await fetch(u,{cache:"no-store"}); if(r.ok) return await r.json(); last=new Error(r.status+" "+u); }
+    catch(e){ last=e; }
+  }
+  throw last || new Error("keine URL");
+}
+
+/* ---- Rendering ---- */
+function levTag(l){ if(l==null) return "1x"; return (l%1===0)? l+"x" : Number(l).toFixed(1)+"x"; }
+/* Chips = echte Invest-Hebel (Produkt) und Zielquoten; Nachkommastellen je Strategie (weightDecimals).
+   weight == null (levTipsRegime) -> nur Asset mit Hebel, ohne Prozent und ohne Cash-Rest. */
+function chips(alloc, d){
+  if(!alloc||!alloc.length) return "";
+  d = d||0;
+  const held = alloc.filter(a=>a.asset!=="CASH");
+  const free = held.some(a=>a.weight==null);
+  let h = held.map(a=>`<div class="chip" title="${esc(a.product)} ${esc(a.isin)}"><span class="dot" style="background:${colorOf(a.asset)}"></span>
+      ${a.weight==null ? "" : `<b>${pct(a.weight,d)}</b> `}<span class="lev">${levTag(a.leverage)}</span> ${esc(a.display)}</div>`).join("");
+  if(free) return h;
+  const cash = 1 - held.reduce((s,a)=>s+(a.weight||0),0);
+  if(cash > (d? 0.0005 : 0.005)) h += `<div class="chip"><span class="dot" style="background:var(--cash)"></span><b>${pct(cash,d)}</b> Cash</div>`;
+  return h;
+}
+/* levGTAA: Vola des gehebelten Portfolios relativ zum 55-%-Cap */
+function volaBox(s){
+  const v = s.vola; if(!v) return "";
+  const cap = v.cap, now = v.holdingNowMean ?? 0, pre = v.signalPreMean ?? 0;
+  const mx = Math.max(cap*1.6, pre*1.1, now*1.1);
+  const X = x => Math.min(100, x/mx*100).toFixed(1);
+  const w = (v.windows||[]).join("/");
+  const arr = a => (a||[]).map(x=>(x*100).toFixed(0)).join("/");
+  return `<div class="vbox">
+    <div class="rowline"><span>Vola-Cap ${pct(cap)}</span><span class="v">Faktor ${Number(v.factor).toFixed(2)} (Signal ${deDate(v.decisionDate)})</span></div>
+    <div class="vbar"><div class="vfill ${now>cap?'over':''}" style="width:${X(now)}%"></div><div class="vcap" style="left:${X(cap)}%"></div></div>
+    <div class="vcap-l">Ist-Portfolio heute Ø ${pct(now)} (${w} T: ${arr(v.holdingNow)} %) · Strich = Cap ${pct(cap)}<br>
+    Signal-Portfolio vor Vol-Target Ø ${pct(pre)} (${arr(v.signalPre)} %) → Faktor = Ø min(1; ${pct(cap)}/Vola)</div></div>`;
+}
+function changeBadge(s){
+  const c = s.changeType;
+  if(!c && s.pendingDecision) return `<div class="change ch-switch">⏳ Monatssignal ${deDate(s.pendingDecision)} ausstehend (Kursdaten veraltet) — Handel ${deDate(s.pendingTrade)}</div>`;
+  if(!c && s.pendingTrade) return `<div class="change ch-switch">⏳ Wechsel erkannt — handeln am ${deDate(s.pendingTrade)}</div>`;
+  if(!c) return `<div class="change ch-none">Heute kein Handel</div>`;
+  const m={BUY:["ch-buy","🟢 BUY — heute handeln"],SELL:["ch-sell","🔴 SELL — heute in Cash"],SWITCH:["ch-switch","🔄 Umschichtung — heute handeln"],
+           HOLD:["ch-switch","🔁 Monatswechsel — Gewichte anpassen"],NOCHANGE:["ch-none","⚪ Monatswechsel — keine Änderung"]};
+  const [cls,txt]=m[c]||["ch-none",c]; return `<div class="change ${cls}">${txt}${s.late?" (verspätet)":""}</div>`;
+}
+function rebInfo(s){
+  if(s.rebalance==="monthly"){
+    return `Signal ${deDate(s.decisionDate)} → Handel ${deDate(s.tradeDate)}<br>nächstes Signal ${deDate(s.nextDecision)} → Handel ${deDate(s.nextRebalance)}`;
+  }
+  const cd = s.cooldown ?? 0;
+  return cd>0 ? `Cooldown: noch ${cd} Handelstage gesperrt` : "Cooldown frei (Wechsel möglich)";
+}
+function fmtCell(v, kind){
+  if(kind==="spct") return `<td class="num ${v>=0?'pos':'neg'}">${spct(v)}</td>`;
+  if(kind==="pct")  return `<td class="num">${(v==null||v<=1e-9)?"–":pct(v)}</td>`;
+  if(kind==="pct1") return `<td class="num">${(v==null||v<=1e-9)?"–":pct(v,1)}</td>`;
+  return `<td>${esc(v)}</td>`;
+}
+function sigTable(s){
+  const t = s.table; if(!t||!t.rows) return "";
+  const head = t.head.map((h,i)=>`<th class="${i? 'num':''}">${esc(h)}</th>`).join("");
+  const rows = t.rows.map(r=>`<tr>${r.map((v,i)=> i===0?`<td>${esc(v)}</td>`:fmtCell(v,t.kinds[i]).replace('<td>','<td class="num">')).join("")}</tr>`).join("");
+  const note = t.note ? `<div class="tnote">${esc(t.note)}</div>` : "";
+  return `<div class="tw"><table><tr>${head}</tr>${rows}</table></div>${note}`;
+}
+function timeline(s){
+  const t = s.timeline; if(!t||!t.items||!t.items.length) return "";
+  const items = t.items.slice(-120);
+  const cells = items.map(h=>`<div class="tl" title="${esc(h.date)}: ${esc(NAME[h.lead]||h.lead)} · ${esc(h.allocation)}" style="background:${colorOf(h.lead)}"></div>`).join("");
+  const used = [...new Set(items.map(h=>h.lead))];
+  const leg = used.map(a=>`<span><span class="sw" style="background:${colorOf(a)}"></span>${esc(NAME[a]||a)}</span>`).join("");
+  return `<div class="timeline">${cells}</div><div class="tlleg">${leg}</div>
+    <div class="tlcap">Zeitbalken (${esc(t.span)}): jede Spalte = ein Zeitpunkt, die Farbe zeigt, ${esc(t.what)}; grau = Cash.
+    Maus/Finger auf eine Spalte = Datum und Allokation.</div>`;
+}
+function card(s, src){
+  const inv = s.allocation && !(s.allocation.length===1 && s.allocation[0].asset==="CASH");
+  const badge = inv ? `<span class="badge b-invested">INVESTIERT</span>` : `<span class="badge b-cash">CASH</span>`;
+  const fresh = s.needsRetry ? `<span class="dot stale"></span>Daten evtl. verspätet` : `<span class="dot fresh"></span>frisch`;
+  const wl = (s.dataWarnings||[]).slice(0,4).concat(s.ntfyFailed ? [`ntfy-Push fehlgeschlagen (${s.ntfyFailed}) — wird automatisch wiederholt`] : []);
+  const warns = wl.length ? `<div class="warn">⚠️ ${wl.map(esc).join("<br>⚠️ ")}</div>` : "";
+  return `<div class="card">
+    <div class="chead"><div><div class="cname">${esc(src.name)}</div><div class="ckind">${esc(src.kind)}</div></div>${badge}</div>
+    <div class="alloc">${chips(s.allocation, s.weightDecimals)}</div>
+    ${changeBadge(s)}
+    ${volaBox(s)}
+    <div class="rowline"><span>Rebalancing</span><span class="v">${rebInfo(s)}</span></div>
+    <div class="rowline"><span>Kursstand</span><span class="v">${deDate(s.asOf)} · ${fresh}</span></div>
+    ${warns}
+    <details open><summary>Signale & Zeitbalken</summary>${sigTable(s)}${timeline(s)}</details>
+  </div>`;
+}
+function errCard(src, e){
+  return `<div class="card err"><div class="chead"><div><div class="cname">${esc(src.name)}</div><div class="ckind">${esc(src.kind)}</div></div>
+    <span class="badge b-cash">offline</span></div>
+    <div class="err-msg">Konnte Daten nicht laden (${esc(e.message||e)}).<br>Repo public? Status-Datei schon committet? Probiert:<br>
+    ${src.urls.map(u=>`<code style="font-size:.68rem;word-break:break-all">${esc(u)}</code>`).join("<br>")}</div></div>`;
+}
+async function load(){
+  const grid = document.getElementById("grid");
+  grid.innerHTML = SOURCES.map(s=>`<div class="card"><div class="cname">${esc(s.name)}</div><div class="ckind">lädt…</div></div>`).join("");
+  const cards = await Promise.all(SOURCES.map(async src=>{
+    try{ return card(await fetchFirst(src.urls), src); } catch(e){ return errCard(src, e); }
+  }));
+  grid.innerHTML = cards.join("");
+  document.getElementById("updated").textContent = "Stand Dashboard: " + new Date().toLocaleString("de-DE");
+}
+document.getElementById("refresh").onclick = load;
+document.getElementById("theme").onclick = ()=>{
+  const r=document.documentElement; r.dataset.theme = r.dataset.theme==="dark"?"light":"dark";
+  try{localStorage.setItem("gtaa-theme",r.dataset.theme);}catch(e){}
+};
+try{const t=localStorage.getItem("gtaa-theme"); if(t) document.documentElement.dataset.theme=t;}catch(e){}
+load();
+</script>
+</body>
+</html>
