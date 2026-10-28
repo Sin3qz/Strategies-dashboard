@@ -122,6 +122,23 @@ def daily():
             traceback.print_exc()
 
 
+def tlt_row():
+    """Bis der Bot-Branch mit dem IEF-Zweig auf main ist, fehlt die TLT-Zeile im Bot-Status: aus dem Tagessignal ergaenzen."""
+    f, d = os.path.join(OUT, "signals.json"), os.path.join(OUT, "daily_levtips.csv")
+    if not (os.path.exists(f) and os.path.exists(d)):
+        return
+    sig = json.load(open(f, encoding="utf-8"))
+    if any(r["strategy"] == "levtipsregime" and "TLT" in str(r.get("baustein")) for r in sig):
+        return
+    last = list(csv.DictReader(open(d, encoding="utf-8")))[-1]
+    if last.get("tlt_dist") in (None, ""):
+        return
+    v = float(last["tlt_dist"])
+    sig.append({"strategy": "levtipsregime", "baustein": "US-Treasury 20y+ (TLT)", "linie": "SMA200",
+                "abstand": round(v, 6), "status": "über" if v > 0 else "unter"})
+    wjson("signals.json", sig)
+
+
 def wikifolio(key, meta):
     h = get(f"https://www.wikifolio.com/de/de/w/{meta['symbol']}")
     m = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', h, re.S)
@@ -259,6 +276,7 @@ def main():
     os.makedirs(OUT, exist_ok=True); os.makedirs(WORK, exist_ok=True)
     st = step("Bot-Status", bots)
     daily()
+    step("TLT-Zeile", tlt_row)
     step("wikifolio", wikifolios)
     holdings()
     sys.path.insert(0, HERE)

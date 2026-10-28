@@ -10,7 +10,7 @@ import csv, json, os
 
 from send_ntfy import send_ntfy
 
-URL = "https://sin3qz.github.io/Strategies-dashboard/#tagessignal"
+URL = "https://sin3qz.github.io/Strategies-dashboard/#signale"
 NAMES = {"NASDAQ100": "Nasdaq", "BTC": "Bitcoin", "UST_IEF": "UST 7-10y", "GOLD": "Gold", "EM": "EM", "INDIA": "India",
          "TLT_LONG": "UST 20y+", "EM_SMALLCAP": "EM Small", "EMU_VALUE": "EMU Value", "BONDS_7_10": "UST 7-10y",
          "COMMODITIES": "Rohstoffe", "CASH_USD": "Geldmarkt"}
