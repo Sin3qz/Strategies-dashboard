@@ -177,7 +177,9 @@ def run(work, out_dir, grid_start="2009-01-01"):
     grid = pd.DatetimeIndex(pd.to_datetime(sched.index.date))
     dec = {m: pd.read_csv(os.path.join(work, f"decisions_{m}.csv")) for m in ("levgtaa", "mrrebound", "1xgtaa", "levtips")}
     last_signal = max(pd.Timestamp(d["date"].iloc[-1]) for d in dec.values())
-    grid = grid[grid <= grid[grid.searchsorted(last_signal, side="right")] if grid.searchsorted(last_signal, side="right") < len(grid) else grid[-1]]
+    nxt = grid.searchsorted(last_signal, side="right")            # Handelstag nach dem letzten Signal (falls schon im Kalender)
+    if nxt < len(grid):
+        grid = grid[grid <= grid[nxt]]
     prices, last, issues = load_prices(grid)
     series = {}
     for m in ("levgtaa", "levtips", "1xgtaa", "mrrebound"):
