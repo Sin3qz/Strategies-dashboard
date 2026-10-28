@@ -1,31 +1,36 @@
-# Strategien — Signal-Dashboard
+# Strategien & wikifolios — Dashboard
 
-Statische Seite (GitHub Pages) für **levGTAA · levTipsRegime · MR-Rebound-GTAA · 1xGTAA** (in dieser Reihenfolge).
-Sie rechnet nichts selbst, sondern zeigt den zuletzt committeten Stand der vier Bot-Repos (`status_*.json`).
-Wenn die Bots per GitHub Action laufen und committen, zeigt die Seite beim nächsten Laden automatisch den neuen Stand.
+Öffentliche Seite (GitHub Pages): **https://sin3qz.github.io/Strategies-dashboard/**
 
-## Einrichtung
-1. `index.html` in dieses Repo (public) hochladen.
-2. Oben in `index.html` steht `const USER = "Sin3qz";` und der `SOURCES`-Block mit den Repo-Namen.
-   Für MR-Rebound-GTAA werden der Reihe nach `mrreboundgtaa-signalbot`, `mr-rebound-gtaa-signalbot` und das alte
-   `reversegtaa-signalbot` probiert (jeweils `status_mrreboundgtaa.json`) — die Seite funktioniert also vor und nach der
-   Umbenennung. Die alte Datei `status_reversegtaa.json` wird nicht mehr gelesen (bitte im Repo löschen).
-3. Settings → Pages → Deploy from branch → main / root.
+Zeigt die Bots **levGTAA · MR-Rebound-GTAA · levTipsRegime · 1xGTAA** und die wikifolios
+**LevGTAA (WFXLEVGTAA)** und **LevTipsRegime (WFXTIPSREG)**. Keine Anlageberatung.
 
-Voraussetzung: Die Bot-Repos sind public und haben ihre Statusdatei mindestens einmal mit der neuen Version committet.
+## Bereiche
+- **Überblick** – wikifolio-Performance, levTipsRegime-Abstand zur Linie, levGTAA-Vola und je Strategie
+  „gehalten vs. wenn heute gehandelt würde“ mit dem Anteil, der umgeschichtet würde.
+- **wikifolios** – Kennzahlen von wikifolio.com (Index, High-Watermark, max. Verlust, Watchlistings, Rangliste,
+  Gebühren, Kriterien zur Investierbarkeit), Bot-Position, Backtest-Referenz, eigener Indexverlauf.
+- **Tagessignal** – für jeden US-Handelstag seit 2025 die Position, die die Bot-Regel auf dem Schlusskurs ergäbe
+  (levGTAA/MR-Rebound: jeder Tag wie ein Monatsletzter; 1xGTAA/levTipsRegime: ohne Cooldown), mit Zeitraumfilter
+  und Liste der Signalwechsel.
+- **Strategien** – die vier Bot-Karten (wie die alte Ansicht `classic.html`) und der levGTAA-Allokationsverlauf.
+- **Rechner** – Zielbeträge je Baustein für einen Depotwert, gehalten vs. simuliert, mit Kauf-/Verkaufsdifferenz.
 
-## Was die Karten zeigen
-- Aktuelle Allokation mit echtem Invest-Hebel (levGTAA 3x Nasdaq / 1x BTC / 3x US-Treasury 7-10y (IEF, Signal TLT) /
-  3x Gold, MR-Rebound 3x/3x/3x und 5x TLT mit voller Quote); levGTAA und MR-Rebound mit einer Nachkommastelle inkl. Cash;
-  bei levGTAA die Vola relativ zum 55-%-Cap. levTipsRegime: im Markt nur „3x S&P 500“ und
-  „1x Bitcoin“ **ohne Prozentangabe** (der Bot liefert `weight: null`), sonst Cash.
-- Handelssignal heute (BUY / SELL / Umschichtung / Monatswechsel, ggf. „verspätet“), ausstehende Wechsel/Monatssignale (⏳).
-- Rebalancing: bei levGTAA und MR-Rebound-GTAA Signal- und Handelstag (Monatsletzter → 1. Handelstag) und der nächste Termin;
-  bei levTipsRegime und 1xGTAA der Cooldown.
-- Kursstand, Frische und Datenwarnungen (fehlende Tage, Sprünge > 30 %).
-- Signaltabelle, wie der Bot sie liefert.
-- **Zeitbalken:** levGTAA = Platz 1 der letzten 120 Monatsentscheidungen; MR-Rebound-GTAA = gehaltenes Asset auf
-  Platz 3 von 3 (schwächster SMA-Rang, Flop); 1xGTAA = Platz 1 der letzten 120 Handelstage; levTipsRegime = im Markt
-  (grün) oder Cash (grau) der letzten 120 Handelstage. Grau = Cash.
+## Wie es sich aktualisiert
+Die GitHub Action `.github/workflows/refresh-dashboard.yml` läuft 5× täglich (06:41, 08:11, 12:41, 16:11, 21:41 UTC)
+und kann unter *Actions → Dashboard-Daten aktualisieren → Run workflow* auch von Hand gestartet werden. Sie
+1. liest `status_*.json` und `history_levgtaa.txt` der Bot-Repos (öffentlich, Branch `main`),
+2. rechnet das Tagessignal mit dem Code der Bot-Repos auf Yahoo-Kursen (`dashboard-data/daily_signals.py`),
+3. liest die wikifolio-Kennzahlen aus den Seitendaten von wikifolio.com und hängt sie an `data/wikifolio_history.csv` an,
+4. committet `data/`. Fällt eine Quelle aus, bleibt deren letzter gültiger Stand stehen und die Seite nennt den Fehler.
 
-Dark/Light umschaltbar. **KEINE ANLAGEBERATUNG.**
+Die Seite lädt die Dateien aus `data/` beim Öffnen, alle 10 Minuten und beim Zurückkehren in den Tab.
+
+Optional: ein Secret **`PAT_PUSH`** (wie in den Bot-Repos) lässt die Action in deinem Namen pushen; dann deaktiviert
+GitHub den Zeitplan auch nach 60 Tagen ohne eigene Commits nicht.
+
+## Dateien
+- `index.html` – wird von `dashboard-data/build_page.py` aus `dashboard-data/page.html` (Seite) und
+  `dashboard-data/shell.html` (Design + kleine Laufzeit) gebaut. Nach Änderungen: `python3 dashboard-data/build_page.py`.
+- `dashboard-data/refresh.py` – baut alle Dateien in `data/` neu (lokal: `python3 dashboard-data/refresh.py`).
+- `classic.html` – die bisherige Signal-Ansicht, lädt direkt die Bot-Repos.

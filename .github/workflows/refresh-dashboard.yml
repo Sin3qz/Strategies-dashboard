@@ -1,0 +1,54 @@
+name: Dashboard-Daten aktualisieren
+
+on:
+  schedule:
+    # UTC. Bots laufen 05:17 UTC (+ Retries) und 11:47 UTC (Sicherheitslauf); wikifolio-Kurse aendern sich tagsueber.
+    # 06:41 / 08:11 = nach dem Bot-Hauptlauf, 12:41 = nach dem Sicherheitslauf, 16:11 + 21:41 = wikifolio-Stand am Nachmittag/Abend.
+    - cron: "41 6 * * *"
+    - cron: "11 8 * * *"
+    - cron: "41 12 * * *"
+    - cron: "11 16 * * *"
+    - cron: "41 21 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dashboard-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # PAT_PUSH (optional, wie bei den Bot-Repos): Push in deinem Namen -> GitHub deaktiviert den Zeitplan nicht nach 60 Tagen.
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_PUSH || github.token }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Abhaengigkeiten
+        run: |
+          PKGS='pandas>=2.2,<4 numpy>=1.26,<3 pandas_market_calendars>=4.4,<6 yahooquery'
+          pip install $PKGS || (sleep 30 && pip install $PKGS)
+
+      - name: Daten neu berechnen
+        run: python3 dashboard-data/refresh.py "$RUNNER_TEMP/work"
+
+      - name: Commit und Push
+        run: |
+          git config --global user.name "Sin3qz"
+          git config --global user.email "patrickdietrich2@gmail.com"
+          git add data
+          git diff --cached --quiet && echo "Keine Aenderung" && exit 0
+          git commit -m "Dashboard-Daten aktualisiert [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            echo "Push fehlgeschlagen ($i/3) - neuer Versuch in 15 s"; sleep 15
+          done
+          exit 1

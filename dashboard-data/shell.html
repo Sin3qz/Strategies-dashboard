@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Strategien &amp; wikifolios</title>
+<meta name="description" content="Signale der Bots levGTAA, levTipsRegime, MR-Rebound-GTAA und 1xGTAA sowie die wikifolios LevGTAA und LevTipsRegime. Keine Anlageberatung.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232a78d6'/%3E%3Cpath d='M6 22l6-7 5 4 9-10' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+  /* Design-Tokens (Werte wie im Claude-Dashboard), hell und dunkel */
+  :root {
+    color-scheme: light dark;
+    --font-anthropic-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-anthropic-serif: ui-serif, Georgia, "Times New Roman", serif;
+    --color-fg: #0b0b0b; --color-fg-muted: #6f6d68; --color-bg: #f9f9f7; --color-panel: #fff;
+    --color-border-line: rgba(11, 11, 11, .1); --color-ok: #006300; --color-bad: #8e2626; --color-warn: #734500;
+    --cds-font-size-caption: .75rem; --cds-font-size-body: .875rem; --cds-font-size-heading: .9375rem; --cds-font-size-title: 1.375rem;
+    --cds-font-weight-medium: 600;
+    --cds-gap-xs: .375rem; --cds-gap-sm: .5rem; --cds-gap-md: .75rem; --cds-gap-lg: 1.25rem; --cds-gap-xl: 2rem;
+    --cds-pad-xs: .25rem; --cds-pad-sm: .375rem; --cds-pad-lg: .875rem; --cds-radius: .5rem;
+    --cds-chart-grid: rgba(11, 11, 11, .08); --cds-chart-muted: #c3c2b7; --cds-chart-reference: #898781; --cds-chart-status-critical: #d03b3b;
+    --cds-surface-popover: #fff; --cds-border: rgba(11, 11, 11, .12); --cds-shadow-popover: 0 8px 24px #0000001f, 0 2px 6px #00000014;
+    --cds-text-secondary: #52514e; --cds-dur-slow: .45s;
+    --c1: #2a78d6; --c2: #eb6834; --c3: #1baf7a; --c4: #eda100; --c5: #e87ba4; --c6: #008300; --c7: #6250d6; --c8: #e34948;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-fg: #f0efec; --color-fg-muted: #9c9a93; --color-bg: #0b0b0b; --color-panel: #1a1a19;
+      --color-border-line: rgba(255, 255, 255, .1); --color-ok: #0ca30c; --color-bad: #ec7e7e; --color-warn: #db9300;
+      --cds-chart-grid: rgba(255, 255, 255, .08); --cds-chart-muted: #5f5e5a; --cds-chart-reference: #97958d;
+      --cds-surface-popover: #20201f; --cds-border: rgba(255, 255, 255, .12); --cds-shadow-popover: 0 8px 24px #00000052, 0 2px 6px #0003;
+      --cds-text-secondary: #c3c2b7;
+      --c1: #3987e5; --c2: #d95926; --c3: #199e70; --c4: #c98500; --c5: #d55181; --c6: #008300; --c7: #9085e9; --c8: #e66767;
+    }
+  }
+  :root[data-theme="dark"] {
+    --color-fg: #f0efec; --color-fg-muted: #9c9a93; --color-bg: #0b0b0b; --color-panel: #1a1a19;
+    --color-border-line: rgba(255, 255, 255, .1); --color-ok: #0ca30c; --color-bad: #ec7e7e; --color-warn: #db9300;
+    --cds-chart-grid: rgba(255, 255, 255, .08); --cds-chart-muted: #5f5e5a; --cds-chart-reference: #97958d;
+    --cds-surface-popover: #20201f; --cds-border: rgba(255, 255, 255, .12); --cds-shadow-popover: 0 8px 24px #00000052, 0 2px 6px #0003;
+    --cds-text-secondary: #c3c2b7;
+    --c1: #3987e5; --c2: #d95926; --c3: #199e70; --c4: #c98500; --c5: #d55181; --c6: #008300; --c7: #9085e9; --c8: #e66767;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--color-bg); color: var(--color-fg); font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); line-height: 1.45; }
+  #dash-root { max-width: 1240px; margin: 0 auto; padding: 20px 16px 32px; }
+  @media (min-width: 900px) { #dash-root { padding: 28px 28px 40px; } }
+  .sd-shell-bar { display: flex; gap: 6px; margin-top: 10px; }
+  .sd-shell-bar button { font: inherit; font-size: .75rem; background: var(--color-panel); color: var(--color-fg); border: 1px solid var(--color-border-line);
+    border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+  .sd-foot { max-width: 1240px; margin: 0 auto; padding: 0 16px 56px; color: var(--color-fg-muted); font-size: .75rem; }
+  .sd-foot a { color: inherit; }
+  @media (min-width: 900px) { .sd-foot { padding: 0 28px 56px; } }
+</style>
+</head>
+<body>
+<div id="dash-root" data-dash-one-writer>
+<!--PAGE-->
+</div>
+<div class="sd-foot">
+  Daten: Status-Dateien der Bot-Repos auf GitHub, Tagessimulation mit deren Code auf Yahoo-Schlusskursen, Kennzahlen von wikifolio.com.
+  Eine GitHub Action im Repo <a href="https://github.com/Sin3qz/Strategies-dashboard">Strategies-dashboard</a> berechnet alles mehrmals täglich neu; die Seite lädt die Daten alle 10 Minuten nach.
+  Hebel-ETPs: Pfad- und Emittentenrisiko. Keine Anlageberatung. <a href="classic.html">Alte Ansicht</a>
+  <div class="sd-shell-bar"><button id="sd-reload" title="Daten neu laden">↻ Daten neu laden</button><button id="sd-theme" title="Hell/Dunkel umschalten">Hell / Dunkel</button></div>
+</div>
+
+<script>
+/* Kleine Laufzeit mit derselben Schnittstelle wie das Claude-Dashboard (dash.data, dash.calc, dash.draw, Filter). */
+(() => {
+  const FILES = {
+    build: 'build.json', wikifolios: 'wikifolios.json', wikifolio_history: 'wikifolio_history.csv', strategies: 'strategies.json',
+    allocations: 'allocations.json', signals: 'signals.json', levgtaa_history: 'levgtaa_history.csv',
+    daily_levgtaa: 'daily_levgtaa.csv', daily_mrrebound: 'daily_mrrebound.csv', daily_1xgtaa: 'daily_1xgtaa.csv', daily_levtips: 'daily_levtips.csv',
+  };
+  const DEFAULTS = {range: '1y', depot: 10000, strat: 'levgtaa', spx: 75};
+  const store = {}, status = {}, calcs = {}, draws = [], hooks = [];
+  let params = {...DEFAULTS};
+  try { Object.assign(params, JSON.parse(localStorage.getItem('sd-params') || '{}')); } catch (e) {}
+  const css = getComputedStyle(document.documentElement);
+  const colors = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => `var(--c${i})`);
+
+  const compute = (id) => {
+    const c = calcs[id];
+    if (!c) return null;
+    if (!('value' in c)) {
+      const ins = c.inputs.map((i) => (i in calcs ? compute(i) : store[i]));
+      c.value = ins.some((x) => x == null) ? null : c.fn(...ins);
+    }
+    return c.value;
+  };
+  window.dash = {
+    colors,
+    data(id) {
+      if (id in calcs) {
+        try { const v = compute(id); return v == null ? {status: 'loading', data: [], columns: []} : {status: 'ok', data: v, columns: v[0] ? Object.keys(v[0]) : []}; }
+        catch (e) { console.error(id, e); return {status: 'error', data: [], message: String(e), columns: []}; }
+      }
+      const d = store[id];
+      if (d == null) return {status: status[id] || 'loading', data: [], columns: []};
+      return {status: 'ok', data: d, columns: Array.isArray(d) && d[0] ? Object.keys(d[0]) : [], meta: []};
+    },
+    calc(id, o) { calcs[id] = {...o}; },
+    loader() {},
+    draw(name, fn) { draws.push([name, fn]); },
+    onData(fn) { hooks.push(fn); },
+    params() { return {...params}; },
+    setParams(p) { params = {...params, ...p}; try { localStorage.setItem('sd-params', JSON.stringify(params)); } catch (e) {} schedule(); },
+    resetParams() { params = {...DEFAULTS}; schedule(); },
+    setLink(name) { try { history.replaceState(null, '', '#' + name); } catch (e) {} schedule(); },
+    refresh() { load(); },
+  };
+
+  const run = () => {
+    hooks.forEach((fn) => { try { fn(); } catch (e) { console.error(e); } });
+    draws.forEach(([name, fn]) => document.querySelectorAll(`[data-draw="${name}"]`).forEach((el) => {
+      if (el.closest('[hidden]')) return;
+      try { fn(el); } catch (e) { console.error(name, e); }
+    }));
+    // var(...) in SVG-Attributen in CSS übertragen (nicht jeder Browser löst es in Attributen auf)
+    document.querySelectorAll('svg [fill*="var("], svg [stroke*="var("], svg [font-size*="var("]').forEach((n) => {
+      [['fill', 'fill'], ['stroke', 'stroke'], ['font-size', 'fontSize']].forEach(([a, p]) => {
+        const v = n.getAttribute(a);
+        if (v && v.includes('var(')) { n.style[p] = v; n.removeAttribute(a); }
+      });
+    });
+  };
+  let pending = 0;
+  const schedule = () => { cancelAnimationFrame(pending); pending = requestAnimationFrame(run); };
+
+  const load = async () => {
+    const v = Date.now();
+    await Promise.all(Object.entries(FILES).map(async ([id, f]) => {
+      try {
+        const r = await fetch(`data/${f}?v=${v}`, {cache: 'no-store'});
+        if (!r.ok) throw new Error(r.status);
+        const t = await r.text();
+        store[id] = f.endsWith('.csv') ? d3.csvParse(t) : JSON.parse(t);
+        status[id] = 'ok';
+      } catch (e) { status[id] = 'error'; console.error('Laden fehlgeschlagen', f, e); }
+    }));
+    Object.values(calcs).forEach((c) => { delete c.value; });
+    schedule();
+  };
+  window.__sdStart = () => {
+    load();
+    setInterval(() => { if (document.visibilityState === 'visible') load(); }, 10 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') load(); });
+    let w = window.innerWidth;
+    window.addEventListener('resize', () => { if (Math.abs(window.innerWidth - w) > 4) { w = window.innerWidth; schedule(); } });
+    document.getElementById('sd-reload').addEventListener('click', load);
+    document.getElementById('sd-theme').addEventListener('click', () => {
+      const root = document.documentElement;
+      const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+      root.dataset.theme = dark ? 'light' : 'dark';
+      try { localStorage.setItem('sd-theme', root.dataset.theme); } catch (e) {}
+      schedule();
+    });
+    try { const t = localStorage.getItem('sd-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  };
+})();
+</script>
+<!--SCRIPTS-->
+<script>window.__sdStart();</script>
+</body>
+</html>
