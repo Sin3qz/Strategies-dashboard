@@ -1,0 +1,54 @@
+name: Dashboard-Daten aktualisieren
+
+on:
+  schedule:
+    # UTC. Werktags stündlich von 05:41 bis 21:41 (Bots 05:17 + Retries, Sicherheitslauf 11:47; wikifolio-Kurse tagsüber),
+    # am Wochenende dreimal. GitHub startet geplante Läufe manchmal einige Minuten später.
+    - cron: "41 5-21 * * 1-5"
+    - cron: "41 7,13,19 * * 0,6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dashboard-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # PAT_PUSH (optional, wie bei den Bot-Repos): Push in deinem Namen -> GitHub deaktiviert den Zeitplan nicht nach 60 Tagen.
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_PUSH || github.token }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Abhaengigkeiten
+        run: |
+          PKGS='pandas>=2.2,<4 numpy>=1.26,<3 pandas_market_calendars>=4.4,<6 yahooquery'
+          pip install $PKGS || (sleep 30 && pip install $PKGS)
+
+      - name: Daten neu berechnen
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}       # optional: Push bei gekipptem Tagessignal (gleiches Topic wie die Bots)
+          NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
+        run: python3 dashboard-data/refresh.py "$RUNNER_TEMP/work"
+
+      - name: Commit und Push
+        run: |
+          git config --global user.name "Sin3qz"
+          git config --global user.email "patrickdietrich2@gmail.com"
+          git add data
+          git diff --cached --quiet && echo "Keine Aenderung" && exit 0
+          git commit -m "Dashboard-Daten aktualisiert"      # ohne [skip ci]: sonst baut GitHub Pages die Seite nicht neu
+          for i in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            echo "Push fehlgeschlagen ($i/3) - neuer Versuch in 15 s"; sleep 15
+          done
+          exit 1
