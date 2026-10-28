@@ -16,7 +16,7 @@ NAMES = {"NASDAQ100": "Nasdaq", "BTC": "Bitcoin", "UST_IEF": "UST 7-10y", "GOLD"
          "COMMODITIES": "Rohstoffe", "CASH_USD": "Geldmarkt"}
 LABEL = {"levgtaa": "levGTAA", "mrrebound": "MR-Rebound-GTAA", "1xgtaa": "1xGTAA", "levtips": "levTipsRegime"}
 SKIP = {"date", "cash", "vt_factor", "platz1", "held", "cooldown"}
-TIPS_TEXT = {"MARKET": "Markt (3x S&P 500 + 1x Bitcoin)", "IEF": "3x IEF (US-Treasury 7-10y)", "CASH": "Cash"}
+TIPS_TEXT = {"MARKET": "Markt (100 % 3x S&P 500)", "IEF": "3x IEF (US-Treasury 7-10y)", "CASH": "Cash"}
 
 
 def _last(path):

@@ -83,7 +83,7 @@
     perf_stats: 'perf_stats.json', equity: 'equity.csv', monthly_returns: 'monthly_returns.json', correlation: 'correlation.json',
     tracking: 'tracking.json', prices: 'prices.json', holdings: 'wikifolio_holdings.json',
   };
-  const DEFAULTS = {range: '1y', eqrange: 'max', wf: 'levgtaa', wf_target: 'held', spx: 75};
+  const DEFAULTS = {range: '1y', eqrange: 'max', wf: 'levgtaa', wf_target: 'held'};
   const store = {}, status = {}, calcs = {}, draws = [], hooks = [];
   let params = {...DEFAULTS};
   try { Object.assign(params, JSON.parse(localStorage.getItem('sd-params') || '{}')); } catch (e) {}

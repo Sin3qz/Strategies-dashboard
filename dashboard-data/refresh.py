@@ -85,7 +85,10 @@ def bots():
             row.update(vola_cap=v["cap"], vola_factor=v["factor"], vola_decision=v["decisionDate"],
                        vola_now=v["holdingNowMean"], vola_pre=v["signalPreMean"], vola_windows="/".join(map(str, v["windows"])))
         strategies.append(row)
-        for a in d["allocation"]:
+        al = d["allocation"]
+        if key == "levtipsregime" and any(a.get("weight") is None for a in al):     # alter Bot-Stand (Gewichtung frei): 100 % 3x S&P 500
+            al = [dict(a, weight=1.0) for a in al if a["asset"] == "SP500"] or al
+        for a in al:
             alloc.append({"strategy": key, "asset": a["asset"], "display": a["display"], "weight": a["weight"],
                           "leverage": a["leverage"], "product": a["product"], "isin": a["isin"]})
         for r in d["table"]["rows"]:
@@ -208,15 +211,16 @@ def wikifolios():
     if not rows:
         raise RuntimeError("kein wikifolio ladbar")
     wjson("wikifolios.json", rows)
-    cols = ["date", "key", "price", "perf_since_start", "max_loss", "reservations", "capital_eur", "watchlistings", "invested"]
+    cols = ["date", "key", "price", "perf_since_start", "max_loss", "reservations", "capital_eur", "watchlistings", "invested",
+            "high_watermark"]
     old = []
     if os.path.exists(HIST):
         with open(HIST, encoding="utf-8") as f:
             old = [r for r in csv.DictReader(f) if not (r["date"] == NOW.date().isoformat() and r["key"] in {x["key"] for x in fresh})]
-    new = old + [{"date": NOW.date().isoformat(), **{c: r[c] for c in cols[1:]}} for r in fresh]
+    new = old + [{"date": NOW.date().isoformat(), **{c: r.get(c) for c in cols[1:]}} for r in fresh]
     new.sort(key=lambda r: (r["date"], r["key"]))
     with open(HIST, "w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=cols); w.writeheader(); w.writerows(new)
+        w = csv.DictWriter(f, fieldnames=cols, restval=""); w.writeheader(); w.writerows(new)
 
 
 MANIFEST = {

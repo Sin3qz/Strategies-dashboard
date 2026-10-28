@@ -66,3 +66,38 @@ zusammen mit 1/3/6/12 nichts zusätzlich.
    seit 2019 hat er geschadet. Wenn du ihn behältst: beobachten (Dashboard zeigt „alte Regel“ zum Vergleich).
 3. **1xGTAA:** Momentum auf **1/3/6/12** umstellen, sonst alles lassen (täglich, Cooldown 10, SMA8/150, 40/60).
    Eine Zeile in `strategies/constants.py` (`lookbacks=(1,3,6,12)`); Warmup 252 Tage ist mit der Datenhistorie gedeckt.
+
+## Nachtrag 28.10.2026 (Abend): Entscheidungen und Gegenproben
+
+**levTipsRegime ohne Bitcoin (100 % 3x S&P 500 im Markt), Regel mit IEF (TLT/SMA200), Cooldown 10:**
+synthetisch ab 10/2004 36,1 % CAGR / −49,2 % Max-DD / Sharpe 1,07 (alte Regel ohne IEF 33,2 %). IEF-Zweig in allen
+100 SMA-Kombinationen vorn (Median +2,8 Pp), seit 2019 in 84 % hinten (Median −1,6 Pp). TLT-SMA 150/200/250:
+35,7/36,1/36,1 % → SMA200 passt. Mit echten Produkten ab 12/2014 (Dashboard): 30,6 % / −52 % (mit 25 % Bitcoin waren es
+42,7 % / −44 %).
+
+**1xGTAA – ist 1/3/6/12 überangepasst?** (ab 07/2009, täglich, Cooldown 10, 16 SMA-Kombinationen S 5–15 / L 125–200)
+
+| Momentum | CAGR (Median) | Max-DD | 2009–14 | 2015–20 | 2021–26 |
+|---|---|---|---|---|---|
+| 1/3/6/9 (alt) | 13,3 % | −20,8 % | 13,5 % | 9,7 % | 17,1 % |
+| **1/3/6/12** | **14,9 %** | **−17,1 %** | 12,8 % | 10,9 % | 21,1 % |
+| 1/3/6/9/12 | 14,1 % | −14,5 % | 14,3 % | 12,6 % | 15,4 % |
+| Nachbarn 1/3/6/10, /11, /13 | 13,8 / 13,0 / 12,0 % | | | | |
+
+- In allen 16 SMA-Kombinationen 2015–20 und 2021–26 vorn, 2009–14 in 15 von 16 leicht hinten.
+- Die 4. Länge ist verrauscht (Nachbarn 11 und 13 schwächer) → realistisch eher +0,5 bis +1 Pp statt +1,6 Pp.
+- 12 Monate ist die Standardlänge der Momentum-Literatur (Faber, Antonacci, Keller „13612“), nicht aus den Daten gesucht.
+- Fazit: kein Hinweis auf grobe Überanpassung, der Vorsprung ist aber kleiner als die Tabelle zeigt. Umgestellt.
+
+**1xGTAA-Cooldown** (1/3/6/12, Median über 16 SMA-Kombinationen): 0 Tage 10,8 %, 3: 13,1 %, 5: 14,6 %, 8: 13,8 %,
+**10: 14,9 %**, 12: 12,9 %, 15: 14,7 %, 20: 12,6 % → Hochebene 5–15, 10 liegt in der Mitte → bleibt.
+
+**1xGTAA-Produkte (in EUR, wöchentlich):**
+- Rohstoffe: einen UCITS-ETF auf den DBC-Index (DBIQ Optimum Yield Diversified) gibt es nicht mehr (der Xtrackers DBLCI
+  OY wurde 2021 auf Bloomberg ex-Agriculture umgestellt). Ab 02/2017 gegen DBC: Invesco Bloomberg (CMOD) 7,0 % p. a.
+  (Korr. 0,90), **WisdomTree Enhanced Commodity USD Acc (IE00BYMLZY74, Xetra WTIC; TER 0,23 %, 428 Mio. €)** 8,3 %
+  (Korr. 0,90), DBC 9,6 %. WisdomTree rollt ähnlich optimiert wie DBC → neues Produkt.
+- Cash: BIL in EUR gegen Xeon (EUR-Geldmarkt) Korrelation 0,07, Jahresabweichung bis ±13 Pp (Dollarkurs). **Xtrackers II
+  USD Overnight Rate Swap 1C (LU0321465469, Xetra XFFE; TER 0,10 %, 357 Mio. €)** seit 2015 je Jahr ≤ 1 Pp neben BIL →
+  neues Produkt (bildet das Signal ab; trägt wie die übrigen 1xGTAA-ETFs das Dollar-Risiko).
+- Mit Produkten ab 08/2022 (Dashboard): 18,0 % CAGR / −10,1 % Max-DD (vorher 13,3 % / −13 %).

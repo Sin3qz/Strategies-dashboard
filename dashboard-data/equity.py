@@ -29,16 +29,16 @@ PRODUCTS = {   # key: (Name, ISIN, Yahoo-Ticker, Waehrung)
     "EMUV": ("Amundi MSCI EMU Value UCITS", "LU1598690169", "AW1T.DE", "EUR"),
     "UST710": ("iShares $ Treasury 7-10y UCITS", "IE00B1FZS798", "IDTM.L", "USD"),
     "XGOLD": ("Xetra-Gold", "DE000A0S9GB0", "4GLD.DE", "EUR"),
-    "CMDTY": ("Invesco Bloomberg Commodity UCITS", "IE00BD6FTQ80", "CMOD.L", "USD"),
-    "XEON": ("Xtrackers EUR Overnight Rate (Xeon)", "LU0290358497", "XEON.DE", "EUR"),
+    "CMDTY": ("WisdomTree Enhanced Commodity UCITS USD Acc", "IE00BYMLZY74", "WCOA.L", "USD"),
+    "USDON": ("Xtrackers II USD Overnight Rate Swap 1C", "LU0321465469", "XFFE.DE", "EUR"),
 }
 MAP = {   # Strategie-Baustein -> Produkt
     "levgtaa": {"NASDAQ100": "NDX3", "BTC": "BTC1", "UST_IEF": "UST3", "GOLD": "GOLD3"},
     "mrrebound": {"NASDAQ100": "NDX3", "EM": "EM3", "INDIA": "IND3", "TLT_LONG": "TLT5"},
     "1xgtaa": {"NASDAQ100": "NDX1", "EM_SMALLCAP": "EMSC", "EMU_VALUE": "EMUV", "BONDS_7_10": "UST710", "GOLD": "XGOLD",
-               "COMMODITIES": "CMDTY", "CASH_USD": "XEON"},
+               "COMMODITIES": "CMDTY", "CASH_USD": "USDON"},
 }
-SPX_SHARE = 0.75    # levTipsRegime im Markt: Referenz-Aufteilung 75 % 3x S&P 500 / 25 % 1x Bitcoin (Bot gibt keine vor)
+SPX_SHARE = 1.0     # levTipsRegime im Markt: 100 % 3x S&P 500 (seit 28.10.2026 ohne Bitcoin; Bot: SPX_WEIGHT)
 STATE_W = {"MARKET": {"SPX3": SPX_SHARE, "BTC1": 1 - SPX_SHARE}, "IEF": {"UST3": 1.0}, "CASH": {}}
 LABEL = {"levgtaa": "levGTAA", "levtips": "levTipsRegime", "levtips_old": "levTipsRegime (alte Regel ohne IEF)",
          "1xgtaa": "1xGTAA", "mrrebound": "MR-Rebound-GTAA",

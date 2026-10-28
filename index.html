@@ -159,6 +159,17 @@
   .sd-calc input { width: 6.5rem; text-align: right; padding: 4px 6px; }
   .sd-calc .t td { font-weight: 600; }
   .sd-prod { display: block; color: var(--color-fg-muted); font-size: 0.92em; overflow-wrap: anywhere; font-weight: 400; }
+  @media (max-width: 760px) {      /* "Wenn heute gehandelt würde" auf dem Handy: ein Block je Strategie statt Querscrollen */
+    #ov-heute .sd-tw.wide table { min-width: 0; }
+    #ov-heute thead { display: none; }
+    #ov-heute tr { display: grid; grid-template-columns: 1fr auto; gap: 2px var(--cds-gap-sm); padding: 8px 0; border-bottom: 1px solid var(--color-border-line); }
+    #ov-heute td { border: 0; padding: 0; text-align: left; }
+    #ov-heute td:nth-child(4) { grid-row: 1; grid-column: 2; text-align: right; }
+    #ov-heute td:nth-child(2), #ov-heute td:nth-child(3) { grid-column: 1 / -1; }
+    #ov-heute td:nth-child(2)::before { content: "Soll: "; color: var(--color-fg-muted); }
+    #ov-heute td:nth-child(3)::before { content: "Heute: "; color: var(--color-fg-muted); }
+    #ov-heute td:nth-child(4)::before { content: "Abw. "; color: var(--color-fg-muted); font-weight: 400; }
+  }
   @media (max-width: 760px) {      /* Rechner auf dem Handy: eine Karte je Produkt */
     .sd-calc { min-width: 0; }
     .sd-calc thead { display: none; }
@@ -205,7 +216,7 @@
         <div class="sd-stats">
           <div class="sd-stat lead"><span class="sd-label">Seit Start</span><span class="v" data-draw="val" data-source="wikifolios" data-field="perf_since_start" data-where="key=levgtaa" data-fmt="spctA" data-fetchpriority="high">—</span></div>
           <div class="sd-stat lead"><span class="sd-label">Monat <span data-draw="val" data-source="wf_now" data-field="month_label" data-where="key=levgtaa">—</span></span><span class="v" data-draw="val" data-source="wf_now" data-field="month_ret" data-where="key=levgtaa" data-fmt="spctA">—</span></div>
-          <div class="sd-stat"><span class="sd-label">Abstand zur HWM</span><span data-draw="val" data-source="wf_now" data-field="hwm_gap" data-where="key=levgtaa" data-fmt="spctA">—</span></div>
+          <div class="sd-stat"><span class="sd-label">Abstand zur HWM</span><span data-draw="val" data-source="wf_now" data-field="hwm_label" data-where="key=levgtaa">—</span></div>
           <div class="sd-stat"><span class="sd-label">Watchlistings</span><span data-draw="val" data-source="wikifolios" data-field="watchlistings" data-where="key=levgtaa" data-fmt="int">—</span></div>
         </div>
         <div class="sd-block">
@@ -225,7 +236,7 @@
         <div class="sd-stats">
           <div class="sd-stat lead"><span class="sd-label">Seit Start</span><span class="v" data-draw="val" data-source="wikifolios" data-field="perf_since_start" data-where="key=levtipsregime" data-fmt="spctA" data-fetchpriority="high">—</span></div>
           <div class="sd-stat lead"><span class="sd-label">Monat <span data-draw="val" data-source="wf_now" data-field="month_label" data-where="key=levtipsregime">—</span></span><span class="v" data-draw="val" data-source="wf_now" data-field="month_ret" data-where="key=levtipsregime" data-fmt="spctA">—</span></div>
-          <div class="sd-stat"><span class="sd-label">Abstand zur HWM</span><span data-draw="val" data-source="wf_now" data-field="hwm_gap" data-where="key=levtipsregime" data-fmt="spctA">—</span></div>
+          <div class="sd-stat"><span class="sd-label">Abstand zur HWM</span><span data-draw="val" data-source="wf_now" data-field="hwm_label" data-where="key=levtipsregime">—</span></div>
           <div class="sd-stat"><span class="sd-label">Watchlistings</span><span data-draw="val" data-source="wikifolios" data-field="watchlistings" data-where="key=levtipsregime" data-fmt="int">—</span></div>
         </div>
         <div class="sd-block">
@@ -260,7 +271,7 @@
       </div>
       <div class="sd-card" id="ov-mix">
         <h3>Deine Mischungen: Exposure jetzt</h3>
-        <p class="sd-note">Mix A = 1/3 levTipsRegime + 2/3 levGTAA · Mix B = 1/3 levTipsRegime + 2/9 1xGTAA + 4/9 levGTAA (deine 33/66 bzw. 33/22/44, auf 100 % gerechnet). Exposure = Kapitalanteil × Hebel nach der aktuellen Bot-Position; levTipsRegime im Markt mit 75/25 gerechnet.</p>
+        <p class="sd-note">Mix A = 1/3 levTipsRegime + 2/3 levGTAA · Mix B = 1/3 levTipsRegime + 2/9 1xGTAA + 4/9 levGTAA (deine 33/66 bzw. 33/22/44, auf 100 % gerechnet). Exposure = Kapitalanteil × Hebel nach der aktuellen Bot-Position; levTipsRegime im Markt 100 % 3x S&amp;P 500.</p>
         <div class="sd-tw wide">
           <table data-source="mix_exposure" data-row-key="asset">
             <thead><tr><th data-field="asset">Baustein</th><th class="n" data-field="a_cap">Mix A Kapital</th><th class="n" data-field="a_exp">Mix A Exposure</th><th class="n" data-field="b_cap">Mix B Kapital</th><th class="n" data-field="b_exp">Mix B Exposure</th></tr></thead>
@@ -289,7 +300,7 @@
           <div class="sd-stat"><span class="sd-label">Max. Verlust</span><span data-draw="val" data-source="wikifolios" data-field="max_loss" data-where="key=levgtaa" data-fmt="spctA">—</span></div>
           <div class="sd-stat"><span class="sd-label">Indexstand</span><span data-draw="val" data-source="wikifolios" data-field="price" data-where="key=levgtaa" data-fmt="num2">—</span></div>
           <div class="sd-stat"><span class="sd-label">High-Watermark</span><span data-draw="val" data-source="wikifolios" data-field="high_watermark" data-where="key=levgtaa" data-fmt="num2">—</span></div>
-          <div class="sd-stat"><span class="sd-label">Abstand zur HWM</span><span data-draw="val" data-source="wf_now" data-field="hwm_gap" data-where="key=levgtaa" data-fmt="spctA">—</span></div>
+          <div class="sd-stat"><span class="sd-label">Abstand zur HWM</span><span data-draw="val" data-source="wf_now" data-field="hwm_label" data-where="key=levgtaa">—</span></div>
           <div class="sd-stat"><span class="sd-label">Volatilität</span><span data-draw="val" data-source="wikifolios" data-field="vola" data-where="key=levgtaa" data-fmt="pct1">—</span></div>
           <div class="sd-stat"><span class="sd-label">Sharpe Ratio</span><span data-draw="val" data-source="wikifolios" data-field="sharpe" data-where="key=levgtaa" data-fmt="num2">—</span></div>
           <div class="sd-stat"><span class="sd-label">Rendite/Risiko</span><span data-draw="val" data-source="wikifolios" data-field="ret_risk" data-where="key=levgtaa" data-fmt="num2">—</span></div>
@@ -325,7 +336,7 @@
           <div class="sd-stat"><span class="sd-label">Max. Verlust</span><span data-draw="val" data-source="wikifolios" data-field="max_loss" data-where="key=levtipsregime" data-fmt="spctA">—</span></div>
           <div class="sd-stat"><span class="sd-label">Indexstand</span><span data-draw="val" data-source="wikifolios" data-field="price" data-where="key=levtipsregime" data-fmt="num2">—</span></div>
           <div class="sd-stat"><span class="sd-label">High-Watermark</span><span data-draw="val" data-source="wikifolios" data-field="high_watermark" data-where="key=levtipsregime" data-fmt="num2">—</span></div>
-          <div class="sd-stat"><span class="sd-label">Abstand zur HWM</span><span data-draw="val" data-source="wf_now" data-field="hwm_gap" data-where="key=levtipsregime" data-fmt="spctA">—</span></div>
+          <div class="sd-stat"><span class="sd-label">Abstand zur HWM</span><span data-draw="val" data-source="wf_now" data-field="hwm_label" data-where="key=levtipsregime">—</span></div>
           <div class="sd-stat"><span class="sd-label">Volatilität</span><span data-draw="val" data-source="wikifolios" data-field="vola" data-where="key=levtipsregime" data-fmt="pct1">—</span></div>
           <div class="sd-stat"><span class="sd-label">Sharpe Ratio</span><span data-draw="val" data-source="wikifolios" data-field="sharpe" data-where="key=levtipsregime" data-fmt="num2">—</span></div>
           <div class="sd-stat"><span class="sd-label">Rendite/Risiko</span><span data-draw="val" data-source="wikifolios" data-field="ret_risk" data-where="key=levtipsregime" data-fmt="num2">—</span></div>
@@ -416,7 +427,7 @@
       </div>
       <div class="sd-card" id="levtipsregime">
         <div class="sd-chead">
-          <div><h3>levTipsRegime</h3><div class="sd-kind">täglich · Cooldown 10 · Markt: 3x S&amp;P 500 + 1x BTC · 3x IEF · Cash</div></div>
+          <div><h3>levTipsRegime</h3><div class="sd-kind">täglich · Cooldown 10 · Markt: 100 % 3x S&amp;P 500 · 3x IEF · Cash</div></div>
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="levtipsregime" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="levtipsregime" hidden>Cash</span><span data-draw="badge" data-key="levtipsregime" data-source="allocations"></span></span>
         </div>
         <p class="sd-note"><b>Gehalten (Bot):</b></p>
@@ -463,7 +474,7 @@
               <tbody data-draw="sig" data-key="1xgtaa"></tbody>
             </table>
           </div>
-          <p class="sd-note">MoM = Summe der 1/3/6/9-Monats-Renditen · Trend = SMA8/SMA150 − 1 (qualifiziert, wenn &gt; 0 und MoM &gt; 0) · Top-2 40/60</p>
+          <p class="sd-note">MoM = Summe der 1/3/6/12-Monats-Renditen · Trend = SMA8/SMA150 − 1 (qualifiziert, wenn &gt; 0 und MoM &gt; 0) · Top-2 40/60</p>
         </details>
       </div>
       <div class="sd-card" id="mrreboundgtaa">
@@ -515,7 +526,7 @@
 
   <!-- ===================== Performance ===================== -->
   <section id="performance" data-page="performance" hidden>
-    <p class="sd-sub">Realitätsnah gerechnet mit den gehandelten Produkten in EUR (3x-ETPs von WisdomTree bzw. Leverage Shares, UCITS-ETFs bei 1xGTAA; Bitcoin als BTC-EUR): Handel zum Schluss des Handelstags nach dem Signal, zwischen den Umschichtungen laufen die Gewichte mit, 0,1 % Kosten je umgeschichtetem Euro, Cash ohne Zins. Jede Kurve startet, sobald alle ihre Produkte Kurse haben. levTipsRegime im Markt mit 75 % 3x S&amp;P 500 / 25 % Bitcoin. Vergangene Ergebnisse sind keine Garantie.</p>
+    <p class="sd-sub">Realitätsnah gerechnet mit den gehandelten Produkten in EUR (3x-ETPs von WisdomTree bzw. Leverage Shares, UCITS-ETFs bei 1xGTAA; Bitcoin als BTC-EUR): Handel zum Schluss des Handelstags nach dem Signal, zwischen den Umschichtungen laufen die Gewichte mit, 0,1 % Kosten je umgeschichtetem Euro, Cash ohne Zins. Jede Kurve startet, sobald alle ihre Produkte Kurse haben. levTipsRegime im Markt mit 100 % 3x S&amp;P 500 (ohne Bitcoin). Vergangene Ergebnisse sind keine Garantie.</p>
     <div class="sd-card" id="equity-card">
       <div class="sd-controls">
         <h3>Wertentwicklung (logarithmisch, Start = 100 im gewählten Zeitraum)</h3>
@@ -571,7 +582,6 @@
         <label class="sd-field">Ziel
           <select class="sd-in-target"><option value="held">Bot-Position jetzt (Soll)</option><option value="today">Tagessignal heute (simuliert)</option></select>
         </label>
-        <label class="sd-field sd-spx-field">Anteil 3x S&amp;P 500 im Markt (%)<input class="sd-in-spx" type="number" min="0" max="100" step="5"></label>
         <label class="sd-field">Cash-Puffer für Gebühren (%)<input class="sd-in-reserve" type="number" min="0" max="5" step="0.05" inputmode="decimal" placeholder="Vorschlag"></label>
       </div>
       <p class="sd-note">Gebühren-Puffer: <span data-draw="reservehint" data-source="wikifolios monthly_returns">—</span> Leer lassen = Vorschlag verwenden.</p>
@@ -607,7 +617,7 @@
     perf_stats: 'perf_stats.json', equity: 'equity.csv', monthly_returns: 'monthly_returns.json', correlation: 'correlation.json',
     tracking: 'tracking.json', prices: 'prices.json', holdings: 'wikifolio_holdings.json',
   };
-  const DEFAULTS = {range: '1y', eqrange: 'max', wf: 'levgtaa', wf_target: 'held', spx: 75};
+  const DEFAULTS = {range: '1y', eqrange: 'max', wf: 'levgtaa', wf_target: 'held'};
   const store = {}, status = {}, calcs = {}, draws = [], hooks = [];
   let params = {...DEFAULTS};
   try { Object.assign(params, JSON.parse(localStorage.getItem('sd-params') || '{}')); } catch (e) {}
@@ -782,7 +792,7 @@
       };
       const statusOf = (s) => s.changeType ? s.changeType + ' – heute handeln' : (s.pendingTrade || s.pendingDecision) ? 'Wechsel ausstehend' : 'kein Handel';
       const daily = {levgtaa: daily_levgtaa, mrreboundgtaa: daily_mrrebound, '1xgtaa': daily_1xgtaa};
-      const tipsText = {MARKET: 'Markt (3x S&P 500 + 1x Bitcoin)', IEF: '100 % 3x UST 7-10y (IEF)', CASH: '100 % Cash'};
+      const tipsText = {MARKET: '100 % 3x S&P 500', IEF: '100 % 3x UST 7-10y (IEF)', CASH: '100 % Cash'};
       return ['levgtaa', 'mrreboundgtaa', '1xgtaa', 'levtipsregime'].map((k) => {
         const s = strategies.find((r) => r.key === k) || {};
         const held = {};
@@ -862,15 +872,18 @@
 
   dash.calc('wf_now', {
     title: 'wikifolio aktueller Monat',
-    description: 'Laufende Monatsperformance (letzter Indexstand gegen Vormonatsende bzw. 100 im Startmonat) und Abstand zur High-Watermark.',
+    description: 'Laufende Monatsperformance (letzter Indexstand gegen Vormonatsende bzw. 100 im Startmonat) und Abstand zur High-Watermark (0, wenn der Index über der gemeldeten HWM liegt: dann steht er auf einem neuen Hoch).',
     inputs: ['wf_months', 'wikifolios'],
     fn: (wf_months, wikifolios) => {
+      // liegt der Index über der von wikifolio gemeldeten HWM, steht er auf einem neuen Hoch (Abstand 0); wikifolio zieht die HWM nachträglich nach
+      const hwmGap = (w) => (Number(w.high_watermark) > 0 && Number(w.price) > 0 ? Math.min(0, Number(w.price) / Number(w.high_watermark) - 1) : null);
+      const hwmLabel = (g) => (g == null ? '–' : g > -0.0005 ? 'an der HWM' : '−' + (-g * 100).toLocaleString('de-DE', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + ' %');
       const mn = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
       return wikifolios.map((w) => {
         const m = wf_months[0];
         const label = m ? mn[Number(m.month.slice(5, 7)) - 1] + ' ' + m.month.slice(0, 4) : null;
         return {key: w.key, month_label: label, month_ret: m ? m[w.key] : null,
-          hwm_gap: Number(w.high_watermark) > 0 ? Number(w.price) / Number(w.high_watermark) - 1 : null};
+          hwm_gap: hwmGap(w), hwm_label: hwmLabel(hwmGap(w))};
       });
     },
   });
@@ -889,7 +902,7 @@
 
   dash.calc('mix_exposure', {
     title: 'Exposure deiner Mischungen',
-    description: 'Kapitalanteil und gehebeltes Exposure je Baustein für Mix A (1/3 levTipsRegime, 2/3 levGTAA) und Mix B (1/3, 2/9 1xGTAA, 4/9 levGTAA) nach der aktuellen Bot-Position; levTipsRegime im Markt 75/25.',
+    description: 'Kapitalanteil und gehebeltes Exposure je Baustein für Mix A (1/3 levTipsRegime, 2/3 levGTAA) und Mix B (1/3, 2/9 1xGTAA, 4/9 levGTAA) nach der aktuellen Bot-Position; levTipsRegime im Markt 100 % 3x S&P 500.',
     inputs: ['allocations'],
     fn: (allocations) => {
       const mixes = {a: {levtipsregime: 1 / 3, levgtaa: 2 / 3}, b: {levtipsregime: 1 / 3, '1xgtaa': 2 / 9, levgtaa: 4 / 9}};
@@ -902,7 +915,7 @@
           const al = allocations.filter((a) => a.strategy === strat && a.asset !== 'CASH');
           let used = 0;
           al.forEach((a) => {
-            const w = a.weight == null ? (a.asset === 'SP500' ? 0.75 : 0.25) : Number(a.weight);
+            const w = a.weight == null ? (a.asset === 'SP500' ? 1 : 0) : Number(a.weight);
             const n = names[a.asset] || a.asset;
             const r = rows[n] = rows[n] || {asset: n, a_cap: 0, a_exp: 0, b_cap: 0, b_exp: 0};
             r[m + '_cap'] += share * w; r[m + '_exp'] += share * w * Number(a.leverage || 1); used += w;
@@ -1023,7 +1036,7 @@
     el.replaceChildren();
     if (!rows || !rows.length) return;
     const st = rows[0].state;
-    if (st === 'MARKET') { el.appendChild(chipEl('SP500', ' 3x S&P 500', null)); el.appendChild(chipEl('BTC', ' 1x Bitcoin (Aufteilung frei)', null)); }
+    if (st === 'MARKET') el.appendChild(chipEl('SP500', ' 3x S&P 500', '100 %'));
     else if (st === 'IEF') el.appendChild(chipEl('UST_IEF', ' 3x US-Treasury 7-10y (IEF)', '100 %'));
     else el.appendChild(chipEl('CASH', ' Cash', '100 %'));
   });
@@ -1553,7 +1566,7 @@
     el.textContent = ist.total > 0 ? `${num(ist.total, 0)} € · Stand ${ist.stand ? window.sdFmt.deDate(ist.stand) : 'heute'}` : '';
   });
 
-  const targetOf = (wf, mode, spx) => {
+  const targetOf = (wf, mode) => {
     const t = {};
     if (mode === 'today') {
       if (wf === 'levgtaa') {
@@ -1562,14 +1575,14 @@
       } else {
         const d = rowsOf('daily_levtips'); const r = d && d[d.length - 1];
         const st = r && (r.state || (Number(r.market) === 1 ? 'MARKET' : 'CASH'));
-        if (st === 'MARKET') { t.SPX3 = spx; t.BTC1 = 1 - spx; } else if (st === 'IEF') t.UST3 = 1;
+        if (st === 'MARKET') t.SPX3 = 1; else if (st === 'IEF') t.UST3 = 1;
       }
     } else {
       const al = (rowsOf('allocations') || []).filter((a) => a.strategy === wf && a.asset !== 'CASH');
       al.forEach((a) => {
         const p = Object.keys(ASSET[wf]).find((k) => ASSET[wf][k] === a.asset);
         if (!p) return;
-        t[p] = a.weight == null ? (a.asset === 'SP500' ? spx : 1 - spx) : Number(a.weight);
+        t[p] = a.weight == null ? (a.asset === 'SP500' ? 1 : 0) : Number(a.weight);      // alter Bot-Status ohne Quote: 100 % S&P
       });
     }
     return t;
@@ -1591,15 +1604,14 @@
   const reserveOf = (wf) => { const v = dash.params()['reserve_' + wf]; return ok(v) && v !== '' ? Math.min(0.05, Math.max(0, Number(v) / 100)) : reserveSuggest(wf).r; };
   dash.draw('reservehint', (el) => {
     const wf = dash.params().wf === 'levtipsregime' ? 'levtipsregime' : 'levgtaa', s = reserveSuggest(wf);
-    el.textContent = `Vorschlag ${pct(s.r, 2)} = laufende Gebühr ${pct(s.fee, 2)} je Monat + Performancegebühr ${pct(s.perf, 0)} auf den Teil eines starken Monats (${spct(s.strong, 1)}, 90-%-Wert der Strategie), der über die High-Watermark hinausginge (wikifolio steht ${pct(-s.gap, 1)} darunter), plus 0,05 % Rundungsreserve, höchstens 1 %. Aktiv: ${pct(reserveOf(wf), 2)}.`;
+    el.textContent = `Vorschlag ${pct(s.r, 2)} = laufende Gebühr ${pct(s.fee, 2)} je Monat + Performancegebühr ${pct(s.perf, 0)} auf den Teil eines starken Monats (${spct(s.strong, 1)}, 90-%-Wert der Strategie), der über die High-Watermark hinausginge (${s.gap < -0.0005 ? `wikifolio steht ${pct(-s.gap, 1)} darunter` : 'wikifolio steht an der HWM'}), plus 0,05 % Rundungsreserve, höchstens 1 %. Aktiv: ${pct(reserveOf(wf), 2)}.`;
   });
   window.sdReserve = reserveOf;
 
   let calcState = null;     // letzte Berechnung fuer den Order-Block
   const compute = (wf) => {
     const p = dash.params(), mode = p.wf_target === 'today' ? 'today' : 'held';
-    const spx = Math.min(1, Math.max(0, Number(p.spx ?? 75) / 100 || 0));
-    const rows = holdings(), ist = istOf(wf), tgt0 = targetOf(wf, mode, spx);
+    const rows = holdings(), ist = istOf(wf), tgt0 = targetOf(wf, mode);
     const reserve = reserveOf(wf), inv = Object.values(tgt0).reduce((s2, v) => s2 + v, 0);
     const scale = inv > 0 ? Math.min(1, (1 - reserve) / inv) : 1;          // Bot-Cash reicht schon -> nichts kuerzen
     const tgt = Object.fromEntries(Object.entries(tgt0).map(([k, v]) => [k, v * scale]));
@@ -1743,13 +1755,12 @@
   document.querySelectorAll('[data-range]').forEach((b) => b.addEventListener('click', () => dash.setParams({range: b.dataset.range})));
   document.querySelectorAll('[data-eqrange]').forEach((b) => b.addEventListener('click', () => dash.setParams({eqrange: b.dataset.eqrange})));
 
-  const wfSel = document.querySelectorAll('.sd-in-wf'), tgtSel = document.querySelectorAll('.sd-in-target'), spx = document.querySelectorAll('.sd-in-spx');
+  const wfSel = document.querySelectorAll('.sd-in-wf'), tgtSel = document.querySelectorAll('.sd-in-target');
   const res = document.querySelectorAll('.sd-in-reserve');
   const curWf = () => (dash.params().wf === 'levtipsregime' ? 'levtipsregime' : 'levgtaa');
   res.forEach((i) => i.addEventListener('input', () => { if (i.value === '' || i.validity.valid) dash.setParams({['reserve_' + curWf()]: i.value === '' ? null : Number(i.value)}); }));
   wfSel.forEach((s) => s.addEventListener('change', () => dash.setParams({wf: s.value})));
   tgtSel.forEach((s) => s.addEventListener('change', () => dash.setParams({wf_target: s.value})));
-  spx.forEach((i) => i.addEventListener('input', () => { if (i.value !== '' && i.validity.valid) dash.setParams({spx: Number(i.value)}); }));
 
   dash.onData(() => {
     const p = dash.params();
@@ -1757,9 +1768,7 @@
     document.querySelectorAll('[data-eqrange]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.eqrange === (p.eqrange || 'max'))));
     wfSel.forEach((s) => { s.value = p.wf === 'levtipsregime' ? 'levtipsregime' : 'levgtaa'; });
     tgtSel.forEach((s) => { s.value = p.wf_target === 'today' ? 'today' : 'held'; });
-    spx.forEach((i) => { if (i !== document.activeElement) i.value = p.spx ?? 75; });
     res.forEach((i) => { if (i !== document.activeElement) { const v = p['reserve_' + curWf()]; i.value = v == null ? '' : v; } });
-    document.querySelectorAll('.sd-spx-field').forEach((f) => { f.hidden = p.wf !== 'levtipsregime'; });
   });
 })();
 </script>
