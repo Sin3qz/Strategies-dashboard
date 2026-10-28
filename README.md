@@ -14,7 +14,14 @@ Zeigt die Bots **levGTAA · MR-Rebound-GTAA · levTipsRegime · 1xGTAA** und die
   (levGTAA/MR-Rebound: jeder Tag wie ein Monatsletzter; 1xGTAA/levTipsRegime: ohne Cooldown), mit Zeitraumfilter
   und Liste der Signalwechsel.
 - **Strategien** – die vier Bot-Karten (wie die alte Ansicht `classic.html`) und der levGTAA-Allokationsverlauf.
-- **Rechner** – Zielbeträge je Baustein für einen Depotwert, gehalten vs. simuliert, mit Kauf-/Verkaufsdifferenz.
+- **Performance** – Equity der Strategien und deiner Mischungen mit den gehandelten Produkten in EUR, Kennzahlen,
+  Monatsrenditen, Korrelation (`dashboard-data/equity.py`).
+- **Rechner** – nur für deine wikifolios: Stückzahlen eintragen → Ist-Allokation, Ziel (Bot-Soll oder Tagessignal) mit
+  Cash-Puffer für die wikifolio-Gebühren, Order in ganzen Stück. Positionen optional für alle Geräte in
+  `data/wikifolio_holdings.json` speichern.
+- **Push** – ntfy-Meldung, wenn das simulierte Tagessignal kippt oder ein wikifolio investierbar wird (Secret `NTFY_TOPIC`).
+- **App** – auf dem Handy „Zum Home-Bildschirm“: öffnet sich wie eine App, zeigt offline den letzten Stand.
+- **Studien** – `studien/STUDIE.md`: Robustheit levGTAA, levTipsRegime (inkl. IEF) und 1xGTAA mit Empfehlungen.
 
 ## Wie es sich aktualisiert
 Die GitHub Action `.github/workflows/refresh-dashboard.yml` läuft 5× täglich (06:41, 08:11, 12:41, 16:11, 21:41 UTC)
