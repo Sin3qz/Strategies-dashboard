@@ -2,13 +2,10 @@ name: Dashboard-Daten aktualisieren
 
 on:
   schedule:
-    # UTC. Bots laufen 05:17 UTC (+ Retries) und 11:47 UTC (Sicherheitslauf); wikifolio-Kurse aendern sich tagsueber.
-    # 06:41 / 08:11 = nach dem Bot-Hauptlauf, 12:41 = nach dem Sicherheitslauf, 16:11 + 21:41 = wikifolio-Stand am Nachmittag/Abend.
-    - cron: "41 6 * * *"
-    - cron: "11 8 * * *"
-    - cron: "41 12 * * *"
-    - cron: "11 16 * * *"
-    - cron: "41 21 * * *"
+    # UTC. Werktags stündlich von 05:41 bis 21:41 (Bots 05:17 + Retries, Sicherheitslauf 11:47; wikifolio-Kurse tagsüber),
+    # am Wochenende dreimal. GitHub startet geplante Läufe manchmal einige Minuten später.
+    - cron: "41 5-21 * * 1-5"
+    - cron: "41 7,13,19 * * 0,6"
   workflow_dispatch:
 
 permissions:
@@ -49,7 +46,7 @@ jobs:
           git config --global user.email "patrickdietrich2@gmail.com"
           git add data
           git diff --cached --quiet && echo "Keine Aenderung" && exit 0
-          git commit -m "Dashboard-Daten aktualisiert [skip ci]"
+          git commit -m "Dashboard-Daten aktualisiert"      # ohne [skip ci]: sonst baut GitHub Pages die Seite nicht neu
           for i in 1 2 3; do
             git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
             echo "Push fehlgeschlagen ($i/3) - neuer Versuch in 15 s"; sleep 15

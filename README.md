@@ -6,14 +6,13 @@ Zeigt die Bots **levGTAA · MR-Rebound-GTAA · levTipsRegime · 1xGTAA** und die
 **LevGTAA (WFXLEVGTAA)** und **LevTipsRegime (WFXTIPSREG)**. Keine Anlageberatung.
 
 ## Bereiche
-- **Überblick** – wikifolio-Performance, levTipsRegime-Abstand zur Linie, levGTAA-Vola und je Strategie
-  „gehalten vs. wenn heute gehandelt würde“ mit dem Anteil, der umgeschichtet würde.
-- **wikifolios** – Kennzahlen von wikifolio.com (Index, High-Watermark, max. Verlust, Watchlistings, Rangliste,
-  Gebühren, Kriterien zur Investierbarkeit), Bot-Position, Backtest-Referenz, eigener Indexverlauf.
-- **Tagessignal** – für jeden US-Handelstag seit 2025 die Position, die die Bot-Regel auf dem Schlusskurs ergäbe
-  (levGTAA/MR-Rebound: jeder Tag wie ein Monatsletzter; 1xGTAA/levTipsRegime: ohne Cooldown), mit Zeitraumfilter
-  und Liste der Signalwechsel.
-- **Strategien** – die vier Bot-Karten (wie die alte Ansicht `classic.html`) und der levGTAA-Allokationsverlauf.
+- **Überblick** – je wikifolio (LevGTAA, LevTipsRegime) alle Kennzahlen von wikifolio.com (Performance, Monat, High-Watermark,
+  Watchlistings, Rangliste, Gebühren, investiertes Kapital, Investierbarkeit), Bot-Soll mit Produkt und ISIN, deine
+  Ist-Allokation, levTipsRegime-Abstand zur Linie; dazu Monatsperformance und wikifolio vs. Bot-Soll seit Start.
+- **Signale** – je Bot (levGTAA, levTipsRegime, 1xGTAA, MR-Rebound-GTAA) die gehaltene Position und das Tagessignal
+  („wenn heute gehandelt würde“; levGTAA/MR-Rebound: jeder Tag wie ein Monatsletzter, 1xGTAA/levTipsRegime ohne Cooldown),
+  jeweils mit Produkt und ISIN, Abweichung, Verlauf seit 2025, Zeitbalken der gehaltenen Position, Signaltabelle des Bots;
+  dazu die Liste der Signalwechsel und der levGTAA-Allokationsverlauf.
 - **Performance** – Equity der Strategien und deiner Mischungen mit den gehandelten Produkten in EUR, Kennzahlen,
   Monatsrenditen, Korrelation (`dashboard-data/equity.py`).
 - **Rechner** – nur für deine wikifolios: Stückzahlen eintragen → Ist-Allokation, Ziel (Bot-Soll oder Tagessignal) mit
@@ -24,7 +23,7 @@ Zeigt die Bots **levGTAA · MR-Rebound-GTAA · levTipsRegime · 1xGTAA** und die
 - **Studien** – `studien/STUDIE.md`: Robustheit levGTAA, levTipsRegime (inkl. IEF) und 1xGTAA mit Empfehlungen.
 
 ## Wie es sich aktualisiert
-Die GitHub Action `.github/workflows/refresh-dashboard.yml` läuft 5× täglich (06:41, 08:11, 12:41, 16:11, 21:41 UTC)
+Die GitHub Action `.github/workflows/refresh-dashboard.yml` läuft werktags stündlich (05:41–21:41 UTC) und am Wochenende 3×
 und kann unter *Actions → Dashboard-Daten aktualisieren → Run workflow* auch von Hand gestartet werden. Sie
 1. liest `status_*.json` und `history_levgtaa.txt` der Bot-Repos (öffentlich, Branch `main`),
 2. rechnet das Tagessignal mit dem Code der Bot-Repos auf Yahoo-Kursen (`dashboard-data/daily_signals.py`),

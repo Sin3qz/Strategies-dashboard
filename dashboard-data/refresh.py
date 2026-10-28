@@ -32,9 +32,9 @@ SIG_COLS = {"levgtaa": ["baustein", "momentum", "trend", "vola", "ziel"],
 # Backtest-Kennzahlen aus strategies/constants.py der Bot-Repos (Stand Freigabe 29.09./17.10.2026)
 WIKIFOLIOS = {
     "levgtaa": dict(symbol="wfxlevgtaa", strategy="levGTAA", bt_cagr=0.319, bt_maxdd=-0.43, bt_sortino=1.23,
-                    bt_label="Backtest 1993+ (3x IEF, Signal TLT)"),
-    "levtipsregime": dict(symbol="wfxtipsreg", strategy="levTipsRegime", bt_cagr=0.301, bt_maxdd=-0.50, bt_sortino=0.93,
-                          bt_label="Backtest 1987+ (Referenz 75 % 3x S&P 500 / 25 % 1x BTC)"),
+                    bt_label="Backtest 1993+ laut Bot-Repo (3x IEF, Signal TLT)"),
+    "levtipsregime": dict(symbol="wfxtipsreg", strategy="levTipsRegime", bt_cagr=0.361, bt_maxdd=-0.49, bt_sortino=1.13,
+                          bt_label="Backtest 10/2004+ (studien/STUDIE.md: 100 % 3x S&P 500, 3x IEF bei TIPS < SMA220 und TLT > SMA200, synthetisch)"),
 }
 TZ = ZoneInfo("Europe/Berlin")
 NOW = dt.datetime.now(TZ)
@@ -70,7 +70,7 @@ def wjson(name, obj):
 
 # ---------------------------------------------------------------------------
 def bots():
-    strategies, alloc, signals = [], [], []
+    strategies, alloc, signals, timeline = [], [], [], []
     for key, (repo, fn) in REPOS.items():
         d = json.loads(raw(repo, fn))
         row = {"key": key, "updated": d.get("updated"), "asOf": d.get("asOf"), "rebalance": d.get("rebalance"),
@@ -79,7 +79,9 @@ def bots():
                "pendingDecision": d.get("pendingDecision"), "pendingTrade": d.get("pendingTrade"), "late": bool(d.get("late")),
                "needsRetry": bool(d.get("needsRetry")), "warnings": " · ".join(d.get("dataWarnings") or []),
                "weightDecimals": d.get("weightDecimals") or 0, "since": d.get("since"),
-               "vola_cap": None, "vola_factor": None, "vola_decision": None, "vola_now": None, "vola_pre": None, "vola_windows": None}
+               "vola_cap": None, "vola_factor": None, "vola_decision": None, "vola_now": None, "vola_pre": None, "vola_windows": None,
+               "note": (d.get("table") or {}).get("note"), "tl_span": (d.get("timeline") or {}).get("span"),
+               "tl_what": (d.get("timeline") or {}).get("what")}
         v = d.get("vola")
         if v:
             row.update(vola_cap=v["cap"], vola_factor=v["factor"], vola_decision=v["decisionDate"],
@@ -91,6 +93,8 @@ def bots():
         for a in al:
             alloc.append({"strategy": key, "asset": a["asset"], "display": a["display"], "weight": a["weight"],
                           "leverage": a["leverage"], "product": a["product"], "isin": a["isin"]})
+        for t in (d.get("timeline") or {}).get("items") or []:
+            timeline.append({"strategy": key, "date": t.get("date"), "lead": t.get("lead"), "allocation": t.get("allocation")})
         for r in d["table"]["rows"]:
             rec = {"strategy": key}
             rec.update(dict(zip(SIG_COLS[key], r)))
@@ -102,6 +106,7 @@ def bots():
     wjson("strategies.json", strategies)
     wjson("allocations.json", alloc)
     wjson("signals.json", signals)
+    wjson("timeline.json", timeline)
     return {s["key"]: s for s in strategies}
 
 
@@ -231,6 +236,7 @@ MANIFEST = {
     "tracking": ("tracking.json", "Bot-Soll ab wikifolio-Start", "Equity der Bot-Allokation ab 01.10.2026 (Index 100) zum Vergleich mit dem wikifolio."),
     "prices": ("prices.json", "Produktkurse", "Letzter Kurs je gehandeltem Produkt in EUR (Yahoo; USD/Pence mit EURUSD/EURGBP umgerechnet)."),
     "holdings": ("wikifolio_holdings.json", "wikifolio-Positionen (deine Eingabe)", "Stückzahlen je Produkt in den wikifolios, von dir gepflegt (wikifolio zeigt Positionen nur angemeldet)."),
+    "timeline": ("timeline.json", "Zeitbalken der Bots", "Gehaltene Position der letzten 120 Handelstage bzw. Monatsentscheidungen je Strategie (timeline aus status_*.json)."),
     "build": ("build.json", "Letzte Aktualisierung", "Zeitpunkt des letzten Laufs der Aktualisierung und Quellen, die dabei nicht geladen werden konnten."),
     "wikifolios": ("wikifolios.json", "wikifolio-Kennzahlen",
                    "Kennzahlen der wikifolios LevGTAA (WFXLEVGTAA) und LevTipsRegime (WFXTIPSREG) von wikifolio.com, dazu die Backtest-Werte aus den Bot-Repos."),

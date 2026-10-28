@@ -101,3 +101,20 @@ synthetisch ab 10/2004 36,1 % CAGR / −49,2 % Max-DD / Sharpe 1,07 (alte Regel 
   USD Overnight Rate Swap 1C (LU0321465469, Xetra XFFE; TER 0,10 %, 357 Mio. €)** seit 2015 je Jahr ≤ 1 Pp neben BIL →
   neues Produkt (bildet das Signal ab; trägt wie die übrigen 1xGTAA-ETFs das Dollar-Risiko).
 - Mit Produkten ab 08/2022 (Dashboard): 18,0 % CAGR / −10,1 % Max-DD (vorher 13,3 % / −13 %).
+
+**levGTAA – täglich mit Cooldown statt monatlich?** (synthetisch ab 06/2004, gleicher Kern, Vol-Target 55 %; umschichten,
+wenn sich die Bausteine ändern oder der Umschlag eine Schwelle übersteigt, danach Sperre)
+
+| Variante | CAGR | Max-DD | Umschichtungen/Jahr |
+|---|---|---|---|
+| **monatlich (aktuell)** | **40,5 %** | **−44,5 %** | 12 |
+| täglich, Cooldown 10, nur bei Baustein-Wechsel | 41,2 % | −46,9 % | 9 |
+| täglich, Cooldown 10, Schwelle 10 % / 20 % / 30 % | 37,5 / 40,7 / 40,9 % | −46,9 % | 10–14 |
+| täglich, Cooldown 5 (alle Schwellen) | 36,0–39,0 % | −45 bis −47 % | 13–22 |
+| täglich, Cooldown 15 / 21 (alle Schwellen) | 37,6–38,9 % / 34,8–40,0 % | bis −58 % | 7–11 |
+
+Nur eine von 16 Varianten ist knapp besser (+0,7 Pp bei tieferem Drawdown), die meisten schlechter → monatlich bleibt.
+Grund: levGTAA mittelt über 202 Teilentscheidungen und skaliert per Vol-Target; die Zielquoten ändern sich fast täglich ein
+wenig, ein „Wechsel“ ist nicht klar definiert und das Ergebnis hängt an willkürlichen Schwellen. 1xGTAA dagegen kennt nur
+„Baustein qualifiziert ja/nein“ (Top-2, 40/60) – ein Wechsel ist eindeutig, die tägliche Prüfung reagiert früher und es
+entfällt das Glück des Handelstags (monatliche Tranchen 11,1–15,0 %).
