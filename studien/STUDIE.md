@@ -118,3 +118,26 @@ Grund: levGTAA mittelt über 202 Teilentscheidungen und skaliert per Vol-Target;
 wenig, ein „Wechsel“ ist nicht klar definiert und das Ergebnis hängt an willkürlichen Schwellen. 1xGTAA dagegen kennt nur
 „Baustein qualifiziert ja/nein“ (Top-2, 40/60) – ein Wechsel ist eindeutig, die tägliche Prüfung reagiert früher und es
 entfällt das Glück des Handelstags (monatliche Tranchen 11,1–15,0 %).
+
+**1xGTAA – SMA-Längen (Momentum 1/3/6/12, täglich, Cooldown 10, ab 07/2009, 56 Kombinationen; lange Historie mit EEM vor
+EEMS und EZU vor EMU Value)**
+
+CAGR in % (Zeile = kurze SMA S, Spalte = lange SMA L):
+
+| S \ L | 100 | 125 | 150 | 175 | 200 | 225 | 250 |
+|---|---|---|---|---|---|---|---|
+| 1 | 11,6 | 12,2 | 13,8 | 14,1 | 14,5 | 14,5 | 14,8 |
+| 3 | 11,9 | 13,7 | 13,4 | 14,6 | 15,2 | 14,4 | 14,5 |
+| 5 | 11,3 | 14,0 | 14,5 | 15,1 | 14,7 | 14,4 | 14,4 |
+| **8** | 11,8 | 14,0 | **15,1** | 15,3 | 15,1 | 14,9 | 14,4 |
+| 10 | 12,5 | 13,9 | 15,2 | 15,5 | 15,0 | 14,6 | 14,4 |
+| 15 | 13,3 | 13,9 | 14,7 | 15,1 | 14,3 | 14,4 | 14,1 |
+| 20 | 12,9 | 13,2 | 14,6 | 14,7 | 14,1 | 13,8 | 13,8 |
+| 30 | 12,0 | 13,2 | 13,7 | 14,0 | 14,0 | 13,8 | 13,2 |
+
+- SMA8/150: 15,1 % CAGR, −17,1 % Max-DD, Sharpe 1,12 (Platz 8 von 56 nach CAGR, Platz 6 nach Sharpe).
+- Hochebene S 5–15 / L 150–200: 14,3–15,5 % CAGR, Sharpe 1,07–1,14 → 8/150 liegt mitten drin, kein Ausreißer.
+- Nur L = 100 (11–13 %) und S = 30 fallen klar ab.
+- Out-of-Sample: Das beste Paar auf 2009–2017 (10/175, 11,9 %) brachte 2018–2026 18,9 %; 8/150 brachte 18,4 %
+  (Median aller Paare 17,8 %). Rangkorrelation In- zu Out-of-Sample 0,59 → die Hochebene ist stabil, die Wahl innerhalb
+  der Hochebene ist Rauschen. **Ergebnis: SMA8/150 beibehalten.**
