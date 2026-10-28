@@ -143,14 +143,14 @@
   </header>
 
   <nav class="sd-tabs" role="tablist" aria-label="Bereiche">
-    <button class="sd-tab" role="tab" data-tab="ueberblick" aria-selected="true">Überblick</button>
+    <button class="sd-tab" role="tab" data-tab="wikifolios" aria-selected="true">wikifolios</button>
     <button class="sd-tab" role="tab" data-tab="signale" aria-selected="false">Signale</button>
     <button class="sd-tab" role="tab" data-tab="performance" aria-selected="false">Performance</button>
     <button class="sd-tab" role="tab" data-tab="rechner" aria-selected="false">Rechner</button>
   </nav>
 
-  <!-- ===================== Überblick ===================== -->
-  <section id="ueberblick" data-page="ueberblick">
+  <!-- ===================== wikifolios ===================== -->
+  <section id="wikifolios" data-page="wikifolios">
     <p class="sd-sub">Je wikifolio: Kennzahlen von wikifolio.com (mehrmals täglich abgerufen; „–“ = noch nicht ausgewiesen), Bot-Soll mit Produktvorschlag und deine Ist-Allokation aus dem Rechner.</p>
     <div class="sd-grid2 sd-sync">
       <div class="sd-card" id="ov-levgtaa">
@@ -570,7 +570,7 @@
       </div>
       <div class="sd-block">
         <div class="sd-block-h"><span>Auf allen Geräten anzeigen (optional)</span><span></span></div>
-        <p class="sd-note">Deine Eingaben bleiben auf diesem Gerät gespeichert. Damit Überblick und wikifolios-Tab die Ist-Allokation überall zeigen: „Text kopieren“ → „Datei auf GitHub öffnen“ → alles ersetzen → „Commit changes“.</p>
+        <p class="sd-note">Deine Eingaben bleiben auf diesem Gerät gespeichert. Damit der Tab wikifolios die Ist-Allokation auf allen Geräten zeigt: „Text kopieren“ → „Datei auf GitHub öffnen“ → alles ersetzen → „Commit changes“.</p>
         <div class="sd-fields"><button class="sd-btn sd-copy" type="button"><span class="sd-copy-a">Text kopieren</span><span class="sd-copy-b" hidden>Kopiert ✓</span></button><a class="sd-btn" href="https://github.com/Sin3qz/Strategies-dashboard/edit/main/data/wikifolio_holdings.json" target="_blank" rel="noopener">Datei auf GitHub öffnen</a><button class="sd-btn sd-reset" type="button">Eingaben dieses Geräts löschen</button></div>
         <textarea class="sd-json" readonly aria-label="Positionen als Text" data-draw="holdjson" data-source="holdings"></textarea>
       </div>
@@ -1619,8 +1619,8 @@
 <script>
 (() => {
   // Tabs
-  const TABS = ['ueberblick', 'signale', 'performance', 'rechner'];
-  const OLD = {tagessignal: 'signale', strategien: 'signale', wikifolios: 'ueberblick'};
+  const TABS = ['wikifolios', 'signale', 'performance', 'rechner'];
+  const OLD = {tagessignal: 'signale', strategien: 'signale', ueberblick: 'wikifolios'};
   const show = (id) => {
     document.querySelectorAll('[data-page]').forEach((s) => { s.hidden = s.dataset.page !== id; });
     document.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === id)));

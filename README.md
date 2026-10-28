@@ -6,7 +6,7 @@ Zeigt die Bots **levGTAA · MR-Rebound-GTAA · levTipsRegime · 1xGTAA** und die
 **LevGTAA (WFXLEVGTAA)** und **LevTipsRegime (WFXTIPSREG)**. Keine Anlageberatung.
 
 ## Bereiche
-- **Überblick** – je wikifolio (LevGTAA, LevTipsRegime) alle Kennzahlen von wikifolio.com (Performance, Monat, High-Watermark,
+- **wikifolios** (Startseite) – je wikifolio (LevGTAA, LevTipsRegime) alle Kennzahlen von wikifolio.com (Performance, Monat, High-Watermark,
   Watchlistings, Rangliste, Gebühren, investiertes Kapital, Investierbarkeit), Bot-Soll mit Produkt und ISIN, deine
   Ist-Allokation, levTipsRegime-Abstand zur Linie; dazu Monatsperformance und wikifolio vs. Bot-Soll seit Start.
 - **Signale** – je Bot (levGTAA, levTipsRegime, 1xGTAA, MR-Rebound-GTAA) die gehaltene Position und das Tagessignal
