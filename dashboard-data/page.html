@@ -542,7 +542,7 @@
           <select class="sd-in-target"><option value="held">Bot-Position jetzt (Soll)</option><option value="today">Tagessignal heute (simuliert)</option></select>
         </label>
         <label class="sd-field sd-spx-field">Anteil 3x S&amp;P 500 im Markt (%)<input class="sd-in-spx" type="number" min="0" max="100" step="5"></label>
-        <label class="sd-field">Cash-Puffer für Gebühren (%)<input class="sd-in-reserve" type="number" min="0" max="5" step="0.05" inputmode="decimal"></label>
+        <label class="sd-field">Cash-Puffer für Gebühren (%)<input class="sd-in-reserve" type="number" min="0" max="5" step="0.05" inputmode="decimal" placeholder="Vorschlag"></label>
       </div>
       <p class="sd-note">Gebühren-Puffer: <span data-draw="reservehint" data-source="wikifolios monthly_returns">—</span> Leer lassen = Vorschlag verwenden.</p>
       <div class="sd-tw"><div data-draw="wfcalc" data-source="holdings prices allocations alloc_cash daily_levgtaa daily_levtips wikifolios monthly_returns"></div></div>
@@ -553,7 +553,7 @@
       <div class="sd-block">
         <div class="sd-block-h"><span>Auf allen Geräten anzeigen (optional)</span><span></span></div>
         <p class="sd-note">Deine Eingaben bleiben auf diesem Gerät gespeichert. Damit Überblick und wikifolios-Tab die Ist-Allokation überall zeigen: „Text kopieren“ → „Datei auf GitHub öffnen“ → alles ersetzen → „Commit changes“.</p>
-        <div class="sd-fields"><button class="sd-btn sd-copy" type="button">Text kopieren</button><a class="sd-btn" href="https://github.com/Sin3qz/Strategies-dashboard/edit/main/data/wikifolio_holdings.json" target="_blank" rel="noopener">Datei auf GitHub öffnen</a><button class="sd-btn sd-reset" type="button">Eingaben dieses Geräts löschen</button></div>
+        <div class="sd-fields"><button class="sd-btn sd-copy" type="button"><span class="sd-copy-a">Text kopieren</span><span class="sd-copy-b" hidden>Kopiert ✓</span></button><a class="sd-btn" href="https://github.com/Sin3qz/Strategies-dashboard/edit/main/data/wikifolio_holdings.json" target="_blank" rel="noopener">Datei auf GitHub öffnen</a><button class="sd-btn sd-reset" type="button">Eingaben dieses Geräts löschen</button></div>
         <textarea class="sd-json" readonly aria-label="Positionen als Text" data-draw="holdjson" data-source="holdings"></textarea>
       </div>
     </div>
@@ -1499,11 +1499,12 @@
     dash.setParams({holdings_rev: Date.now()});
   };
 
+  const calcWf = new WeakMap();                                // welches wikifolio die Tabelle gerade zeigt
   dash.draw('wfcalc', (el) => {
-    if (el.contains(document.activeElement) && el.dataset.wf === (dash.params().wf || 'levgtaa')) { updateOut(el); return; }
-    el.replaceChildren();
     const wf = dash.params().wf === 'levtipsregime' ? 'levtipsregime' : 'levgtaa';
-    el.dataset.wf = wf;
+    if (el.contains(document.activeElement) && calcWf.get(el) === wf) { updateOut(el); return; }
+    el.replaceChildren();
+    calcWf.set(el, wf);
     const rows = holdings(), prices = rowsOf('prices') || [];
     const t = document.createElement('table'); t.className = 'sd-calc';
     const head = ['Produkt', 'Stück', 'Kurs €', 'Wert €', 'Ist', 'Ziel', 'Ziel €', 'Differenz €', 'Order'];
@@ -1542,7 +1543,7 @@
   });
 
   const updateOut = (el) => {
-    const wf = el.dataset.wf; if (!wf) return;
+    const wf = calcWf.get(el); if (!wf) return;
     const s = compute(wf), eur = (v) => num(Math.round(v), 0);
     s.lines.forEach((l) => {
       const tr = el.querySelector(`tr[data-p="${l.pr}"]`); if (!tr) return;
@@ -1561,13 +1562,11 @@
     const tot = el.querySelector('[data-c="total"]'); if (tot) tot.textContent = eur(s.total);
     const ws = el.querySelector('[data-c="wsum"]'); if (ws) ws.textContent = s.total ? '100,0 %' : '–';
     const ts = el.querySelector('[data-c="tsum"]'); if (ts) ts.textContent = '100,0 %';
-    document.querySelectorAll('[data-draw="orders"]').forEach(drawOrders);
-    document.querySelectorAll('[data-draw="holdjson"]').forEach(drawJson);
   };
 
   const drawOrders = (el) => {
     el.replaceChildren();
-    const s = calcState;
+    const s = compute(dash.params().wf === 'levtipsregime' ? 'levtipsregime' : 'levgtaa');
     if (!s || !(s.total > 0)) { const d = document.createElement('div'); d.className = 'sd-note'; d.textContent = 'Trag oben deine Stückzahlen und das Cash ein.'; el.appendChild(d); return; }
     if (s.missing.length) { const d = document.createElement('div'); d.className = 'sd-warn'; d.textContent = `Kurs fehlt für: ${s.missing.map((p) => NAMES[p] || p).join(', ')}`; el.appendChild(d); }
     const orders = s.lines.filter((l) => l.diffQ);
@@ -1588,8 +1587,9 @@
 
   document.querySelectorAll('.sd-copy').forEach((b) => b.addEventListener('click', async () => {
     const ta = document.querySelector('.sd-json'); if (!ta) return;
-    try { await navigator.clipboard.writeText(ta.value); b.textContent = 'Kopiert ✓'; } catch (e) { ta.select(); document.execCommand && document.execCommand('copy'); b.textContent = 'Markiert – jetzt kopieren'; }
-    setTimeout(() => { b.textContent = 'Text kopieren'; }, 2500);
+    try { await navigator.clipboard.writeText(ta.value); } catch (e) { ta.select(); if (document.execCommand) document.execCommand('copy'); }
+    const flip = (done) => { b.querySelectorAll('.sd-copy-a').forEach((x) => { x.hidden = done; }); b.querySelectorAll('.sd-copy-b').forEach((x) => { x.hidden = !done; }); };
+    flip(true); setTimeout(() => flip(false), 2500);
   }));
   document.querySelectorAll('.sd-reset').forEach((b) => b.addEventListener('click', () => { store.clear(); dash.setParams({holdings_rev: Date.now()}); }));
 })();
@@ -1625,7 +1625,7 @@
     wfSel.forEach((s) => { s.value = p.wf === 'levtipsregime' ? 'levtipsregime' : 'levgtaa'; });
     tgtSel.forEach((s) => { s.value = p.wf_target === 'today' ? 'today' : 'held'; });
     spx.forEach((i) => { if (i !== document.activeElement) i.value = p.spx ?? 75; });
-    res.forEach((i) => { if (i !== document.activeElement) { const v = p['reserve_' + curWf()]; i.value = v == null ? '' : v; i.placeholder = window.sdReserve ? (Math.round(window.sdReserve(curWf()) * 10000) / 100).toString().replace('.', ',') : ''; } });
+    res.forEach((i) => { if (i !== document.activeElement) { const v = p['reserve_' + curWf()]; i.value = v == null ? '' : v; } });
     document.querySelectorAll('.sd-spx-field').forEach((f) => { f.hidden = p.wf !== 'levtipsregime'; });
   });
 })();
