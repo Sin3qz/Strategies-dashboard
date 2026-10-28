@@ -51,6 +51,9 @@ def raw(repo, path):
 
 
 def clone(repo):
+    local = os.environ.get("BOT_REPO_DIR")              # lokal: vorhandene Checkouts statt frischem Klon (Tests)
+    if local and os.path.isdir(os.path.join(local, repo)):
+        return os.path.join(local, repo)
     d = os.path.join(WORK, repo)
     if os.path.isdir(os.path.join(d, ".git")):
         subprocess.run(["git", "-C", d, "fetch", "-q", "--depth", "1", "origin", "main"], check=True)
@@ -105,12 +108,15 @@ def daily():
                        ("1xgtaa-signalbot", "1xgtaa"), ("levtipsregime-signalbot", "levtips")):
         try:
             d = clone(repo)
-            out = os.path.join(OUT, f"daily_{mode}.csv"); tmp = out + ".tmp"
+            tmp = os.path.join(WORK, f"daily_{mode}.csv")
             subprocess.run([sys.executable, script, d, mode, tmp], check=True)
             with open(tmp, encoding="utf-8") as f:
                 n = sum(1 for _ in f) - 1
-            assert n > 300, f"nur {n} Zeilen"
-            os.replace(tmp, out)
+            with open(tmp[:-4] + "_decisions.csv", encoding="utf-8") as f:
+                nd = sum(1 for _ in f) - 1
+            assert n > 300 and nd > 100, f"nur {n} Tage / {nd} Entscheidungen"
+            shutil.copyfile(tmp, os.path.join(OUT, f"daily_{mode}.csv"))
+            shutil.copyfile(tmp[:-4] + "_decisions.csv", os.path.join(WORK, f"decisions_{mode}.csv"))
         except Exception as e:
             ERRORS.append(f"Tagessignal {mode}: {e}")
             traceback.print_exc()
@@ -130,6 +136,13 @@ def wikifolio(key, meta):
         return None
     risk = kf.get("otherKeyRiskIndicators") or []
     perf = kf.get("kpis") or []
+    top = [{"rankings": kf.get("topKpis") or []}]
+
+    def single(name):                                    # Einzelkennzahl (investiertes Kapital, Handelsvolumen, ...)
+        try:
+            return (kf.get(name) or {}).get("ranking", {}).get("value")
+        except AttributeError:
+            return None
     investable = bool(cert.get("isin"))
     row = {
         "key": key, "name": wf["shortDescription"], "symbol": md["symbol"]["value"], "strategy": meta["strategy"],
@@ -137,7 +150,15 @@ def wikifolio(key, meta):
         "trader": data["trader"]["nickName"], "created": md["creationDate"]["value"][:10],
         "perf_since_start": data["structuredData"]["performanceSinceCreation"],
         "perf_ytd": rank(perf, "Seit Jahresbeginn"),
+        "perf_1m": rank(top, "Performance (1 M)"),
+        "vola": rank(top, "Volatilität"),
+        "avg_pa": rank(perf[:1], "Ø-Performance pro Jahr (Max)"),
         "max_loss": rank(risk[:1], "Maximaler Verlust"),
+        "sharpe": rank(risk[:1], "Sharpe Ratio"), "ret_risk": rank(risk[:1], "Rendite/Risiko"),
+        "invested": single("totalInvestments"), "trading_volume": single("tradingVolume"),
+        "liquidation": single("liquidationFigure"),
+        "last_login": (data["trader"].get("lastLogin") or "")[:10] or None,
+        "emission": (cert.get("emissionDate") or "")[:10] or None,
         "high_watermark": md["highWatermark"]["value"], "price": data["structuredData"]["price"],
         "watchlistings": rank(perf, "Watchlistings"), "rank_place": rank(perf, "wikifolio Rangliste"),
         "status": "Investierbar" if investable else "Vorschau", "isin": cert.get("isin"),
@@ -170,7 +191,7 @@ def wikifolios():
     if not rows:
         raise RuntimeError("kein wikifolio ladbar")
     wjson("wikifolios.json", rows)
-    cols = ["date", "key", "price", "perf_since_start", "max_loss", "reservations", "capital_eur", "watchlistings"]
+    cols = ["date", "key", "price", "perf_since_start", "max_loss", "reservations", "capital_eur", "watchlistings", "invested"]
     old = []
     if os.path.exists(HIST):
         with open(HIST, encoding="utf-8") as f:
@@ -182,6 +203,13 @@ def wikifolios():
 
 
 MANIFEST = {
+    "perf_stats": ("perf_stats.json", "Performance-Kennzahlen", "CAGR, Max-Drawdown, Volatilität, Sharpe usw. je Strategie und Mischung, gerechnet mit den gehandelten Produkten in EUR (dashboard-data/equity.py)."),
+    "equity": ("equity.csv", "Equity-Kurven", "Wertentwicklung je Strategie und Mischung (Start 100), echte Produktkurse in EUR, Handel am Tag nach dem Signal, 0,1 % Kosten je Umschichtung."),
+    "monthly_returns": ("monthly_returns.json", "Monatsrenditen", "Monatsrendite je Strategie und Mischung aus den Equity-Kurven."),
+    "correlation": ("correlation.json", "Korrelation", "Korrelation der Tagesrenditen der vier Strategien im gemeinsamen Zeitraum."),
+    "tracking": ("tracking.json", "Bot-Soll ab wikifolio-Start", "Equity der Bot-Allokation ab 01.10.2026 (Index 100) zum Vergleich mit dem wikifolio."),
+    "prices": ("prices.json", "Produktkurse", "Letzter Kurs je gehandeltem Produkt in EUR (Yahoo; USD/Pence mit EURUSD/EURGBP umgerechnet)."),
+    "holdings": ("wikifolio_holdings.json", "wikifolio-Positionen (deine Eingabe)", "Stückzahlen je Produkt in den wikifolios, von dir gepflegt (wikifolio zeigt Positionen nur angemeldet)."),
     "build": ("build.json", "Letzte Aktualisierung", "Zeitpunkt des letzten Laufs der Aktualisierung und Quellen, die dabei nicht geladen werden konnten."),
     "wikifolios": ("wikifolios.json", "wikifolio-Kennzahlen",
                    "Kennzahlen der wikifolios LevGTAA (WFXLEVGTAA) und LevTipsRegime (WFXTIPSREG) von wikifolio.com, dazu die Backtest-Werte aus den Bot-Repos."),
@@ -215,11 +243,32 @@ def step(name, fn):
         return None
 
 
+HOLDINGS_TEMPLATE = [   # wird nur angelegt, wenn die Datei fehlt; deine Eintraege ueberschreibt die Aktualisierung nie
+    {"wikifolio": "levgtaa", "product": p, "stueck": 0, "kurs_eur": None, "stand": None} for p in ("NDX3", "BTC1", "UST3", "GOLD3")
+] + [{"wikifolio": "levtipsregime", "product": p, "stueck": 0, "kurs_eur": None, "stand": None} for p in ("SPX3", "BTC1", "UST3")
+] + [{"wikifolio": w, "product": "CASH", "stueck": 0, "kurs_eur": 1, "stand": None} for w in ("levgtaa", "levtipsregime")]
+
+
+def holdings():
+    path = os.path.join(OUT, "wikifolio_holdings.json")
+    if not os.path.exists(path):
+        wjson("wikifolio_holdings.json", HOLDINGS_TEMPLATE)
+
+
 def main():
     os.makedirs(OUT, exist_ok=True); os.makedirs(WORK, exist_ok=True)
     st = step("Bot-Status", bots)
     daily()
     step("wikifolio", wikifolios)
+    holdings()
+    sys.path.insert(0, HERE)
+    import equity, notify
+    issues = step("Performance", lambda: equity.run(WORK, OUT)) or []
+    for i in issues:
+        print("Hinweis Kursdaten:", i)
+    sent = step("Push", lambda: notify.run(OUT)) or []
+    for t, ok in sent:
+        print("Push:", t, "->", ok)
     man = {k: {"file": f, "title": t, "description": d} for k, (f, t, d) in MANIFEST.items()}
     missing = [k for k, m in man.items() if not os.path.exists(os.path.join(OUT, m["file"]))]
     wjson("manifest.json", {"datasets": man})

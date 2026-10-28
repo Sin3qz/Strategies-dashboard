@@ -6,6 +6,13 @@
 <title>Strategien &amp; wikifolios</title>
 <meta name="description" content="Signale der Bots levGTAA, levTipsRegime, MR-Rebound-GTAA und 1xGTAA sowie die wikifolios LevGTAA und LevTipsRegime. Keine Anlageberatung.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232a78d6'/%3E%3Cpath d='M6 22l6-7 5 4 9-10' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="manifest" href="app/manifest.webmanifest">
+<link rel="apple-touch-icon" href="app/apple-touch-icon.png">
+<meta name="theme-color" content="#2a78d6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Strategien">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <style>
   /* Design-Tokens (Werte wie im Claude-Dashboard), hell und dunkel */
@@ -73,8 +80,10 @@
     build: 'build.json', wikifolios: 'wikifolios.json', wikifolio_history: 'wikifolio_history.csv', strategies: 'strategies.json',
     allocations: 'allocations.json', signals: 'signals.json', levgtaa_history: 'levgtaa_history.csv',
     daily_levgtaa: 'daily_levgtaa.csv', daily_mrrebound: 'daily_mrrebound.csv', daily_1xgtaa: 'daily_1xgtaa.csv', daily_levtips: 'daily_levtips.csv',
+    perf_stats: 'perf_stats.json', equity: 'equity.csv', monthly_returns: 'monthly_returns.json', correlation: 'correlation.json',
+    tracking: 'tracking.json', prices: 'prices.json', holdings: 'wikifolio_holdings.json',
   };
-  const DEFAULTS = {range: '1y', depot: 10000, strat: 'levgtaa', spx: 75};
+  const DEFAULTS = {range: '1y', eqrange: 'max', wf: 'levgtaa', wf_target: 'held', spx: 75};
   const store = {}, status = {}, calcs = {}, draws = [], hooks = [];
   let params = {...DEFAULTS};
   try { Object.assign(params, JSON.parse(localStorage.getItem('sd-params') || '{}')); } catch (e) {}
@@ -145,6 +154,7 @@
   };
   window.__sdStart = () => {
     load();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
     setInterval(() => { if (document.visibilityState === 'visible') load(); }, 10 * 60 * 1000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') load(); });
     let w = window.innerWidth;

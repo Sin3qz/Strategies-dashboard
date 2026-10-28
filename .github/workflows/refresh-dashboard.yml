@@ -38,6 +38,9 @@ jobs:
           pip install $PKGS || (sleep 30 && pip install $PKGS)
 
       - name: Daten neu berechnen
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}       # optional: Push bei gekipptem Tagessignal (gleiches Topic wie die Bots)
+          NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
         run: python3 dashboard-data/refresh.py "$RUNNER_TEMP/work"
 
       - name: Commit und Push
