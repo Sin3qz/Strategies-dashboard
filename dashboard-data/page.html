@@ -24,7 +24,7 @@
   .sd-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr)); gap: var(--cds-gap-sm) var(--cds-gap-md); }
   .sd-stat { display: grid; gap: 2px; font-size: var(--cds-font-size-body); font-variant-numeric: tabular-nums; align-content: start; }
   .sd-stat.lead .v { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-title); line-height: 1.15; }
-  .sd-block { border-top: 1px solid var(--color-border-line); padding-top: var(--cds-gap-sm); display: grid; gap: var(--cds-gap-xs); }
+  .sd-block { border-top: 1px solid var(--color-border-line); padding-top: var(--cds-gap-sm); display: grid; gap: var(--cds-gap-xs); align-content: start; }
   .sd-block-h { display: flex; justify-content: space-between; gap: var(--cds-gap-sm); align-items: baseline; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
   .sd-progress { display: grid; gap: var(--cds-gap-sm); }
   .sd-prow { display: grid; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); }
@@ -61,6 +61,9 @@
   .sd-vbar { position: relative; height: 8px; border-radius: 4px; background: var(--cds-chart-grid); margin: 4px 0; }
   .sd-vfill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
   .sd-vcap { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--cds-chart-reference); }
+  /* Nebeneinanderstehende Strategie-Karten: gleiche Höhe und Blöcke auf gleicher Höhe (CSS-Subgrid, je Karte 7 Zeilen) */
+  .sd-sync > .sd-card { display: grid; grid-template-rows: subgrid; grid-row: span 7; row-gap: var(--cds-gap-sm); align-content: start; }
+  .sd-slot { display: grid; gap: var(--cds-gap-xs); align-content: start; }
   .sd-tl { display: flex; gap: 1px; height: 22px; border-radius: var(--cds-radius); overflow: hidden; }
   .sd-tl > span { flex: 1 1 0; min-width: 0; }
   .sd-tl:empty { display: none; }
@@ -149,7 +152,7 @@
   <!-- ===================== Überblick ===================== -->
   <section id="ueberblick" data-page="ueberblick">
     <p class="sd-sub">Je wikifolio: Kennzahlen von wikifolio.com (mehrmals täglich abgerufen; „–“ = noch nicht ausgewiesen), Bot-Soll mit Produktvorschlag und deine Ist-Allokation aus dem Rechner.</p>
-    <div class="sd-grid2">
+    <div class="sd-grid2 sd-sync">
       <div class="sd-card" id="ov-levgtaa">
         <div class="sd-chead">
           <div><h3>LevGTAA</h3><div class="sd-kind"><span data-draw="val" data-source="wikifolios" data-field="symbol" data-where="key=levgtaa">—</span> · erstellt <span data-draw="val" data-source="wikifolios" data-field="created" data-where="key=levgtaa" data-fmt="date">—</span> · Trader <span data-draw="val" data-source="wikifolios" data-field="trader" data-where="key=levgtaa">—</span> · Bot levGTAA (Momentum, monatlich) · <a href="https://www.wikifolio.com/de/de/w/wfxlevgtaa" target="_blank" rel="noopener">Zum wikifolio</a></div></div>
@@ -169,7 +172,15 @@
           <div class="sd-chips" data-draw="istchips" data-key="levgtaa" data-source="holdings prices"></div>
           <p class="sd-note" data-ist="none" data-key="levgtaa" hidden>Noch keine Stückzahlen hinterlegt: im Tab „Rechner“ eintragen.</p>
         </div>
-        <p class="sd-note">Nächstes Monatssignal <span data-draw="val" data-source="strategies" data-field="nextDecision" data-where="key=levgtaa" data-fmt="date">—</span> → Handel <span data-draw="val" data-source="strategies" data-field="nextRebalance" data-where="key=levgtaa" data-fmt="date">—</span> · Portfolio-Vola <span data-draw="val" data-source="strategies" data-field="vola_now" data-where="key=levgtaa" data-fmt="pct1">—</span> (Cap <span data-draw="val" data-source="strategies" data-field="vola_cap" data-where="key=levgtaa" data-fmt="pct0">—</span>)</p>
+        <div class="sd-block">
+          <div class="sd-block-h"><span>Monatssignal und Vola (Kursstand <span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levgtaa" data-fmt="date">—</span>)</span><span>Vol-Faktor <span data-draw="val" data-source="strategies" data-field="vola_factor" data-where="key=levgtaa" data-fmt="num2">—</span></span></div>
+          <div class="sd-sig3">
+            <div><span class="sd-label">Nächstes Signal (Schluss)</span><b data-draw="val" data-source="strategies" data-field="nextDecision" data-where="key=levgtaa" data-fmt="date">—</b></div>
+            <div><span class="sd-label">Handel</span><b data-draw="val" data-source="strategies" data-field="nextRebalance" data-where="key=levgtaa" data-fmt="date">—</b></div>
+            <div><span class="sd-label">Vola / Cap</span><b><span data-draw="val" data-source="strategies" data-field="vola_now" data-where="key=levgtaa" data-fmt="pct1">—</span> / <span data-draw="val" data-source="strategies" data-field="vola_cap" data-where="key=levgtaa" data-fmt="pct0">—</span></b></div>
+          </div>
+          <p class="sd-note">Signal am Monatsletzten, Handel am 1. Handelstag · Vol-Target senkt die Quoten, wenn die Vola über dem Cap liegt</p>
+        </div>
         <div class="sd-block">
           <div class="sd-block-h"><span>Kennzahlen (wikifolio.com)</span><span></span></div>
           <div class="sd-stats">
@@ -188,16 +199,16 @@
             <div class="sd-stat"><span class="sd-label">Rangliste Platz</span><span data-draw="val" data-source="wikifolios" data-field="rank_place" data-where="key=levgtaa" data-fmt="int">—</span></div>
             <div class="sd-stat"><span class="sd-label">Gebühr p. a. / Perf.</span><span><span data-draw="val" data-source="wikifolios" data-field="fee_cert" data-where="key=levgtaa" data-fmt="pct2">—</span> / <span data-draw="val" data-source="wikifolios" data-field="fee_perf" data-where="key=levgtaa" data-fmt="pct0">—</span></span></div>
           </div>
-          <div class="sd-block">
-            <div class="sd-block-h"><span>Weg zur Investierbarkeit (erreicht / benötigt)</span><span data-draw="critword" data-key="levgtaa" data-source="wikifolios">—</span></div>
-            <div class="sd-progress">
-              <div class="sd-prow"><div class="sd-prow-top"><span>Testphase (Tage)</span><span><span data-draw="val" data-source="wikifolios" data-field="test_days" data-where="key=levgtaa" data-fmt="int">—</span> / <span data-draw="val" data-source="wikifolios" data-field="test_days_req" data-where="key=levgtaa" data-fmt="int">—</span></span></div><div class="sd-bar" data-draw="prog" data-source="wikifolios" data-key="levgtaa" data-have="test_days" data-need="test_days_req"></div></div>
-              <div class="sd-prow"><div class="sd-prow-top"><span>Vormerkungen</span><span><span data-draw="val" data-source="wikifolios" data-field="reservations" data-where="key=levgtaa" data-fmt="int">—</span> / <span data-draw="val" data-source="wikifolios" data-field="reservations_req" data-where="key=levgtaa" data-fmt="int">—</span></span></div><div class="sd-bar" data-draw="prog" data-source="wikifolios" data-key="levgtaa" data-have="reservations" data-need="reservations_req"></div></div>
-              <div class="sd-prow"><div class="sd-prow-top"><span>Vorgemerktes Kapital</span><span><span data-draw="val" data-source="wikifolios" data-field="capital_eur" data-where="key=levgtaa" data-fmt="eur">—</span> / <span data-draw="val" data-source="wikifolios" data-field="capital_req_eur" data-where="key=levgtaa" data-fmt="eur">—</span></span></div><div class="sd-bar" data-draw="prog" data-source="wikifolios" data-key="levgtaa" data-have="capital_eur" data-need="capital_req_eur"></div></div>
-            </div>
-          </div>
-          <p class="sd-note"><span data-draw="val" data-source="wikifolios" data-field="bt_label" data-where="key=levgtaa">—</span>: CAGR <span data-draw="val" data-source="wikifolios" data-field="bt_cagr" data-where="key=levgtaa" data-fmt="pct1">—</span>, MaxDD <span data-draw="val" data-source="wikifolios" data-field="bt_maxdd" data-where="key=levgtaa" data-fmt="spct0">—</span>, Sortino <span data-draw="val" data-source="wikifolios" data-field="bt_sortino" data-where="key=levgtaa" data-fmt="num2">—</span>. Letzter Login des Traders <span data-draw="val" data-source="wikifolios" data-field="last_login" data-where="key=levgtaa" data-fmt="date">—</span>.</p>
         </div>
+        <div class="sd-block">
+          <div class="sd-block-h"><span>Weg zur Investierbarkeit (erreicht / benötigt)</span><span data-draw="critword" data-key="levgtaa" data-source="wikifolios">—</span></div>
+          <div class="sd-progress">
+            <div class="sd-prow"><div class="sd-prow-top"><span>Testphase (Tage)</span><span><span data-draw="val" data-source="wikifolios" data-field="test_days" data-where="key=levgtaa" data-fmt="int">—</span> / <span data-draw="val" data-source="wikifolios" data-field="test_days_req" data-where="key=levgtaa" data-fmt="int">—</span></span></div><div class="sd-bar" data-draw="prog" data-source="wikifolios" data-key="levgtaa" data-have="test_days" data-need="test_days_req"></div></div>
+            <div class="sd-prow"><div class="sd-prow-top"><span>Vormerkungen</span><span><span data-draw="val" data-source="wikifolios" data-field="reservations" data-where="key=levgtaa" data-fmt="int">—</span> / <span data-draw="val" data-source="wikifolios" data-field="reservations_req" data-where="key=levgtaa" data-fmt="int">—</span></span></div><div class="sd-bar" data-draw="prog" data-source="wikifolios" data-key="levgtaa" data-have="reservations" data-need="reservations_req"></div></div>
+            <div class="sd-prow"><div class="sd-prow-top"><span>Vorgemerktes Kapital</span><span><span data-draw="val" data-source="wikifolios" data-field="capital_eur" data-where="key=levgtaa" data-fmt="eur">—</span> / <span data-draw="val" data-source="wikifolios" data-field="capital_req_eur" data-where="key=levgtaa" data-fmt="eur">—</span></span></div><div class="sd-bar" data-draw="prog" data-source="wikifolios" data-key="levgtaa" data-have="capital_eur" data-need="capital_req_eur"></div></div>
+          </div>
+        </div>
+        <p class="sd-note"><span data-draw="val" data-source="wikifolios" data-field="bt_label" data-where="key=levgtaa">—</span>: CAGR <span data-draw="val" data-source="wikifolios" data-field="bt_cagr" data-where="key=levgtaa" data-fmt="pct1">—</span>, MaxDD <span data-draw="val" data-source="wikifolios" data-field="bt_maxdd" data-where="key=levgtaa" data-fmt="spct0">—</span>, Sortino <span data-draw="val" data-source="wikifolios" data-field="bt_sortino" data-where="key=levgtaa" data-fmt="num2">—</span>. Letzter Login des Traders <span data-draw="val" data-source="wikifolios" data-field="last_login" data-where="key=levgtaa" data-fmt="date">—</span>.</p>
       </div>
       <div class="sd-card" id="ov-levtipsregime">
         <div class="sd-chead">
@@ -245,16 +256,16 @@
             <div class="sd-stat"><span class="sd-label">Rangliste Platz</span><span data-draw="val" data-source="wikifolios" data-field="rank_place" data-where="key=levtipsregime" data-fmt="int">—</span></div>
             <div class="sd-stat"><span class="sd-label">Gebühr p. a. / Perf.</span><span><span data-draw="val" data-source="wikifolios" data-field="fee_cert" data-where="key=levtipsregime" data-fmt="pct2">—</span> / <span data-draw="val" data-source="wikifolios" data-field="fee_perf" data-where="key=levtipsregime" data-fmt="pct0">—</span></span></div>
           </div>
-          <div class="sd-block">
-            <div class="sd-block-h"><span>Weg zur Investierbarkeit (erreicht / benötigt)</span><span data-draw="critword" data-key="levtipsregime" data-source="wikifolios">—</span></div>
-            <div class="sd-progress">
-              <div class="sd-prow"><div class="sd-prow-top"><span>Testphase (Tage)</span><span><span data-draw="val" data-source="wikifolios" data-field="test_days" data-where="key=levtipsregime" data-fmt="int">—</span> / <span data-draw="val" data-source="wikifolios" data-field="test_days_req" data-where="key=levtipsregime" data-fmt="int">—</span></span></div><div class="sd-bar" data-draw="prog" data-source="wikifolios" data-key="levtipsregime" data-have="test_days" data-need="test_days_req"></div></div>
-              <div class="sd-prow"><div class="sd-prow-top"><span>Vormerkungen</span><span><span data-draw="val" data-source="wikifolios" data-field="reservations" data-where="key=levtipsregime" data-fmt="int">—</span> / <span data-draw="val" data-source="wikifolios" data-field="reservations_req" data-where="key=levtipsregime" data-fmt="int">—</span></span></div><div class="sd-bar" data-draw="prog" data-source="wikifolios" data-key="levtipsregime" data-have="reservations" data-need="reservations_req"></div></div>
-              <div class="sd-prow"><div class="sd-prow-top"><span>Vorgemerktes Kapital</span><span><span data-draw="val" data-source="wikifolios" data-field="capital_eur" data-where="key=levtipsregime" data-fmt="eur">—</span> / <span data-draw="val" data-source="wikifolios" data-field="capital_req_eur" data-where="key=levtipsregime" data-fmt="eur">—</span></span></div><div class="sd-bar" data-draw="prog" data-source="wikifolios" data-key="levtipsregime" data-have="capital_eur" data-need="capital_req_eur"></div></div>
-            </div>
-          </div>
-          <p class="sd-note"><span data-draw="val" data-source="wikifolios" data-field="bt_label" data-where="key=levtipsregime">—</span>: CAGR <span data-draw="val" data-source="wikifolios" data-field="bt_cagr" data-where="key=levtipsregime" data-fmt="pct1">—</span>, MaxDD <span data-draw="val" data-source="wikifolios" data-field="bt_maxdd" data-where="key=levtipsregime" data-fmt="spct0">—</span>, Sortino <span data-draw="val" data-source="wikifolios" data-field="bt_sortino" data-where="key=levtipsregime" data-fmt="num2">—</span>. Letzter Login des Traders <span data-draw="val" data-source="wikifolios" data-field="last_login" data-where="key=levtipsregime" data-fmt="date">—</span>.</p>
         </div>
+        <div class="sd-block">
+          <div class="sd-block-h"><span>Weg zur Investierbarkeit (erreicht / benötigt)</span><span data-draw="critword" data-key="levtipsregime" data-source="wikifolios">—</span></div>
+          <div class="sd-progress">
+            <div class="sd-prow"><div class="sd-prow-top"><span>Testphase (Tage)</span><span><span data-draw="val" data-source="wikifolios" data-field="test_days" data-where="key=levtipsregime" data-fmt="int">—</span> / <span data-draw="val" data-source="wikifolios" data-field="test_days_req" data-where="key=levtipsregime" data-fmt="int">—</span></span></div><div class="sd-bar" data-draw="prog" data-source="wikifolios" data-key="levtipsregime" data-have="test_days" data-need="test_days_req"></div></div>
+            <div class="sd-prow"><div class="sd-prow-top"><span>Vormerkungen</span><span><span data-draw="val" data-source="wikifolios" data-field="reservations" data-where="key=levtipsregime" data-fmt="int">—</span> / <span data-draw="val" data-source="wikifolios" data-field="reservations_req" data-where="key=levtipsregime" data-fmt="int">—</span></span></div><div class="sd-bar" data-draw="prog" data-source="wikifolios" data-key="levtipsregime" data-have="reservations" data-need="reservations_req"></div></div>
+            <div class="sd-prow"><div class="sd-prow-top"><span>Vorgemerktes Kapital</span><span><span data-draw="val" data-source="wikifolios" data-field="capital_eur" data-where="key=levtipsregime" data-fmt="eur">—</span> / <span data-draw="val" data-source="wikifolios" data-field="capital_req_eur" data-where="key=levtipsregime" data-fmt="eur">—</span></span></div><div class="sd-bar" data-draw="prog" data-source="wikifolios" data-key="levtipsregime" data-have="capital_eur" data-need="capital_req_eur"></div></div>
+          </div>
+        </div>
+        <p class="sd-note"><span data-draw="val" data-source="wikifolios" data-field="bt_label" data-where="key=levtipsregime">—</span>: CAGR <span data-draw="val" data-source="wikifolios" data-field="bt_cagr" data-where="key=levtipsregime" data-fmt="pct1">—</span>, MaxDD <span data-draw="val" data-source="wikifolios" data-field="bt_maxdd" data-where="key=levtipsregime" data-fmt="spct0">—</span>, Sortino <span data-draw="val" data-source="wikifolios" data-field="bt_sortino" data-where="key=levtipsregime" data-fmt="num2">—</span>. Letzter Login des Traders <span data-draw="val" data-source="wikifolios" data-field="last_login" data-where="key=levtipsregime" data-fmt="date">—</span>.</p>
       </div>
     </div>
     <div class="sd-grid2">
@@ -292,25 +303,33 @@
         <button data-range="3m" aria-pressed="false">3 M</button><button data-range="6m" aria-pressed="false">6 M</button><button data-range="1y" aria-pressed="true">1 J</button><button data-range="all" aria-pressed="false">seit 2025</button>
       </div>
     </div>
-    <div class="sd-grid2">
+    <div class="sd-grid2 sd-sync">
       <div class="sd-card" id="levgtaa">
         <div class="sd-chead">
           <div><h3>levGTAA</h3><div class="sd-kind">Momentum · monatlich · 3x Nasdaq · 1x BTC · 3x US-Treasury 7-10y · 3x Gold</div></div>
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="levgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="levgtaa" hidden>Cash</span><span data-draw="badge" data-key="levgtaa" data-source="allocations"></span></span>
         </div>
-        <p class="sd-note"><b>Gehalten (Bot):</b></p>
-        <div class="sd-chips" data-draw="chips" data-key="levgtaa" data-source="allocations alloc_cash"></div>
-        <div class="sd-prods" data-draw="prods" data-key="levgtaa" data-mode="held" data-source="allocations"></div>
-        <div class="sd-change" data-draw="change" data-key="levgtaa" data-source="strategies">—</div>
-        <p class="sd-note"><b>Wenn heute gehandelt würde (inkl. Vol-Target, Faktor <span data-draw="val" data-source="levgtaa_today" data-field="vt_factor" data-row="0" data-fmt="num2">—</span>):</b></p>
-        <div class="sd-chips" data-draw="daychips" data-source="daily_levgtaa" data-series="NASDAQ100 BTC UST_IEF GOLD" data-strat="levgtaa"></div>
-        <div class="sd-prods" data-draw="prods" data-key="levgtaa" data-mode="today" data-source="daily_levgtaa"></div>
-        <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=levgtaa" data-fmt="pct1">—</b></div>
-        <div class="sd-chart" data-draw="stack" data-source="daily_levgtaa" data-series="NASDAQ100 BTC UST_IEF GOLD"></div>
-        <div class="sd-legend" data-draw="legend" data-source="daily_levgtaa" data-series="NASDAQ100 BTC UST_IEF GOLD"></div>
-        <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="levgtaa" data-source="strategies">—</span></div>
-        <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="levgtaa" data-source="strategies">—</span></span></div>
-        <div class="sd-warn" data-draw="warn" data-key="levgtaa" data-source="strategies"></div>
+        <div class="sd-slot">
+          <p class="sd-note"><b>Gehalten (Bot):</b></p>
+          <div class="sd-chips" data-draw="chips" data-key="levgtaa" data-source="allocations alloc_cash"></div>
+          <div class="sd-prods" data-draw="prods" data-key="levgtaa" data-mode="held" data-source="allocations"></div>
+          <div class="sd-change" data-draw="change" data-key="levgtaa" data-source="strategies">—</div>
+        </div>
+        <div class="sd-slot">
+          <p class="sd-note"><b>Wenn heute gehandelt würde (inkl. Vol-Target, Faktor <span data-draw="val" data-source="levgtaa_today" data-field="vt_factor" data-row="0" data-fmt="num2">—</span>):</b></p>
+          <div class="sd-chips" data-draw="daychips" data-source="daily_levgtaa" data-series="NASDAQ100 BTC UST_IEF GOLD" data-strat="levgtaa"></div>
+          <div class="sd-prods" data-draw="prods" data-key="levgtaa" data-mode="today" data-source="daily_levgtaa"></div>
+          <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=levgtaa" data-fmt="pct1">—</b></div>
+        </div>
+        <div class="sd-slot">
+          <div class="sd-chart" data-draw="stack" data-source="daily_levgtaa" data-series="NASDAQ100 BTC UST_IEF GOLD"></div>
+          <div class="sd-legend" data-draw="legend" data-source="daily_levgtaa" data-series="NASDAQ100 BTC UST_IEF GOLD"></div>
+        </div>
+        <div class="sd-slot">
+          <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="levgtaa" data-source="strategies">—</span></div>
+          <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="levgtaa" data-source="strategies">—</span></span></div>
+          <div class="sd-warn" data-draw="warn" data-key="levgtaa" data-source="strategies"></div>
+        </div>
         <div class="sd-block">
           <div class="sd-block-h"><span>Gehaltene Position: <span data-draw="val" data-source="strategies" data-field="tl_span" data-where="key=levgtaa">—</span></span><span data-draw="tlrange" data-key="levgtaa" data-source="timeline">—</span></div>
           <div class="sd-tl" data-draw="timeline" data-key="levgtaa" data-source="timeline"></div>
@@ -338,19 +357,27 @@
           <div><h3>levTipsRegime</h3><div class="sd-kind">täglich · Cooldown 10 · Markt: 100 % 3x S&amp;P 500 · 3x IEF · Cash</div></div>
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="levtipsregime" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="levtipsregime" hidden>Cash</span><span data-draw="badge" data-key="levtipsregime" data-source="allocations"></span></span>
         </div>
-        <p class="sd-note"><b>Gehalten (Bot):</b></p>
-        <div class="sd-chips" data-draw="chips" data-key="levtipsregime" data-source="allocations alloc_cash"></div>
-        <div class="sd-prods" data-draw="prods" data-key="levtipsregime" data-mode="held" data-source="allocations"></div>
-        <div class="sd-change" data-draw="change" data-key="levtipsregime" data-source="strategies">—</div>
-        <p class="sd-note"><b>Wenn heute gehandelt würde (ohne Cooldown):</b></p>
-        <div class="sd-chips" data-draw="tipschips" data-source="levtips_today"></div>
-        <div class="sd-prods" data-draw="prods" data-key="levtipsregime" data-mode="today" data-source="levtips_today"></div>
-        <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=levtipsregime" data-fmt="pct1">—</b></div>
-        <div class="sd-chart" data-draw="tips" data-source="daily_levtips"></div>
-        <div class="sd-legend"><span><span class="sd-sw" data-draw="sw" data-i="0"></span>S&amp;P 500 TR / SMA280</span><span><span class="sd-sw" data-draw="sw" data-i="1"></span>TIPS / SMA220</span><span><span class="sd-sw" data-draw="sw" data-i="2"></span>TLT / SMA200</span><span><span class="sd-sw" data-draw="sw" data-i="5"></span>Markt-Signal</span><span><span class="sd-sw" data-draw="sw" data-i="2"></span>3x-IEF-Signal (hinterlegt)</span></div>
-        <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="levtipsregime" data-source="strategies">—</span></div>
-        <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levtipsregime" data-fmt="date">—</span> · <span data-draw="fresh" data-key="levtipsregime" data-source="strategies">—</span></span></div>
-        <div class="sd-warn" data-draw="warn" data-key="levtipsregime" data-source="strategies"></div>
+        <div class="sd-slot">
+          <p class="sd-note"><b>Gehalten (Bot):</b></p>
+          <div class="sd-chips" data-draw="chips" data-key="levtipsregime" data-source="allocations alloc_cash"></div>
+          <div class="sd-prods" data-draw="prods" data-key="levtipsregime" data-mode="held" data-source="allocations"></div>
+          <div class="sd-change" data-draw="change" data-key="levtipsregime" data-source="strategies">—</div>
+        </div>
+        <div class="sd-slot">
+          <p class="sd-note"><b>Wenn heute gehandelt würde (ohne Cooldown):</b></p>
+          <div class="sd-chips" data-draw="tipschips" data-source="levtips_today"></div>
+          <div class="sd-prods" data-draw="prods" data-key="levtipsregime" data-mode="today" data-source="levtips_today"></div>
+          <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=levtipsregime" data-fmt="pct1">—</b></div>
+        </div>
+        <div class="sd-slot">
+          <div class="sd-chart" data-draw="tips" data-source="daily_levtips"></div>
+          <div class="sd-legend"><span><span class="sd-sw" data-draw="sw" data-i="0"></span>S&amp;P 500 TR / SMA280</span><span><span class="sd-sw" data-draw="sw" data-i="1"></span>TIPS / SMA220</span><span><span class="sd-sw" data-draw="sw" data-i="2"></span>TLT / SMA200</span><span><span class="sd-sw" data-draw="sw" data-i="5"></span>Markt-Signal</span><span><span class="sd-sw" data-draw="sw" data-i="2"></span>3x-IEF-Signal (hinterlegt)</span></div>
+        </div>
+        <div class="sd-slot">
+          <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="levtipsregime" data-source="strategies">—</span></div>
+          <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levtipsregime" data-fmt="date">—</span> · <span data-draw="fresh" data-key="levtipsregime" data-source="strategies">—</span></span></div>
+          <div class="sd-warn" data-draw="warn" data-key="levtipsregime" data-source="strategies"></div>
+        </div>
         <div class="sd-block">
           <div class="sd-block-h"><span>Gehaltene Position: <span data-draw="val" data-source="strategies" data-field="tl_span" data-where="key=levtipsregime">—</span></span><span data-draw="tlrange" data-key="levtipsregime" data-source="timeline">—</span></div>
           <div class="sd-tl" data-draw="timeline" data-key="levtipsregime" data-source="timeline"></div>
@@ -373,19 +400,27 @@
           <div><h3>1xGTAA</h3><div class="sd-kind">defensiv · ungehebelt · täglich · Cooldown 10</div></div>
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="1xgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="1xgtaa" hidden>Cash</span><span data-draw="badge" data-key="1xgtaa" data-source="allocations"></span></span>
         </div>
-        <p class="sd-note"><b>Gehalten (Bot):</b></p>
-        <div class="sd-chips" data-draw="chips" data-key="1xgtaa" data-source="allocations alloc_cash"></div>
-        <div class="sd-prods" data-draw="prods" data-key="1xgtaa" data-mode="held" data-source="allocations"></div>
-        <div class="sd-change" data-draw="change" data-key="1xgtaa" data-source="strategies">—</div>
-        <p class="sd-note"><b>Wenn heute gehandelt würde (ohne Cooldown):</b></p>
-        <div class="sd-chips" data-draw="daychips" data-source="daily_1xgtaa" data-series="NASDAQ100 EM_SMALLCAP EMU_VALUE BONDS_7_10 GOLD COMMODITIES CASH_USD" data-strat="1xgtaa"></div>
-        <div class="sd-prods" data-draw="prods" data-key="1xgtaa" data-mode="today" data-source="daily_1xgtaa"></div>
-        <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=1xgtaa" data-fmt="pct1">—</b></div>
-        <div class="sd-chart" data-draw="stack" data-source="daily_1xgtaa" data-series="NASDAQ100 EM_SMALLCAP EMU_VALUE BONDS_7_10 GOLD COMMODITIES CASH_USD"></div>
-        <div class="sd-legend" data-draw="legend" data-source="daily_1xgtaa" data-series="NASDAQ100 EM_SMALLCAP EMU_VALUE BONDS_7_10 GOLD COMMODITIES CASH_USD"></div>
-        <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="1xgtaa" data-source="strategies">—</span></div>
-        <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=1xgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="1xgtaa" data-source="strategies">—</span></span></div>
-        <div class="sd-warn" data-draw="warn" data-key="1xgtaa" data-source="strategies"></div>
+        <div class="sd-slot">
+          <p class="sd-note"><b>Gehalten (Bot):</b></p>
+          <div class="sd-chips" data-draw="chips" data-key="1xgtaa" data-source="allocations alloc_cash"></div>
+          <div class="sd-prods" data-draw="prods" data-key="1xgtaa" data-mode="held" data-source="allocations"></div>
+          <div class="sd-change" data-draw="change" data-key="1xgtaa" data-source="strategies">—</div>
+        </div>
+        <div class="sd-slot">
+          <p class="sd-note"><b>Wenn heute gehandelt würde (ohne Cooldown):</b></p>
+          <div class="sd-chips" data-draw="daychips" data-source="daily_1xgtaa" data-series="NASDAQ100 EM_SMALLCAP EMU_VALUE BONDS_7_10 GOLD COMMODITIES CASH_USD" data-strat="1xgtaa"></div>
+          <div class="sd-prods" data-draw="prods" data-key="1xgtaa" data-mode="today" data-source="daily_1xgtaa"></div>
+          <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=1xgtaa" data-fmt="pct1">—</b></div>
+        </div>
+        <div class="sd-slot">
+          <div class="sd-chart" data-draw="stack" data-source="daily_1xgtaa" data-series="NASDAQ100 EM_SMALLCAP EMU_VALUE BONDS_7_10 GOLD COMMODITIES CASH_USD"></div>
+          <div class="sd-legend" data-draw="legend" data-source="daily_1xgtaa" data-series="NASDAQ100 EM_SMALLCAP EMU_VALUE BONDS_7_10 GOLD COMMODITIES CASH_USD"></div>
+        </div>
+        <div class="sd-slot">
+          <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="1xgtaa" data-source="strategies">—</span></div>
+          <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=1xgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="1xgtaa" data-source="strategies">—</span></span></div>
+          <div class="sd-warn" data-draw="warn" data-key="1xgtaa" data-source="strategies"></div>
+        </div>
         <div class="sd-block">
           <div class="sd-block-h"><span>Gehaltene Position: <span data-draw="val" data-source="strategies" data-field="tl_span" data-where="key=1xgtaa">—</span></span><span data-draw="tlrange" data-key="1xgtaa" data-source="timeline">—</span></div>
           <div class="sd-tl" data-draw="timeline" data-key="1xgtaa" data-source="timeline"></div>
@@ -408,19 +443,27 @@
           <div><h3>MR-Rebound-GTAA</h3><div class="sd-kind">Mean-Reversion · monatlich · Duo QQQ/EM/TLT | QQQ/India/TLT · 3x Nasdaq/EM/India · 5x TLT</div></div>
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="mrreboundgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="mrreboundgtaa" hidden>Cash</span><span data-draw="badge" data-key="mrreboundgtaa" data-source="allocations"></span></span>
         </div>
-        <p class="sd-note"><b>Gehalten (Bot):</b></p>
-        <div class="sd-chips" data-draw="chips" data-key="mrreboundgtaa" data-source="allocations alloc_cash"></div>
-        <div class="sd-prods" data-draw="prods" data-key="mrreboundgtaa" data-mode="held" data-source="allocations"></div>
-        <div class="sd-change" data-draw="change" data-key="mrreboundgtaa" data-source="strategies">—</div>
-        <p class="sd-note"><b>Wenn heute gehandelt würde:</b></p>
-        <div class="sd-chips" data-draw="daychips" data-source="daily_mrrebound" data-series="NASDAQ100 EM INDIA TLT_LONG" data-strat="mrreboundgtaa"></div>
-        <div class="sd-prods" data-draw="prods" data-key="mrreboundgtaa" data-mode="today" data-source="daily_mrrebound"></div>
-        <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=mrreboundgtaa" data-fmt="pct1">—</b></div>
-        <div class="sd-chart" data-draw="stack" data-source="daily_mrrebound" data-series="NASDAQ100 EM INDIA TLT_LONG"></div>
-        <div class="sd-legend" data-draw="legend" data-source="daily_mrrebound" data-series="NASDAQ100 EM INDIA TLT_LONG"></div>
-        <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="mrreboundgtaa" data-source="strategies">—</span></div>
-        <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=mrreboundgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="mrreboundgtaa" data-source="strategies">—</span></span></div>
-        <div class="sd-warn" data-draw="warn" data-key="mrreboundgtaa" data-source="strategies"></div>
+        <div class="sd-slot">
+          <p class="sd-note"><b>Gehalten (Bot):</b></p>
+          <div class="sd-chips" data-draw="chips" data-key="mrreboundgtaa" data-source="allocations alloc_cash"></div>
+          <div class="sd-prods" data-draw="prods" data-key="mrreboundgtaa" data-mode="held" data-source="allocations"></div>
+          <div class="sd-change" data-draw="change" data-key="mrreboundgtaa" data-source="strategies">—</div>
+        </div>
+        <div class="sd-slot">
+          <p class="sd-note"><b>Wenn heute gehandelt würde:</b></p>
+          <div class="sd-chips" data-draw="daychips" data-source="daily_mrrebound" data-series="NASDAQ100 EM INDIA TLT_LONG" data-strat="mrreboundgtaa"></div>
+          <div class="sd-prods" data-draw="prods" data-key="mrreboundgtaa" data-mode="today" data-source="daily_mrrebound"></div>
+          <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=mrreboundgtaa" data-fmt="pct1">—</b></div>
+        </div>
+        <div class="sd-slot">
+          <div class="sd-chart" data-draw="stack" data-source="daily_mrrebound" data-series="NASDAQ100 EM INDIA TLT_LONG"></div>
+          <div class="sd-legend" data-draw="legend" data-source="daily_mrrebound" data-series="NASDAQ100 EM INDIA TLT_LONG"></div>
+        </div>
+        <div class="sd-slot">
+          <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="mrreboundgtaa" data-source="strategies">—</span></div>
+          <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=mrreboundgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="mrreboundgtaa" data-source="strategies">—</span></span></div>
+          <div class="sd-warn" data-draw="warn" data-key="mrreboundgtaa" data-source="strategies"></div>
+        </div>
         <div class="sd-block">
           <div class="sd-block-h"><span>Gehaltene Position: <span data-draw="val" data-source="strategies" data-field="tl_span" data-where="key=mrreboundgtaa">—</span></span><span data-draw="tlrange" data-key="mrreboundgtaa" data-source="timeline">—</span></div>
           <div class="sd-tl" data-draw="timeline" data-key="mrreboundgtaa" data-source="timeline"></div>
