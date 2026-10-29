@@ -22,6 +22,19 @@ Zeigt die Bots **levGTAA · MR-Rebound-GTAA · levTipsRegime · 1xGTAA** und die
 - **App** – auf dem Handy „Zum Home-Bildschirm“: öffnet sich wie eine App, zeigt offline den letzten Stand.
 - **Studien** – `studien/STUDIE.md`: Robustheit levGTAA, levTipsRegime (inkl. IEF) und 1xGTAA mit Empfehlungen.
 
+## Datenstatus und Rückfallebenen
+Oben auf jeder Seite zeigt ein Punkt den Datenstatus (grün = alles aktuell, gelb = Hinweis oder letzter Stand, rot =
+überfällig oder Fehler). Ein Klick öffnet die Liste aller Quellen mit Status, Datenstand, letztem Erfolg, Weg und Grund
+(`data/health.json`). Rückfallebenen beim Abruf:
+1. jede Anfrage bis zu 3 Versuche mit Pause,
+2. Bot-Dateien über Ersatzwege (GitHub-API, jsDelivr-Spiegel), Bot-Code notfalls als Tarball,
+3. fällt eine Quelle trotzdem aus, bleibt nur ihr letzter gültiger Stand (die anderen werden aktualisiert),
+4. zweiter Durchgang für ausgefallene Quellen nach 150 s,
+5. bricht der ganze Lauf ab, Neustart nach 5 Minuten (GitHub schickt bei endgültigem Fehlschlag eine E-Mail),
+6. nächster stündlicher Lauf; nach 3 gestörten Läufen in Folge ein ntfy-Push mit dem Grund, nach der Erholung ein zweiter,
+7. im Browser: je Datei 3 Ladeversuche; ohne Netz zeigt die Seite den zuletzt gespeicherten Stand und sagt das.
+Die Seite erkennt außerdem, wenn die Action überfällig ist (GitHub startet geplante Läufe teils Stunden später).
+
 ## Wie es sich aktualisiert
 Die GitHub Action `.github/workflows/refresh-dashboard.yml` läuft werktags stündlich (05:41–21:41 UTC) und am Wochenende 3×
 und kann unter *Actions → Dashboard-Daten aktualisieren → Run workflow* auch von Hand gestartet werden. Sie

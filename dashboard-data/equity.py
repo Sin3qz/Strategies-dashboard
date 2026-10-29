@@ -20,7 +20,7 @@ PRODUCTS = {   # key: (Name, ISIN, Yahoo-Ticker, Waehrung)
     "SPX3": ("WisdomTree S&P 500 3x Daily Leveraged", "IE00B7Y34M31", "3USL.L", "USD"),
     "UST3": ("WisdomTree US Treasuries 10Y 3x Daily Leveraged", "IE00BKT09032", "3TYL.L", "GBp"),   # 3TYL.MI: zu viele Tage ohne Kurs
     "GOLD3": ("WisdomTree Gold 3x Daily Leveraged", "IE00B8HGT870", "3GOL.L", "USD"),
-    "BTC1": ("Bitcoin (BTC-EUR, Näherung für ein 1x-Bitcoin-ETP)", "", "BTC-EUR", "EUR"),
+    "BTC1": ("iShares Bitcoin ETP", "XS2940466316", "BTC-EUR", "EUR"),   # Verlauf BTC-EUR (länger), Stückkurs IB1T.DE
     "EM3": ("WisdomTree Emerging Markets 3x Daily Leveraged", "IE00BYTYHN28", "3EML.L", "USD"),
     "IND3": ("Leverage Shares 3x Long India", "XS2595675302", "IND3.L", "USD"),
     "TLT5": ("Leverage Shares 5x Long 20+ Year Treasury Bond", "XS2595672036", "TLT5.L", "USD"),
@@ -32,6 +32,8 @@ PRODUCTS = {   # key: (Name, ISIN, Yahoo-Ticker, Waehrung)
     "CMDTY": ("WisdomTree Enhanced Commodity UCITS USD Acc", "IE00BYMLZY74", "WCOA.L", "USD"),
     "USDON": ("Xtrackers II USD Overnight Rate Swap 1C", "LU0321465469", "XFFE.DE", "EUR"),
 }
+LAST_PX = {"BTC1": ("IB1T.DE", "EUR")}   # Kurs je Stück für den Rechner, wenn der Verlauf von einem anderen Ticker kommt
+
 MAP = {   # Strategie-Baustein -> Produkt
     "levgtaa": {"NASDAQ100": "NDX3", "BTC": "BTC1", "UST_IEF": "UST3", "GOLD": "GOLD3"},
     "mrrebound": {"NASDAQ100": "NDX3", "EM": "EM3", "INDIA": "IND3", "TLT_LONG": "TLT5"},
@@ -49,7 +51,7 @@ WF_START = "2026-10-01"   # Erstellung beider wikifolios (Index 100)
 
 def load_prices(grid):
     from yahooquery import Ticker
-    tick = sorted({p[2] for p in PRODUCTS.values()} | {"EURUSD=X", "EURGBP=X"})
+    tick = sorted({p[2] for p in PRODUCTS.values()} | {t for t, _ in LAST_PX.values()} | {"EURUSD=X", "EURGBP=X"})
     h = Ticker(tick, asynchronous=True).history(period="max", interval="1d", adj_ohlc=True)
     out, issues = {}, []
     for t in tick:
@@ -71,6 +73,9 @@ def load_prices(grid):
             f = fx[ccy].reindex(s.index.union(fx[ccy].index)).ffill().reindex(s.index)
             s = (s / f).dropna()
         last[k] = (float(s.iloc[-1]), s.index[-1].date().isoformat())   # echter letzter Kurs in EUR (fuer den Rechner)
+        if k in LAST_PX and LAST_PX[k][0] in out and LAST_PX[k][1] == "EUR":
+            q = out[LAST_PX[k][0]]
+            last[k] = (float(q.iloc[-1]), q.index[-1].date().isoformat())
         r = s.pct_change()
         bad = r.abs() > 0.6                                    # Datenfehler (z. B. Pence/Dollar-Verwechslung)
         if bad.any():
@@ -216,7 +221,7 @@ def run(work, out_dir, grid_start="2009-01-01"):
     px = []
     for k, (name, isin, t, ccy) in PRODUCTS.items():
         if k in last:
-            px.append({"key": k, "name": name, "isin": isin, "ticker": t, "quote": ccy, "price_eur": round(last[k][0], 4),
+            px.append({"key": k, "name": name, "isin": isin, "ticker": LAST_PX.get(k, (t,))[0], "quote": ccy, "price_eur": round(last[k][0], 4),
                        "date": last[k][1]})
     for name, obj in (("perf_stats.json", st), ("monthly_returns.json", months), ("correlation.json", corr),
                       ("tracking.json", track), ("prices.json", px)):

@@ -64,6 +64,31 @@
   /* Nebeneinanderstehende Strategie-Karten: gleiche Höhe und Blöcke auf gleicher Höhe (CSS-Subgrid, je Karte 7 Zeilen) */
   .sd-sync > .sd-card { display: grid; grid-template-rows: subgrid; grid-row: span 7; row-gap: var(--cds-gap-sm); align-content: start; }
   .sd-slot { display: grid; gap: var(--cds-gap-xs); align-content: start; }
+  .sd-health { margin-top: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); }
+  .sd-health > summary { cursor: pointer; list-style: none; display: inline-flex; }
+  .sd-health > summary::-webkit-details-marker { display: none; }
+  .sd-hpill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--color-border-line); color: var(--color-fg); }
+  .sd-hpill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--cds-chart-muted); flex: none; }
+  .sd-hpill.ok::before { background: var(--color-ok); }
+  .sd-hpill.warn::before { background: var(--color-warn); }
+  .sd-hpill.bad::before { background: var(--color-bad); }
+  .sd-hpill::after { content: "▾"; color: var(--color-fg-muted); }
+  .sd-hpanel { display: grid; gap: var(--cds-gap-xs); margin-top: var(--cds-gap-sm); padding: var(--cds-pad-md, 12px); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-panel); }
+  .sd-hpanel .sd-note, .sd-hpanel .sd-warn { margin: 0; }
+  .sd-h-ok { color: var(--color-ok); } .sd-h-warn { color: var(--color-warn); } .sd-h-bad { color: var(--color-bad); font-weight: 600; }
+  .sd-sync.r8 > .sd-card { grid-row: span 8; }
+  .sd-card { scroll-margin-top: 72px; }
+  .sd-dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px var(--cds-gap-sm); margin: 0; font-size: var(--cds-font-size-caption); }
+  .sd-dl dt { color: var(--color-fg-muted); font-weight: 600; }
+  .sd-dl dd { margin: 0; color: var(--color-fg); }
+  .sd-dl-h, .sd-dl-i { display: block; }
+  .sd-dl-h { color: var(--color-fg-muted); }
+  .sd-dl-i::before { content: "• "; color: var(--color-fg-muted); }
+  .sd-dl .sd-isin { font-size: 11px; color: var(--color-fg-muted); }
+  @media (max-width: 520px) { .sd-dl { grid-template-columns: 1fr; } .sd-dl dd { margin-bottom: 4px; } }
+  .sd-jump { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sd-jump button { font: inherit; font-size: var(--cds-font-size-caption); padding: 4px 10px; border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-panel); color: var(--color-fg); cursor: pointer; min-height: 32px; }
+  .sd-stat-h { grid-column: 1 / -1; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-weight: 600; margin-top: 2px; }
   .sd-tl { display: flex; gap: 1px; height: 22px; border-radius: var(--cds-radius); overflow: hidden; }
   .sd-tl > span { flex: 1 1 0; min-width: 0; }
   .sd-tl:empty { display: none; }
@@ -87,6 +112,8 @@
   .sd th { color: var(--color-fg-muted); font-weight: 600; position: sticky; top: 0; background: var(--color-panel); }
   .sd th.n, .sd td.n { text-align: right; white-space: nowrap; }
   .sd td.k { font-weight: 600; white-space: nowrap; }
+  .sd-calc td.k { white-space: normal; }
+  .sd-calc .sd-prod { display: block; overflow-wrap: anywhere; }
   .sd td.heat { text-align: right; white-space: nowrap; }
   .sd-warn { color: var(--color-warn); font-size: var(--cds-font-size-caption); }
   .sd-seg { display: inline-flex; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); overflow: hidden; flex: none; }
@@ -104,6 +131,16 @@
   .sd-calc input { width: 6.5rem; text-align: right; padding: 4px 6px; }
   .sd-calc .t td { font-weight: 600; }
   .sd-prod { display: block; color: var(--color-fg-muted); font-size: 0.92em; overflow-wrap: anywhere; font-weight: 400; }
+  @media (max-width: 760px) {      /* Datenstatus auf dem Handy: ein Block je Quelle */
+    .sd-htab thead { display: none; }
+    .sd-htab tr { display: grid; grid-template-columns: 1fr auto; gap: 2px var(--cds-gap-sm); padding: 6px 0; border-bottom: 1px solid var(--color-border-line); }
+    .sd-htab td { border: 0; padding: 0; white-space: normal; }
+    .sd-htab td:nth-child(2) { text-align: right; }
+    .sd-htab td:nth-child(3), .sd-htab td:nth-child(4), .sd-htab td:nth-child(5) { grid-column: 1 / -1; color: var(--color-fg-muted); }
+    .sd-htab td:nth-child(3)::before { content: "Datenstand "; }
+    .sd-htab td:nth-child(4)::before { content: "letzter Erfolg "; }
+    .sd-htab td:nth-child(5):empty { display: none; }
+  }
   @media (max-width: 760px) {      /* "Wenn heute gehandelt würde" auf dem Handy: ein Block je Strategie statt Querscrollen */
     #ov-heute .sd-tw.wide table { min-width: 0; }
     #ov-heute thead { display: none; }
@@ -138,8 +175,11 @@
 <div class="sd">
   <header class="sd-head" id="top">
     <h1>Strategien &amp; wikifolios</h1>
-    <p class="sd-take">Kursstand der Bots <b data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levgtaa" data-fmt="date">—</b> · wikifolio-Daten vom <b data-draw="val" data-source="wikifolios" data-field="asOf" data-where="key=levgtaa" data-fmt="date">—</b> · nächstes Monatssignal (levGTAA, MR-Rebound) auf den Schluss vom <b data-draw="val" data-source="strategies" data-field="nextDecision" data-where="key=levgtaa" data-fmt="date">—</b>, <span data-draw="countdown" data-source="strategies">—</span>. Keine Anlageberatung.</p>
-    <p class="sd-note">Zuletzt aktualisiert <span data-draw="val" data-source="build" data-field="built" data-row="0" data-fmt="datetime">—</span> · aktualisiert sich mehrmals täglich automatisch. <span class="sd-warn" data-draw="builderr" data-source="build"></span></p>
+    <p class="sd-take">Kursstand der Bots <b data-draw="botasof" data-source="strategies">—</b> · wikifolio-Daten vom <b data-draw="val" data-source="wikifolios" data-field="asOf" data-where="key=levgtaa" data-fmt="date">—</b> · nächstes Monatssignal (levGTAA, MR-Rebound) auf den Schluss vom <b data-draw="val" data-source="strategies" data-field="nextDecision" data-where="key=levgtaa" data-fmt="date">—</b>, <span data-draw="countdown" data-source="strategies">—</span>. Keine Anlageberatung.</p>
+    <details class="sd-health">
+      <summary><span class="sd-hpill" data-draw="hpill" data-source="health build">Datenstatus wird geladen …</span></summary>
+      <div class="sd-hpanel" data-draw="hpanel" data-source="health build"></div>
+    </details>
   </header>
 
   <nav class="sd-tabs" role="tablist" aria-label="Bereiche">
@@ -184,20 +224,23 @@
         <div class="sd-block">
           <div class="sd-block-h"><span>Kennzahlen (wikifolio.com)</span><span></span></div>
           <div class="sd-stats">
+            <div class="sd-stat-h">Rendite &amp; Risiko</div>
             <div class="sd-stat"><span class="sd-label">Seit Jahresbeginn</span><span data-draw="val" data-source="wikifolios" data-field="perf_ytd" data-where="key=levgtaa" data-fmt="spctA">—</span></div>
             <div class="sd-stat"><span class="sd-label">Performance 1 M (wikifolio)</span><span data-draw="val" data-source="wikifolios" data-field="perf_1m" data-where="key=levgtaa" data-fmt="spctA">—</span></div>
             <div class="sd-stat"><span class="sd-label">Ø pro Jahr</span><span data-draw="val" data-source="wikifolios" data-field="avg_pa" data-where="key=levgtaa" data-fmt="spctA">—</span></div>
             <div class="sd-stat"><span class="sd-label">Max. Verlust</span><span data-draw="val" data-source="wikifolios" data-field="max_loss" data-where="key=levgtaa" data-fmt="spctA">—</span></div>
-            <div class="sd-stat"><span class="sd-label">Indexstand</span><span data-draw="val" data-source="wikifolios" data-field="price" data-where="key=levgtaa" data-fmt="num2">—</span></div>
-            <div class="sd-stat"><span class="sd-label">High-Watermark</span><span data-draw="val" data-source="wikifolios" data-field="high_watermark" data-where="key=levgtaa" data-fmt="num2">—</span></div>
             <div class="sd-stat"><span class="sd-label">Volatilität</span><span data-draw="val" data-source="wikifolios" data-field="vola" data-where="key=levgtaa" data-fmt="pct1">—</span></div>
             <div class="sd-stat"><span class="sd-label">Sharpe Ratio</span><span data-draw="val" data-source="wikifolios" data-field="sharpe" data-where="key=levgtaa" data-fmt="num2">—</span></div>
             <div class="sd-stat"><span class="sd-label">Rendite/Risiko</span><span data-draw="val" data-source="wikifolios" data-field="ret_risk" data-where="key=levgtaa" data-fmt="num2">—</span></div>
+            <div class="sd-stat-h">Index &amp; Gebühren</div>
+            <div class="sd-stat"><span class="sd-label">Indexstand</span><span data-draw="val" data-source="wikifolios" data-field="price" data-where="key=levgtaa" data-fmt="num2">—</span></div>
+            <div class="sd-stat"><span class="sd-label">High-Watermark</span><span data-draw="val" data-source="wikifolios" data-field="high_watermark" data-where="key=levgtaa" data-fmt="num2">—</span></div>
+            <div class="sd-stat"><span class="sd-label">Gebühr p. a. / Perf.</span><span><span data-draw="val" data-source="wikifolios" data-field="fee_cert" data-where="key=levgtaa" data-fmt="pct2">—</span> / <span data-draw="val" data-source="wikifolios" data-field="fee_perf" data-where="key=levgtaa" data-fmt="pct0">—</span></span></div>
+            <div class="sd-stat-h">Kapital &amp; Rangliste</div>
             <div class="sd-stat"><span class="sd-label">Investiertes Kapital</span><span data-draw="val" data-source="wikifolios" data-field="invested" data-where="key=levgtaa" data-fmt="eur">—</span></div>
             <div class="sd-stat"><span class="sd-label">Handelsvolumen</span><span data-draw="val" data-source="wikifolios" data-field="trading_volume" data-where="key=levgtaa" data-fmt="eur">—</span></div>
             <div class="sd-stat"><span class="sd-label">Liquidationskennzahl</span><span data-draw="val" data-source="wikifolios" data-field="liquidation" data-where="key=levgtaa" data-fmt="num2">—</span></div>
             <div class="sd-stat"><span class="sd-label">Rangliste Platz</span><span data-draw="val" data-source="wikifolios" data-field="rank_place" data-where="key=levgtaa" data-fmt="int">—</span></div>
-            <div class="sd-stat"><span class="sd-label">Gebühr p. a. / Perf.</span><span><span data-draw="val" data-source="wikifolios" data-field="fee_cert" data-where="key=levgtaa" data-fmt="pct2">—</span> / <span data-draw="val" data-source="wikifolios" data-field="fee_perf" data-where="key=levgtaa" data-fmt="pct0">—</span></span></div>
           </div>
         </div>
         <div class="sd-block">
@@ -241,20 +284,23 @@
         <div class="sd-block">
           <div class="sd-block-h"><span>Kennzahlen (wikifolio.com)</span><span></span></div>
           <div class="sd-stats">
+            <div class="sd-stat-h">Rendite &amp; Risiko</div>
             <div class="sd-stat"><span class="sd-label">Seit Jahresbeginn</span><span data-draw="val" data-source="wikifolios" data-field="perf_ytd" data-where="key=levtipsregime" data-fmt="spctA">—</span></div>
             <div class="sd-stat"><span class="sd-label">Performance 1 M (wikifolio)</span><span data-draw="val" data-source="wikifolios" data-field="perf_1m" data-where="key=levtipsregime" data-fmt="spctA">—</span></div>
             <div class="sd-stat"><span class="sd-label">Ø pro Jahr</span><span data-draw="val" data-source="wikifolios" data-field="avg_pa" data-where="key=levtipsregime" data-fmt="spctA">—</span></div>
             <div class="sd-stat"><span class="sd-label">Max. Verlust</span><span data-draw="val" data-source="wikifolios" data-field="max_loss" data-where="key=levtipsregime" data-fmt="spctA">—</span></div>
-            <div class="sd-stat"><span class="sd-label">Indexstand</span><span data-draw="val" data-source="wikifolios" data-field="price" data-where="key=levtipsregime" data-fmt="num2">—</span></div>
-            <div class="sd-stat"><span class="sd-label">High-Watermark</span><span data-draw="val" data-source="wikifolios" data-field="high_watermark" data-where="key=levtipsregime" data-fmt="num2">—</span></div>
             <div class="sd-stat"><span class="sd-label">Volatilität</span><span data-draw="val" data-source="wikifolios" data-field="vola" data-where="key=levtipsregime" data-fmt="pct1">—</span></div>
             <div class="sd-stat"><span class="sd-label">Sharpe Ratio</span><span data-draw="val" data-source="wikifolios" data-field="sharpe" data-where="key=levtipsregime" data-fmt="num2">—</span></div>
             <div class="sd-stat"><span class="sd-label">Rendite/Risiko</span><span data-draw="val" data-source="wikifolios" data-field="ret_risk" data-where="key=levtipsregime" data-fmt="num2">—</span></div>
+            <div class="sd-stat-h">Index &amp; Gebühren</div>
+            <div class="sd-stat"><span class="sd-label">Indexstand</span><span data-draw="val" data-source="wikifolios" data-field="price" data-where="key=levtipsregime" data-fmt="num2">—</span></div>
+            <div class="sd-stat"><span class="sd-label">High-Watermark</span><span data-draw="val" data-source="wikifolios" data-field="high_watermark" data-where="key=levtipsregime" data-fmt="num2">—</span></div>
+            <div class="sd-stat"><span class="sd-label">Gebühr p. a. / Perf.</span><span><span data-draw="val" data-source="wikifolios" data-field="fee_cert" data-where="key=levtipsregime" data-fmt="pct2">—</span> / <span data-draw="val" data-source="wikifolios" data-field="fee_perf" data-where="key=levtipsregime" data-fmt="pct0">—</span></span></div>
+            <div class="sd-stat-h">Kapital &amp; Rangliste</div>
             <div class="sd-stat"><span class="sd-label">Investiertes Kapital</span><span data-draw="val" data-source="wikifolios" data-field="invested" data-where="key=levtipsregime" data-fmt="eur">—</span></div>
             <div class="sd-stat"><span class="sd-label">Handelsvolumen</span><span data-draw="val" data-source="wikifolios" data-field="trading_volume" data-where="key=levtipsregime" data-fmt="eur">—</span></div>
             <div class="sd-stat"><span class="sd-label">Liquidationskennzahl</span><span data-draw="val" data-source="wikifolios" data-field="liquidation" data-where="key=levtipsregime" data-fmt="num2">—</span></div>
             <div class="sd-stat"><span class="sd-label">Rangliste Platz</span><span data-draw="val" data-source="wikifolios" data-field="rank_place" data-where="key=levtipsregime" data-fmt="int">—</span></div>
-            <div class="sd-stat"><span class="sd-label">Gebühr p. a. / Perf.</span><span><span data-draw="val" data-source="wikifolios" data-field="fee_cert" data-where="key=levtipsregime" data-fmt="pct2">—</span> / <span data-draw="val" data-source="wikifolios" data-field="fee_perf" data-where="key=levtipsregime" data-fmt="pct0">—</span></span></div>
           </div>
         </div>
         <div class="sd-block">
@@ -303,11 +349,21 @@
         <button data-range="3m" aria-pressed="false">3 M</button><button data-range="6m" aria-pressed="false">6 M</button><button data-range="1y" aria-pressed="true">1 J</button><button data-range="all" aria-pressed="false">seit 2025</button>
       </div>
     </div>
-    <div class="sd-grid2 sd-sync">
+    <div class="sd-jump" role="group" aria-label="Zu Strategie springen"><button data-jump="levgtaa">levGTAA</button><button data-jump="levtipsregime">levTipsRegime</button><button data-jump="1xgtaa">1xGTAA</button><button data-jump="mrreboundgtaa">MR-Rebound</button><button data-jump="wechsel">Signalwechsel</button></div>
+    <div class="sd-grid2 sd-sync r8">
       <div class="sd-card" id="levgtaa">
         <div class="sd-chead">
           <div><h3>levGTAA</h3><div class="sd-kind">Momentum · monatlich · 3x Nasdaq · 1x BTC · 3x US-Treasury 7-10y · 3x Gold</div></div>
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="levgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="levgtaa" hidden>Cash</span><span data-draw="badge" data-key="levgtaa" data-source="allocations"></span></span>
+        </div>
+        <div class="sd-block sd-auf">
+          <div class="sd-block-h"><span>Aufbau &amp; Parameter</span><span></span></div>
+          <dl class="sd-dl">
+            <dt>Bausteine</dt><dd><span class="sd-dl-h">Signal (1x, USD) → Produkt</span><span class="sd-dl-i">Nasdaq 100 (^NDX) → 3x <span class="sd-isin">IE00BLRPRL42</span></span><span class="sd-dl-i">Bitcoin (BTC-USD) → 1x iShares Bitcoin ETP <span class="sd-isin">XS2940466316</span></span><span class="sd-dl-i">US-Treasury 7-10y (Signal TLT) → 3x <span class="sd-isin">IE00BKT09032</span></span><span class="sd-dl-i">Gold (GC=F) → 3x <span class="sd-isin">IE00B8HGT870</span></span></dd>
+            <dt>Regel</dt><dd>Ein Baustein ist zulässig, wenn sein Momentum &gt; 0 und SMA30 &gt; SMA<sub>L</sub>. Platz 1 = 40 %, Platz 2 = 60 %, nur einer zulässig = 50 %, Rest Cash.</dd>
+            <dt>Parameter</dt><dd>Mittel über L = 125–225 (101 Längen) und zwei Ranglisten je 50 %: Momentum 1/3/6/9 und 3/6/12 Monate · Vol-Target 55 %: Faktor = Ø über 42/63/84 Tage von min(1; 55 % ÷ Vola des gehebelten Portfolios)</dd>
+            <dt>Zeitplan</dt><dd>Signal auf dem Schluss des letzten Handelstags im Monat, Handel am 1. Handelstag; dazwischen kein Handel · wikifolio LevGTAA</dd>
+          </dl>
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot):</b></p>
@@ -357,6 +413,15 @@
           <div><h3>levTipsRegime</h3><div class="sd-kind">täglich · Cooldown 10 · Markt: 100 % 3x S&amp;P 500 · 3x IEF · Cash</div></div>
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="levtipsregime" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="levtipsregime" hidden>Cash</span><span data-draw="badge" data-key="levtipsregime" data-source="allocations"></span></span>
         </div>
+        <div class="sd-block sd-auf">
+          <div class="sd-block-h"><span>Aufbau &amp; Parameter</span><span></span></div>
+          <dl class="sd-dl">
+            <dt>Signale</dt><dd>USD, 1x: S&amp;P 500 Total Return (^SP500TR) / SMA280 · US-TIPS (TIP) / SMA220 · US-Treasury 20y+ (TLT) / SMA200</dd>
+            <dt>Zustände</dt><dd><b>Markt</b>, wenn S&amp;P und TIPS über der Linie → 100 % 3x S&amp;P 500 <span class="sd-isin">IE00B7Y34M31</span> · <b>3x IEF</b>, wenn TIPS unter und TLT über der Linie → 100 % 3x US-Treasury 7-10y <span class="sd-isin">IE00BKT09032</span> · sonst <b>Cash</b></dd>
+            <dt>Parameter</dt><dd>SMA280 / SMA220 / SMA200 · Cooldown 10 Handelstage nach jedem Wechsel (frühester Gegenwechsel am 11. Tag) · kein Bitcoin im Markt</dd>
+            <dt>Zeitplan</dt><dd>tägliche Entscheidung auf dem Vortagesschluss, Handel am nächsten Handelstag · wikifolio LevTipsRegime</dd>
+          </dl>
+        </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot):</b></p>
           <div class="sd-chips" data-draw="chips" data-key="levtipsregime" data-source="allocations alloc_cash"></div>
@@ -400,6 +465,15 @@
           <div><h3>1xGTAA</h3><div class="sd-kind">defensiv · ungehebelt · täglich · Cooldown 10</div></div>
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="1xgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="1xgtaa" hidden>Cash</span><span data-draw="badge" data-key="1xgtaa" data-source="allocations"></span></span>
         </div>
+        <div class="sd-block sd-auf">
+          <div class="sd-block-h"><span>Aufbau &amp; Parameter</span><span></span></div>
+          <dl class="sd-dl">
+            <dt>Bausteine</dt><dd><span class="sd-dl-h">Signal (USD) → UCITS-ETF</span><span class="sd-dl-i">Nasdaq 100 (QQQ) <span class="sd-isin">IE00B53SZB19</span></span><span class="sd-dl-i">EM Small Caps (EEMS) <span class="sd-isin">IE00B48X4842</span></span><span class="sd-dl-i">EMU Value (AW1T in USD) <span class="sd-isin">LU1598690169</span></span><span class="sd-dl-i">US-Treasury 7-10y (IEF) <span class="sd-isin">IE00B1FZS798</span></span><span class="sd-dl-i">Gold (GLD) → Xetra-Gold <span class="sd-isin">DE000A0S9GB0</span></span><span class="sd-dl-i">Rohstoffe (DBC) → WisdomTree Enhanced Commodity <span class="sd-isin">IE00BYMLZY74</span></span><span class="sd-dl-i">US-Geldmarkt (BIL) → Xtrackers USD Overnight <span class="sd-isin">LU0321465469</span></span></dd>
+            <dt>Regel</dt><dd>Alle 7 nach Momentum sortiert; Platz 1 = 40 %, Platz 2 = 60 %. Ein Platz wird nur gefüllt, wenn SMA8 &gt; SMA150 und Momentum &gt; 0, sonst bleibt sein Anteil Cash (kein Nachrücken).</dd>
+            <dt>Parameter</dt><dd>Momentum = Summe der 1/3/6/12-Monats-Renditen · SMA8 / SMA150 · ungehebelt · Cooldown 10 Handelstage nach jeder Umschichtung</dd>
+            <dt>Zeitplan</dt><dd>tägliche Entscheidung auf dem Vortagesschluss, Handel am nächsten Handelstag</dd>
+          </dl>
+        </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot):</b></p>
           <div class="sd-chips" data-draw="chips" data-key="1xgtaa" data-source="allocations alloc_cash"></div>
@@ -442,6 +516,15 @@
         <div class="sd-chead">
           <div><h3>MR-Rebound-GTAA</h3><div class="sd-kind">Mean-Reversion · monatlich · Duo QQQ/EM/TLT | QQQ/India/TLT · 3x Nasdaq/EM/India · 5x TLT</div></div>
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="mrreboundgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="mrreboundgtaa" hidden>Cash</span><span data-draw="badge" data-key="mrreboundgtaa" data-source="allocations"></span></span>
+        </div>
+        <div class="sd-block sd-auf">
+          <div class="sd-block-h"><span>Aufbau &amp; Parameter</span><span></span></div>
+          <dl class="sd-dl">
+            <dt>Bausteine</dt><dd><span class="sd-dl-h">Signal (1x) → Produkt</span><span class="sd-dl-i">Nasdaq 100 (^NDX) → 3x <span class="sd-isin">IE00BLRPRL42</span></span><span class="sd-dl-i">Emerging Markets (EEM) → 3x <span class="sd-isin">IE00BYTYHN28</span></span><span class="sd-dl-i">India (Sensex ^BSESN) → 3x <span class="sd-isin">XS2595675302</span></span><span class="sd-dl-i">US-Treasury 20y+ (TLT) → 5x <span class="sd-isin">XS2595672036</span></span></dd>
+            <dt>Regel</dt><dd>Zwei Körbe je 50 %: A = Nasdaq · EM · TLT, B = Nasdaq · India · TLT. Je Korb die zwei Schwächsten nach SMA<sub>S</sub>/SMA<sub>L</sub> − 1, bestätigt, wenn Rebound &gt; 0 und Kurs über der Gate-SMA: beide → 1/3 (schwächstes) + 2/3, nur eines → max(Slot, 50 %), sonst Cash.</dd>
+            <dt>Parameter</dt><dd>Mittel über 34.884 Varianten: S = 75–125, L = 175–250, Rebound 42/50/56 Tage, Gate SMA100/200/250 · kein Vol-Target</dd>
+            <dt>Zeitplan</dt><dd>Signal auf dem Schluss des letzten Handelstags im Monat, Handel am 1. Handelstag</dd>
+          </dl>
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot):</b></p>
@@ -552,7 +635,7 @@
   <section id="rechner" data-page="rechner" hidden>
     <div class="sd-card" id="umschicht">
       <h3>Umschichtungs-Rechner für deine wikifolios</h3>
-      <p class="sd-note">So geht's: in wikifolio unter „Portfolio“ die Stückzahl je Position und den Cash-Betrag ablesen und hier eintragen. Die Kurse sind mit dem letzten Börsenkurs in EUR vorbelegt; trag den Kurs aus deiner wikifolio-Ansicht ein, wenn du es genau willst. Beim Bitcoin-ETP immer den Kurs je Stück deines ETPs eintragen (BTC-EUR gilt für einen ganzen Bitcoin). Daraus rechnet die Tabelle Ist-Allokation, Ziel und Order in Stück. Das Ziel lässt einen Cash-Puffer für die wikifolio-Gebühren frei (Vorschlag automatisch).</p>
+      <p class="sd-note">So geht's: in wikifolio unter „Portfolio“ die Stückzahl je Position und den Cash-Betrag ablesen und hier eintragen. Die Kurse sind mit dem letzten Börsenkurs in EUR vorbelegt; trag den Kurs aus deiner wikifolio-Ansicht ein, wenn du es genau willst. Bitcoin ist mit dem Stückkurs des iShares Bitcoin ETP (XS2940466316, Xetra) vorbelegt; hältst du ein anderes Bitcoin-ETP, trag dessen Kurs je Stück ein. Daraus rechnet die Tabelle Ist-Allokation, Ziel und Order in Stück. Das Ziel lässt einen Cash-Puffer für die wikifolio-Gebühren frei (Vorschlag automatisch).</p>
       <div class="sd-fields">
         <label class="sd-field">wikifolio
           <select class="sd-in-wf"><option value="levgtaa">LevGTAA (Bot levGTAA)</option><option value="levtipsregime">LevTipsRegime (Bot levTipsRegime)</option></select>
@@ -587,7 +670,7 @@
   const NAMES = {NASDAQ100: 'Nasdaq 100', SP500: 'S&P 500', BTC: 'Bitcoin', UST_IEF: 'UST 7-10y', TLT_LONG: 'UST 20y+', GOLD: 'Gold',
     EM: 'Emerging Markets', INDIA: 'India', EM_SMALLCAP: 'EM Small Caps', EMU_VALUE: 'EMU Value', BONDS_7_10: 'UST 7-10y',
     COMMODITIES: 'Rohstoffe', CASH_USD: 'Geldmarkt', CASH: 'Cash', cash: 'Cash',
-    NDX3: '3x Nasdaq 100', SPX3: '3x S&P 500', BTC1: '1x Bitcoin', UST3: '3x UST 7-10y', GOLD3: '3x Gold'};
+    NDX3: '3x Nasdaq 100', SPX3: '3x S&P 500', BTC1: '1x Bitcoin (iShares Bitcoin ETP)', UST3: '3x UST 7-10y', GOLD3: '3x Gold'};
   const LEV = {levgtaa: {NASDAQ100: 3, BTC: 1, UST_IEF: 3, GOLD: 3}, mrreboundgtaa: {NASDAQ100: 3, EM: 3, INDIA: 3, TLT_LONG: 5},
     '1xgtaa': {}, levtipsregime: {SP500: 3, BTC: 1, UST_IEF: 3}};
   const colorOf = (a) => (a === 'CASH' || a === 'cash') ? 'var(--cds-chart-muted)' : dash.colors[(ASSET_COLOR[a] ?? 7) % dash.colors.length];
@@ -808,9 +891,90 @@
     if (/^spct/.test(el.dataset.fmt || '') && ok(v) && Number(v) !== 0) el.classList.add(Number(v) < 0 ? 'sd-neg' : 'sd-pos');
   });
 
-  dash.draw('builderr', (el) => {
-    const rows = rowsOf('build'), e = rows && rows[0] && rows[0].errors;
-    el.textContent = e ? '⚠ Beim letzten Lauf nicht geladen: ' + e + ' (letzter gültiger Stand wird angezeigt).' : '';
+  // ---------- Datenstatus: Ergebnis des letzten Laufs (health.json), Überfälligkeit, Laden im Browser ----------
+  const ST = {ok: ['ok', 'aktuell'], retry_ok: ['ok', 'aktuell (nach Wiederholung)'], warn: ['warn', 'Hinweis'],
+    fallback: ['warn', 'letzter Stand (Rückfallebene)'], error: ['bad', 'Fehler, keine Daten']};
+  // Zeitplan der Action (UTC): werktags stündlich 05:41–21:41, Sa/So 07:41, 13:41, 19:41
+  const slots = (from, dir) => {
+    const t = new Date(from); t.setUTCSeconds(0, 0);
+    for (let k = 0; k < 24 * 8; k++) {
+      const c = new Date(t.getTime() + dir * k * 3600e3); c.setUTCMinutes(41);
+      if (dir > 0 && c <= from) continue;
+      if (dir < 0 && c > from) continue;
+      const wd = c.getUTCDay(), h = c.getUTCHours();
+      if ((wd >= 1 && wd <= 5 && h >= 5 && h <= 21) || ((wd === 0 || wd === 6) && [7, 13, 19].includes(h))) return c;
+    }
+    return null;
+  };
+  const hm = (d) => d ? new Date(d).toLocaleString('de-DE', {weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin'}) + ' Uhr' : '–';
+  const hms = (d) => d ? new Date(d).toLocaleString('de-DE', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Berlin'}) : '–';
+  const healthState = () => {
+    const h = rowsOf('health'), b = rowsOf('build'), now = new Date();
+    const hh = h ? {...(h.find((r) => r.kind === 'run') || {}), sources: h.filter((r) => r.kind === 'source')} : null;
+    const built = hh ? new Date(hh.built) : b && b[0] ? new Date(b[0].built) : null;
+    const age = built ? (now - built) / 3600e3 : null, prevSlot = slots(now, -1), next = slots(now, 1);
+    const behind = built && prevSlot ? (prevSlot - built) / 3600e3 : 0;           // geplante Läufe seit dem letzten Lauf
+    const late = behind > 2.5 ? 'bad' : behind > 1.2 ? 'warn' : '';
+    const src = hh ? hh.sources || [] : [];
+    const bad = src.filter((x) => x.status === 'fallback' || x.status === 'error'), warn = src.filter((x) => x.status === 'warn');
+    const cl = window.sdClient || {};
+    let lvl = 'ok', text;
+    const live = !!window.sdClient;                                       // false = Kopie in Claude (Momentaufnahme)
+    if (!live) return {hh, built, age, next, late: '', src, lvl: 'warn', live,
+      text: `Momentaufnahme vom ${hm(built)} – die aktuelle Seite ist sin3qz.github.io/Strategies-dashboard`, cl: {}};
+    if (!hh && !built) { lvl = 'warn'; text = 'Datenstatus noch nicht verfügbar'; }
+    else if (late === 'bad') { lvl = 'bad'; text = `Aktualisierung überfällig: letzter Lauf ${hm(built)} (vor ${num(age, 1)} h)`; }
+    else if (bad.length) { lvl = bad.some((x) => x.status === 'error') ? 'bad' : 'warn'; text = `${bad.length === 1 ? bad[0].name : bad.length + ' Quellen'}: letzter Stand angezeigt – neuer Versuch ${hm(next)}`; }
+    else if (late === 'warn') { lvl = 'warn'; text = `Lauf verzögert: letzter ${hm(built)}, GitHub startet geplante Läufe teils später`; }
+    else if (warn.length) { lvl = 'warn'; text = `Aktuell, ${warn.length === 1 ? '1 Hinweis' : warn.length + ' Hinweise'}: ${warn[0].name}`; }
+    else text = `Alle Daten aktuell · Lauf ${hm(built)}`;
+    if (cl.failed && cl.failed.length) { lvl = lvl === 'bad' ? 'bad' : 'warn'; text += ` · ${cl.failed.length} Datei(en) im Browser nicht geladen`; }
+    else if (cl.cached && cl.cached.length) { lvl = lvl === 'bad' ? 'bad' : 'warn'; text += ' · offline: zuletzt gespeicherter Stand'; }
+    return {hh, built, age, next, late, src, lvl, text, cl, live};
+  };
+  dash.draw('botasof', (el) => {
+    const st = rowsOf('strategies');
+    if (!st || !st.length) { el.textContent = '—'; return; }
+    const d = [...new Set(st.map((r) => r.asOf).filter(Boolean))].sort();
+    el.textContent = d.length === 1 ? deDate(d[0]) : st.map((r) => `${NAMES_S[r.key] || r.key} ${deDate(r.asOf).slice(0, 6)}`).join(' · ');
+  });
+  const NAMES_S = {levgtaa: 'levGTAA', levtipsregime: 'levTips', mrreboundgtaa: 'MR-Rebound', '1xgtaa': '1xGTAA'};
+  dash.draw('hpill', (el) => {
+    const s = healthState();
+    el.textContent = s.text;
+    el.classList.remove('ok', 'warn', 'bad'); el.classList.add(s.lvl);
+  });
+  dash.draw('hpanel', (el) => {
+    const s = healthState();
+    el.replaceChildren();
+    const p = (t, cls) => { const x = document.createElement('p'); x.className = cls || 'sd-note'; x.textContent = t; el.appendChild(x); return x; };
+    if (s.hh) {
+      const x = p(`Letzter Lauf ${hm(s.built)}${s.hh.passes > 1 ? ' mit zweitem Durchgang für ausgefallene Quellen' : ''}`
+        + (s.hh.streak ? ` · gestört seit ${s.hh.streak} Lauf/Läufen` : '') + ` · nächster planmäßiger Lauf ${hm(s.next)}. `);
+      if (s.hh.run_url) { const a = document.createElement('a'); a.href = s.hh.run_url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Protokoll des Laufs'; x.appendChild(a); }
+      const tw = document.createElement('div'); tw.className = 'sd-tw sd-htab';
+      const t = document.createElement('table'), hd = document.createElement('thead'), bd = document.createElement('tbody');
+      const hr = document.createElement('tr');
+      ['Quelle', 'Status', 'Datenstand', 'letzter Erfolg', 'Weg / Grund'].forEach((c) => { const th = document.createElement('th'); th.textContent = c; hr.appendChild(th); });
+      hd.appendChild(hr);
+      s.src.forEach((r) => {
+        const tr = document.createElement('tr');
+        const [cls, lab] = ST[r.status] || ['warn', r.status];
+        const cells = [r.name, lab, r.data_asof ? deDate(String(r.data_asof).slice(0, 10)) : '–', hms(r.last_ok),
+          [r.via, r.detail].filter(Boolean).join(' · ') + (r.since && r.status !== 'ok' ? ` (seit ${hm(r.since)})` : '')];
+        cells.forEach((c, i) => { const td = document.createElement('td'); td.textContent = c; if (i === 0) td.className = 'k'; if (i === 1) td.className = 'sd-h-' + cls; tr.appendChild(td); });
+        bd.appendChild(tr);
+      });
+      t.append(hd, bd); tw.appendChild(t); el.appendChild(tw);
+    } else p('Noch keine Statusdatei vorhanden – sie entsteht beim nächsten Lauf der Aktualisierung.');
+    if (s.late) p(`Die Action ist seit ${num(s.age, 1)} h nicht gelaufen. GitHub startet geplante Läufe manchmal Stunden später oder pausiert sie nach 60 Tagen ohne Commits (Secret PAT_PUSH verhindert das). Von Hand: GitHub → Actions → Dashboard-Daten aktualisieren → Run workflow.`, 'sd-warn');
+    const cl = s.cl;
+    if (s.live) p(`Im Browser: geladen ${cl.loadedAt ? hm(cl.loadedAt) : '–'}` + (cl.retried && cl.retried.length ? ` · nach Wiederholung: ${cl.retried.join(', ')}` : '')
+      + (cl.cached && cl.cached.length ? ` · aus dem Zwischenspeicher (offline): ${cl.cached.length} Dateien` : '')
+      + (cl.failed && cl.failed.length ? ` · nicht geladen: ${cl.failed.join(', ')} (die Seite lädt alle 10 Minuten neu)` : ''));
+    p('Rückfallebenen: 1) jede Anfrage bis zu 3 Versuche · 2) Bot-Dateien über Ersatzwege (GitHub-API, jsDelivr), Bot-Code als Tarball · '
+      + '3) fällt eine Quelle aus, bleibt nur ihr letzter gültiger Stand · 4) zweiter Durchgang nach 150 s · 5) Neustart des ganzen Laufs nach 5 min · '
+      + '6) stündlicher Lauf · 7) ntfy-Push nach 3 gestörten Läufen in Folge · im Browser: 3 Ladeversuche je Datei, offline der gespeicherte Stand.');
   });
 
   dash.draw('sw', (el) => { el.style.background = el.dataset.i === 'cash' ? 'var(--cds-chart-muted)' : dash.colors[Number(el.dataset.i)]; });
@@ -1410,7 +1574,6 @@
   const priceOf = (p, row) => {
     if (row && ok(row.kurs_eur) && Number(row.kurs_eur) > 0) return Number(row.kurs_eur);
     if (p === 'CASH') return 1;
-    if (p === 'BTC1') return null;                                      // ETP-Kurs ist nicht BTC-EUR
     const pr = (rowsOf('prices') || []).find((x) => x.key === p);
     return pr ? Number(pr.price_eur) : null;
   };
@@ -1539,7 +1702,7 @@
       const pr = prices.find((x) => x.key === p);
       td0.textContent = p === 'CASH' ? 'Cash (€)' : NAMES[p];
       const sub = document.createElement('span'); sub.className = 'sd-prod';
-      sub.textContent = p === 'CASH' ? 'Betrag in € eintragen' : p === 'BTC1' ? 'dein Bitcoin-ETP · Kurs je Stück eintragen' : (pr ? `${pr.name} · ${pr.isin} · Ref. ${pr.ticker} ${window.sdFmt.deDate(pr.date)}` : '');
+      sub.textContent = p === 'CASH' ? 'Betrag in € eintragen' : (pr ? `${pr.name} · ${pr.isin} · Ref. ${pr.ticker} ${window.sdFmt.deDate(pr.date)}` : '');
       td0.appendChild(sub);
       const q = document.createElement('input'); q.type = 'number'; q.min = '0'; q.step = p === 'CASH' ? '0.01' : 'any'; q.inputMode = 'decimal';
       q.value = r.stueck || ''; q.placeholder = '0'; q.setAttribute('aria-label', `${NAMES[p] || p} Stück`);
@@ -1548,7 +1711,7 @@
       const tdk = tr.insertCell(); tdk.className = 'n';
       if (p !== 'CASH') {
         const k = document.createElement('input'); k.type = 'number'; k.min = '0'; k.step = 'any'; k.inputMode = 'decimal';
-        k.value = ok(r.kurs_eur) && Number(r.kurs_eur) > 0 ? r.kurs_eur : ''; k.placeholder = pr && p !== 'BTC1' ? num(pr.price_eur, 2) : 'Kurs';
+        k.value = ok(r.kurs_eur) && Number(r.kurs_eur) > 0 ? r.kurs_eur : ''; k.placeholder = pr ? num(pr.price_eur, 2) : 'Kurs';
         k.setAttribute('aria-label', `${NAMES[p]} Kurs in Euro`);
         k.addEventListener('input', () => { save((rs) => { let c = cell(rs, wf, p); if (!c) rs.push(c = {wikifolio: wf, product: p, stueck: 0}); c.kurs_eur = Number(k.value) > 0 ? Number(k.value) : null; }); updateOut(el); });
         tdk.appendChild(k);
@@ -1630,6 +1793,7 @@
   if (TABS.includes(start)) show(start);
 
   document.querySelectorAll('[data-range]').forEach((b) => b.addEventListener('click', () => dash.setParams({range: b.dataset.range})));
+  document.querySelectorAll('[data-jump]').forEach((b) => b.addEventListener('click', () => { const t = document.getElementById(b.dataset.jump); if (t) t.scrollIntoView({behavior: 'smooth', block: 'start'}); }));
   document.querySelectorAll('[data-eqrange]').forEach((b) => b.addEventListener('click', () => dash.setParams({eqrange: b.dataset.eqrange})));
 
   const wfSel = document.querySelectorAll('.sd-in-wf'), tgtSel = document.querySelectorAll('.sd-in-target');

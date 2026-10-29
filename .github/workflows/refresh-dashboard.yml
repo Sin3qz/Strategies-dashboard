@@ -42,9 +42,15 @@ jobs:
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}       # optional: Push bei gekipptem Tagessignal (gleiches Topic wie die Bots)
           NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
-        run: python3 dashboard-data/refresh.py "$RUNNER_TEMP/work"
+          RETRY_WAIT: "150"                           # Rückfallebene: ausgefallene Quellen nach 150 s ein zweites Mal holen
+        run: |
+          # Rückfallebene: bricht der ganze Lauf ab (nichts geladen), nach 5 Minuten einmal komplett neu starten
+          python3 dashboard-data/refresh.py "$RUNNER_TEMP/work" || {
+            echo "::warning::Lauf fehlgeschlagen - Neustart in 5 Minuten"; sleep 300
+            python3 dashboard-data/refresh.py "$RUNNER_TEMP/work"; }
 
       - name: Commit und Push
+        if: always()                                    # auch nach Fehlern: health.json zeigt auf der Seite, was los ist
         run: |
           git config --global user.name "Sin3qz"
           git config --global user.email "patrickdietrich2@gmail.com"
