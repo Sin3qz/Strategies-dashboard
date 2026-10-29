@@ -457,7 +457,7 @@ def step(name, fn):
 
 
 HOLDINGS_TEMPLATE = [   # wird nur angelegt, wenn die Datei fehlt; deine Eintraege ueberschreibt die Aktualisierung nie
-    {"wikifolio": "levgtaa", "product": p, "stueck": 0, "kurs_eur": None, "stand": None} for p in ("NDX3", "BTC1", "UST3", "GOLD3", "MM")
+    {"wikifolio": "levgtaa", "product": p, "stueck": 0, "kurs_eur": None, "stand": None} for p in ("NDX3", "BTC1", "BTCW", "UST3", "GOLD3", "MM")
 ] + [{"wikifolio": "levtipsregime", "product": p, "stueck": 0, "kurs_eur": None, "stand": None} for p in ("SPX3", "BTC1", "UST3", "MM")
 ] + [{"wikifolio": w, "product": "CASH", "stueck": 0, "kurs_eur": 1, "stand": None} for w in ("levgtaa", "levtipsregime")]
 

@@ -8,7 +8,7 @@ import csv, datetime as dt, json, math, os, sys
 from zoneinfo import ZoneInfo
 
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
-ALLOWED = {"levgtaa": {"NDX3", "BTC1", "UST3", "GOLD3", "MM", "CASH"}, "levtipsregime": {"SPX3", "BTC1", "UST3", "MM", "CASH"}}
+ALLOWED = {"levgtaa": {"NDX3", "BTC1", "BTCW", "UST3", "GOLD3", "MM", "CASH"}, "levtipsregime": {"SPX3", "BTC1", "UST3", "MM", "CASH"}}
 
 
 def num(v, name, neg=False):

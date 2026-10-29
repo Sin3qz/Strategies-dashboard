@@ -22,6 +22,7 @@ PRODUCTS = {   # key: (Name, ISIN, Yahoo-Ticker, Waehrung)
     "UST3": ("WisdomTree US Treasuries 10Y 3x Daily Leveraged", "IE00BKT09032", "3TYL.L", "GBp"),   # 3TYL.MI: zu viele Tage ohne Kurs
     "GOLD3": ("WisdomTree Gold 3x Daily Leveraged", "IE00B8HGT870", "3GOL.L", "USD"),
     "BTC1": ("iShares Bitcoin ETP", "XS2940466316", "BTC-EUR", "EUR"),   # Verlauf BTC-EUR (länger), Stückkurs IB1T.DE
+    "BTCW": ("WisdomTree Physical Bitcoin", "GB00BJYDH287", "BTCW.L", "USD"),   # im wikifolio LevGTAA gehalten (nur Rechner)
     "EM3": ("WisdomTree Emerging Markets 3x Daily Leveraged", "IE00BYTYHN28", "3EML.L", "USD"),
     "IND3": ("Leverage Shares 3x Long India", "XS2595675302", "IND3.L", "USD"),
     "TLT5": ("Leverage Shares 5x Long 20+ Year Treasury Bond", "XS2595672036", "TLT5.L", "USD"),
