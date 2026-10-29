@@ -194,6 +194,13 @@
   .sd-field { display: grid; gap: 4px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
   .sd input, .sd select, .sd textarea { font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 5px 8px; }
   .sd-field select { min-width: 11rem; }
+  .sd-cashplan { display: grid; gap: var(--cds-gap-sm); }
+  .sd-cp-head { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--cds-gap-sm); }
+  .sd-cp-box { display: grid; gap: 2px; padding: 8px 10px; border-radius: var(--cds-radius); background: var(--cds-chart-grid); }
+  .sd-cp-box b { font-size: var(--cds-font-size-heading); font-variant-numeric: tabular-nums; }
+  .sd-cp-box.bad b { color: var(--color-bad); } .sd-cp-box.warn b { color: var(--color-warn); } .sd-cp-box.good b { color: var(--color-ok); }
+  .sd .sd-cp-tab { width: auto; min-width: 0; max-width: 26rem; font-variant-numeric: tabular-nums; }
+  .sd-cp-tab td, .sd-cp-tab th { padding: 3px 10px 3px 0; } .sd-cp-tab tr.cur td { font-weight: 600; }
   .sd-field.sd-check { display: flex; align-items: center; gap: 6px; min-height: 36px; color: var(--color-fg); font-size: var(--cds-font-size-body); }
   .sd-field.sd-check input { width: 18px; height: 18px; margin: 0; }
   .sd-btn { font: inherit; font-size: var(--cds-font-size-caption); background: var(--color-bg); color: var(--color-fg); border: 1px solid var(--color-border-line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
@@ -748,18 +755,22 @@
   <section id="rechner" data-page="rechner" hidden>
     <div class="sd-card" id="umschicht">
       <h3>Umschichtungs-Rechner für deine wikifolios</h3>
-      <p class="sd-note">So geht's: in wikifolio unter „Portfolio“ die Stückzahl je Position und den Cash-Betrag ablesen und hier eintragen. Die Kurse sind mit dem letzten Börsenkurs in EUR vorbelegt; trag den Kurs aus deiner wikifolio-Ansicht ein, wenn du es genau willst. Bitcoin ist mit dem Stückkurs des iShares Bitcoin ETP (XS2940466316, Xetra) vorbelegt, der Geldmarkt-ETF mit dem Xtrackers II EUR Overnight Rate Swap 1C (XEON, LU0290358497); hältst du andere Produkte, trag deren Kurs je Stück ein. Cash darf negativ sein (Minus eintragen). Daraus rechnet die Tabelle Ist-Allokation, Ziel und Order in Stück. Das Ziel lässt einen Cash-Puffer für die wikifolio-Gebühren frei (Vorschlag automatisch); den Bot-Cash-Anteil (z. B. levTipsRegime im Zustand Cash) legt es in den Geldmarkt-ETF.</p>
+      <p class="sd-note">So geht's: in wikifolio unter „Portfolio“ die Stückzahl je Position und den Cash-Betrag ablesen und hier eintragen. Die Kurse sind mit dem letzten Börsenkurs in EUR vorbelegt; trag den Kurs aus deiner wikifolio-Ansicht ein, wenn du es genau willst. Bitcoin: iShares Bitcoin ETP (XS2940466316) und WisdomTree Physical Bitcoin (GB00BJYDH287) – trag ein, was du hältst; das Bitcoin-Ziel geht anteilig in deine Produkte (ohne Bestand: iShares). Geldmarkt-ETF: Xtrackers II EUR Overnight Rate Swap 1C (XEON, LU0290358497). Hältst du andere Produkte, trag deren Kurs je Stück ein. Cash darf negativ sein (Minus eintragen). Daraus rechnet die Tabelle Ist-Allokation, Ziel und Order in Stück. Das Ziel lässt einen Cash-Puffer für die wikifolio-Gebühren frei (Vorschlag automatisch); den Bot-Cash-Anteil (z. B. levTipsRegime im Zustand Cash) legt es in den Geldmarkt-ETF.</p>
       <div class="sd-fields">
         <label class="sd-field">wikifolio
           <select class="sd-in-wf"><option value="levgtaa">LevGTAA (Bot levGTAA)</option><option value="levtipsregime">LevTipsRegime (Bot levTipsRegime)</option></select>
         </label>
         <label class="sd-field">Ziel
-          <select class="sd-in-target"><option value="held">Bot-Position jetzt (Soll)</option><option value="today">Tagessignal heute (simuliert)</option></select>
+          <select class="sd-in-target"><option value="held">Bot-Position jetzt (Soll)</option><option value="today">Tagessignal heute (simuliert)</option><option value="cash">Nur Cash auf Soll bringen (kein Umschichten)</option></select>
         </label>
         <label class="sd-field">Cash-Puffer für Gebühren (%)<input class="sd-in-reserve" type="number" min="0" max="5" step="0.05" inputmode="decimal" placeholder="Vorschlag"></label>
         <label class="sd-field sd-check"><input class="sd-in-mm" type="checkbox" checked> Bot-Cash im Geldmarkt-ETF halten</label>
       </div>
-      <p class="sd-note">Gebühren-Puffer: <span data-draw="reservehint" data-source="wikifolios monthly_returns perf_stats">—</span> Leer lassen = Vorschlag verwenden.</p>
+      <div class="sd-cashplan" data-draw="cashplan" data-source="wikifolios perf_stats holdings prices allocations"></div>
+      <details class="sd-more">
+        <summary>Wie der Puffer berechnet wird</summary>
+        <p class="sd-note">Gebühren-Puffer: <span data-draw="reservehint" data-source="wikifolios monthly_returns perf_stats">—</span> Feld „Cash-Puffer“ leer lassen = Vorschlag verwenden.</p>
+      </details>
       <div class="sd-tw"><div data-draw="wfcalc" data-source="holdings prices allocations alloc_cash daily_levgtaa daily_levtips wikifolios monthly_returns perf_stats"></div></div>
       <div class="sd-block">
         <div class="sd-block-h"><span>Order-Vorschlag (ganze Stück; Käufe abgerundet, damit das Cash reicht)</span><span></span></div>
@@ -920,16 +931,16 @@
   // Eine Farbe je Asset auf der ganzen Seite (Index in dash.colors): Aktien blau, Bitcoin orange, Anleihen türkis, Gold gelb
   const ASSET_COLOR = {NASDAQ100: 0, SP500: 0, BTC: 1, UST_IEF: 2, BONDS_7_10: 2, TLT_LONG: 2, GOLD: 3,
     EM: 4, EM_SMALLCAP: 4, COMMODITIES: 5, INDIA: 6, EMU_VALUE: 6, CASH_USD: 7,
-    NDX3: 0, SPX3: 0, BTC1: 1, UST3: 2, GOLD3: 3, MM: 7};
+    NDX3: 0, SPX3: 0, BTC1: 1, BTCW: 1, UST3: 2, GOLD3: 3, MM: 7};
   const NAMES = {NASDAQ100: 'Nasdaq 100', SP500: 'S&P 500', BTC: 'Bitcoin', UST_IEF: 'UST 7-10y', TLT_LONG: 'UST 20y+', GOLD: 'Gold',
     EM: 'Emerging Markets', INDIA: 'India', EM_SMALLCAP: 'EM Small Caps', EMU_VALUE: 'EMU Value', BONDS_7_10: 'UST 7-10y',
     COMMODITIES: 'Rohstoffe', CASH_USD: 'Geldmarkt', CASH: 'Cash', cash: 'Cash',
-    NDX3: '3x Nasdaq 100', SPX3: '3x S&P 500', BTC1: '1x Bitcoin (iShares Bitcoin ETP)', UST3: '3x UST 7-10y', GOLD3: '3x Gold', MM: 'Geldmarkt-ETF (EUR)'};
+    NDX3: '3x Nasdaq 100', SPX3: '3x S&P 500', BTC1: '1x Bitcoin (iShares Bitcoin ETP)', BTCW: '1x Bitcoin (WisdomTree Physical)', UST3: '3x UST 7-10y', GOLD3: '3x Gold', MM: 'Geldmarkt-ETF (EUR)'};
   const LEV = {levgtaa: {NASDAQ100: 3, BTC: 1, UST_IEF: 3, GOLD: 3}, mrreboundgtaa: {NASDAQ100: 3, EM: 3, INDIA: 3, TLT_LONG: 5},
     '1xgtaa': {}, levtipsregime: {SP500: 3, BTC: 1, UST_IEF: 3}};
   const colorOf = (a) => (a === 'CASH' || a === 'cash') ? 'var(--cds-chart-muted)' : dash.colors[(ASSET_COLOR[a] ?? 7) % dash.colors.length];
   const num = (x, d) => { const v = Number(x), r = Math.round(v * 10 ** d) === 0 ? 0 : v;   // kein „−0,0“
-    return r.toLocaleString('de-DE', {minimumFractionDigits: d, maximumFractionDigits: d}); };
+    return r.toLocaleString('de-DE', {minimumFractionDigits: d, maximumFractionDigits: d}).replace(/^-/, '−'); };
   const ok = (x) => x != null && x !== '' && !isNaN(Number(x));
   const pct = (x, d) => ok(x) ? num(Number(x) * 100, d) + ' %' : '–';
   const spct = (x, d) => { if (!ok(x)) return '–'; const v = Number(x), z = Math.round(Math.abs(v) * 100 * 10 ** d) === 0;
@@ -1736,8 +1747,8 @@
     const r = cwRow(el); el.replaceChildren();
     if (!r) { el.textContent = 'ab dem nächsten Lauf'; return; }
     const dot = document.createElement('span'); dot.className = 'sd-dot';
-    dot.style.background = r.level === 'ok' ? dash.colors[5] : r.level === 'warn' ? 'var(--color-warn)' : r.level === 'neg' ? 'var(--color-bad)' : 'var(--color-fg-muted)';
-    el.append(dot, {ok: 'reicht', warn: 'bald leer – auffüllen', neg: 'negativ – auffüllen', unknown: 'unbekannt – bitte eintragen'}[r.level] || r.level);
+    dot.style.background = r.level === 'ok' ? dash.colors[5] : ['warn', 'below'].includes(r.level) ? 'var(--color-warn)' : r.level === 'neg' ? 'var(--color-bad)' : 'var(--color-fg-muted)';
+    el.append(dot, {ok: 'reicht', below: 'unter Soll – beim nächsten Handel auffüllen', warn: 'bald leer – jetzt auffüllen', neg: 'negativ – jetzt auffüllen', unknown: 'unbekannt – bitte eintragen'}[r.level] || r.level);
   });
   dash.draw('cwtext', (el) => {
     const r = cwRow(el);
@@ -1884,7 +1895,7 @@
 (() => {
   // ---------- wikifolio-Rechner (Stückzahlen, Ist, Ziel, Order) ----------
   const {pct, num, ok, NAMES, rowsOf, chipEl, spct} = window.sdFmt;
-  const PRODUCTS = {levgtaa: ['NDX3', 'BTC1', 'UST3', 'GOLD3', 'MM'], levtipsregime: ['SPX3', 'BTC1', 'UST3', 'MM']};
+  const PRODUCTS = {levgtaa: ['NDX3', 'BTC1', 'BTCW', 'UST3', 'GOLD3', 'MM'], levtipsregime: ['SPX3', 'BTC1', 'UST3', 'MM']};
   const ASSET = {levgtaa: {NDX3: 'NASDAQ100', BTC1: 'BTC', UST3: 'UST_IEF', GOLD3: 'GOLD'}, levtipsregime: {SPX3: 'SP500', BTC1: 'BTC', UST3: 'UST_IEF'}};
   const store = {
     get() { try { return JSON.parse(localStorage.getItem('sd-holdings') || 'null'); } catch (e) { return null; } },
@@ -1952,6 +1963,13 @@
         t[p] = a.weight == null ? (a.asset === 'SP500' ? 1 : 0) : Number(a.weight);      // alter Bot-Status ohne Quote: 100 % S&P
       });
     }
+    // Bitcoin-Ziel in die Produkte, die im wikifolio liegen (kein unnoetiger Produkttausch): iShares und/oder WisdomTree
+    // anteilig nach ihrem Wert; haeltst du keines, Vorschlag iShares
+    if (t.BTC1 != null && PRODUCTS[wf].includes('BTCW')) {
+      const rows = holdings(), v = (pp) => { const r = cell(rows, wf, pp) || {}; return (Number(r.stueck) || 0) * (priceOf(pp, r) || 0); };
+      const a = v('BTC1'), b = v('BTCW');
+      if (a + b > 0) { const tb = t.BTC1; t.BTC1 = tb * a / (a + b); t.BTCW = tb * b / (a + b); }
+    }
     return t;
   };
 
@@ -1964,7 +1982,7 @@
   const STRAT_KEY = {levgtaa: 'levgtaa', levtipsregime: 'levtips'};
   const MM_HI1M = 0.003;                                            // Geldmarkt-ETF: hoechster Stand binnen 21 Handelstagen
   const useMM = (wf) => dash.params()['mm_' + wf] !== false && dash.params()['mm_' + wf] !== 'false';
-  const reserveSuggest = (wf) => {
+  const reserveSuggest = (wf, gapAt) => {
     const w = (rowsOf('wikifolios') || []).find((x) => x.key === wf) || {};
     const ps = (rowsOf('perf_stats') || []).find((x) => x.key === STRAT_KEY[wf]) || {};
     const stage = w.status === 'Investierbar' ? 'invest' : window.sdCritN && window.sdCritN(w) === 3 ? 'emission' : 'preview';
@@ -1978,7 +1996,7 @@
     const risky = Math.min(1, Object.values(targetOf(wf, 'held')).reduce((s2, v) => s2 + v, 0));
     const qStrategy = strong;
     strong = risky * qStrategy + (useMM(wf) ? (1 - risky) * MM_HI1M : 0);
-    const gap = Number(w.high_watermark) > 0 && Number(w.price) > 0 ? Math.min(0, Number(w.price) / Number(w.high_watermark) - 1) : 0;   // <= 0
+    const gap = gapAt != null ? gapAt : Number(w.high_watermark) > 0 && Number(w.price) > 0 ? Math.min(0, Number(w.price) / Number(w.high_watermark) - 1) : 0;   // <= 0
     const need = gap < 0 ? 1 / (1 + gap) - 1 : 0;                    // noetiger Anstieg bis zur HWM
     const fee = Number(w.fee_cert || 0.0095) / 12, perf = Number(w.fee_perf || 0.05);
     const r = Math.min(0.01, Math.max(0, Math.ceil((fee + perf * Math.max(0, strong - need)) * 2000) / 2000 + 0.0005));
@@ -1998,10 +2016,46 @@
   });
   window.sdReserve = reserveOf;
 
+  // Soll-Cash auf einen Blick: Soll / Ist / fehlt, dazu der Puffer je HWM-Abstand (je weiter unter der HWM, desto
+  // unwahrscheinlicher eine Performancegebuehr im naechsten Monat -> kleinerer Puffer)
+  dash.draw('cashplan', (el) => {
+    el.replaceChildren();
+    const wf = dash.params().wf === 'levtipsregime' ? 'levtipsregime' : 'levgtaa';
+    const w = (rowsOf('wikifolios') || []).find((x) => x.key === wf); if (!w) return;
+    const s0 = reserveSuggest(wf), r = reserveOf(wf), ist = istOf(wf);
+    const total = ist.total > 0 ? ist.total : Number(w.price) * 1000;          // wikifolio startet mit 100.000 € bei Index 100
+    const cash = ist.total > 0 ? (ist.values.CASH || 0) : null;
+    const eur = (v) => num(Math.round(v), 0) + ' €';
+    const head = document.createElement('div'); head.className = 'sd-cp-head';
+    const box = (lab, val, sub, cls) => { const d = document.createElement('div'); d.className = 'sd-cp-box' + (cls ? ' ' + cls : '');
+      const a = document.createElement('span'); a.className = 'sd-label'; a.textContent = lab; const b = document.createElement('b'); b.textContent = val;
+      const c = document.createElement('span'); c.className = 'sd-note'; c.textContent = sub; d.append(a, b, c); return d; };
+    head.append(box('Soll-Cash', eur(total * r), pct(r, 2) + ' des wikifolios'));
+    if (cash != null) {
+      const miss = total * r - cash;
+      head.append(box('Ist-Cash', eur(cash), pct(cash / total, 2), cash < 0 ? 'bad' : miss > 0.5 ? 'warn' : 'good'),
+                  box(miss > 0.5 ? 'Fehlt' : 'Überschuss', eur(Math.abs(miss)), miss > 0.5 ? 'Ziel „Nur Cash auf Soll bringen“ zeigt die Order' : 'nichts zu tun', miss > 0.5 ? 'warn' : 'good'));
+    } else head.append(box('Ist-Cash', '–', 'Stückzahlen und Cash unten eintragen'));
+    el.appendChild(head);
+    const t = document.createElement('table'); t.className = 'sd-cp-tab';
+    const th = t.createTHead().insertRow(); ['HWM-Abstand', 'Puffer', 'in €'].forEach((h, i) => { const c = document.createElement('th'); c.textContent = h; if (i) c.className = 'n'; th.appendChild(c); });
+    const tb = t.createTBody(), cur = s0.gap;
+    const gaps = [0, -0.025, -0.05, -0.075, -0.1, -0.15, -0.2, -0.3];
+    const rowsG = gaps.filter((g) => Math.abs(g - cur) > 0.004).concat([cur]).sort((a, b) => b - a);
+    rowsG.forEach((g) => {
+      const v = reserveSuggest(wf, g).r, tr = tb.insertRow(); if (g === cur) tr.className = 'cur';
+      [g === cur ? `${g > -0.0005 ? 'an der HWM' : '−' + pct(-g, 1)} (jetzt)` : (g === 0 ? 'an der HWM' : '−' + pct(-g, 1)), pct(v, 2), eur(total * v)]
+        .forEach((x, i) => { const c = tr.insertCell(); c.textContent = x; if (i) c.className = 'n'; });
+    });
+    const n = document.createElement('p'); n.className = 'sd-note';
+    n.textContent = `Je weiter das wikifolio unter seiner High-Watermark steht, desto unwahrscheinlicher fällt im nächsten Monat Performancegebühr an – der Puffer sinkt bis auf die reine Zertifikategebühr. ${s0.stage === 'emission' ? 'Emission läuft: Cash darf nicht negativ sein.' : ''}`;
+    el.append(t, n);
+  });
+
   let calcState = null;     // letzte Berechnung fuer den Order-Block
   const compute = (wf) => {
-    const p = dash.params(), mode = p.wf_target === 'today' ? 'today' : 'held';
-    const rows = holdings(), ist = istOf(wf), tgt0 = targetOf(wf, mode);
+    const p = dash.params(), mode = p.wf_target === 'today' ? 'today' : p.wf_target === 'cash' ? 'cash' : 'held';
+    const rows = holdings(), ist = istOf(wf), tgt0 = targetOf(wf, mode === 'cash' ? 'held' : mode);
     const reserve = reserveOf(wf), inv = Object.values(tgt0).reduce((s2, v) => s2 + v, 0);
     const scale = inv > 0 ? Math.min(1, (1 - reserve) / inv) : 1;          // Bot-Cash reicht schon -> nichts kuerzen
     const tgt = Object.fromEntries(Object.entries(tgt0).map(([k, v]) => [k, v * scale]));
@@ -2014,6 +2068,7 @@
       const cur = q * (px || 0), want = total * (tgt[pr] || 0), diffEur = want - cur;
       let diffQ = px ? diffEur / px : null;
       if (diffQ != null) diffQ = diffQ >= 0 ? Math.floor(diffQ + 1e-9) : -Math.min(q, Math.round(-diffQ));
+      if (mode === 'cash') diffQ = px ? 0 : null;                       // nur Cash auffuellen: erst einmal nichts umschichten
       return {pr, q, px, cur, w: total ? cur / total : 0, tw: tgt[pr] || 0, want, diffEur, diffQ};
     });
     // Kaeufe zurueckschneiden, falls das Cash nicht reicht
@@ -2029,10 +2084,14 @@
     while (total > 0 && cashAfter() < total * reserve - 0.005 && guard++ < 10000) {
       const buy = lines.filter((l) => l.diffQ > 0).sort((a, b) => b.diffQ * b.px - a.diffQ * a.px)[0];
       if (buy) { buy.diffQ -= 1; continue; }
-      const sell = lines.filter((l) => l.px && l.q + (l.diffQ || 0) >= 1).sort((a, b) => (b.q + b.diffQ) * b.px - (a.q + a.diffQ) * a.px)[0];
+      // verkauft wird die Position, die am weitesten ueber ihrem Bot-Ziel liegt
+      const over = (l) => ((l.q + (l.diffQ || 0)) * l.px) / total - (tgt[l.pr] || 0);
+      const sell = lines.filter((l) => l.px && l.q + (l.diffQ || 0) >= 1).sort((a, b) => over(b) - over(a))[0];
       if (!sell) break; sell.diffQ = (sell.diffQ || 0) - 1;
     }
-    calcState = {wf, lines, total, cash0, cashAfter: cashAfter(), tgtCash: 1 - Object.values(tgt).reduce((s, v) => s + v, 0), missing: ist.missing, reserve};
+    if (mode === 'cash') lines.forEach((l) => { l.tw = total ? ((l.q + (l.diffQ || 0)) * (l.px || 0)) / total : 0; l.want = l.tw * total; l.diffEur = l.want - l.cur; });
+    const tgtCash = mode === 'cash' ? (total ? cashAfter() / total : 0) : 1 - Object.values(tgt).reduce((s, v) => s + v, 0);
+    calcState = {wf, mode, lines, total, cash0, cashAfter: cashAfter(), tgtCash, missing: ist.missing, reserve};
     return calcState;
   };
 
@@ -2218,7 +2277,7 @@
     document.querySelectorAll('[data-range]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.range === (p.range || '1y'))));
     document.querySelectorAll('[data-eqrange]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.eqrange === (p.eqrange || 'max'))));
     wfSel.forEach((s) => { s.value = p.wf === 'levtipsregime' ? 'levtipsregime' : 'levgtaa'; });
-    tgtSel.forEach((s) => { s.value = p.wf_target === 'today' ? 'today' : 'held'; });
+    tgtSel.forEach((s) => { s.value = ['today', 'cash'].includes(p.wf_target) ? p.wf_target : 'held'; });
     res.forEach((i) => { if (i !== document.activeElement) { const v = p['reserve_' + curWf()]; i.value = v == null ? '' : v; } });
     mmBox.forEach((c) => { const v = p['mm_' + curWf()]; c.checked = v !== false && v !== 'false'; });
   });

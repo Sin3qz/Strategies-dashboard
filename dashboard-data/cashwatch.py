@@ -117,23 +117,26 @@ def estimate(key, w, hist, strat, alloc, ps, holds, px, today):
     days = (cash / burn) if cash > 0 else 0
     target = reserve(w, ps, gap, risky)
     top = max(0.0, target - cash)
-    level = "neg" if cash < 0 else "warn" if cash < need2 else "ok"
+    level = "neg" if cash < 0 else "warn" if cash < need2 else "below" if cash < target - 0.0002 else "ok"
     e = lambda x: f"{x * total:,.0f} €".replace(",", ".").replace("-", "−")
     pc = lambda x: f"{x * 100:.2f} %".replace(".", ",").replace("-", "−")
+    soll = f"Soll {e(target)} ({pc(target)})"
     if level == "ok":
-        detail = (f"Cash geschätzt {e(cash)} ({pc(cash)}), reicht für die Zertifikategebühr noch etwa {days:.0f} Tage; "
-                  f"Reserve für die nächsten 2 Handelstage {pc(need2)}.")
+        detail = f"Cash {e(cash)} ({pc(cash)}) · {soll} · reicht für die Zertifikategebühr noch etwa {days:.0f} Tage."
+    elif level == "below":
+        detail = (f"Cash {e(cash)} ({pc(cash)}) · {soll} · fehlen {e(top)}. Reicht noch etwa {days:.0f} Tage – "
+                  "beim nächsten Handel auffüllen (Rechner, Ziel „Nur Cash auf Soll bringen“).")
     else:
         detail = (("Cash NEGATIV: " if level == "neg" else "Cash-Puffer fast leer: ")
-                  + f"geschätzt {e(cash)} ({pc(cash)}), nötig für die nächsten 2 Handelstage bis {pc(need2)}. "
-                  + f"Auf {pc(target)} auffüllen: etwa {e(top)} verkaufen (Rechner zeigt die Order)."
-                  + (" Emission läuft: das Cash darf im Emissionsprozess nicht negativ sein – heute ausgleichen."
+                  + f"{e(cash)} ({pc(cash)}) · {soll} · jetzt etwa {e(top)} verkaufen (Rechner, Ziel „Nur Cash auf Soll bringen“)."
+                  + (" Emission läuft: im Emissionsprozess darf das Cash nicht negativ sein – heute ausgleichen."
                      if out["stage"] == "emission" else
                      " Negatives Cash muss binnen 7 Tagen ausgeglichen werden." if out["stage"] == "invest" else ""))
     return {**out, "level": level, "cash": round(cash, 6), "cash_eur": round(c, 2), "total_eur": round(total, 2),
             "need2": round(need2, 6), "days": round(days, 1), "target": target, "topup": round(top, 6),
             "topup_eur": round(top * total, 2), "since": h_date.isoformat(),
-            "basis": f"deine Eingabe vom {h_date:%d.%m.%Y}: {cash_eur:,.2f} € Cash".replace(",", "X").replace(".", ",").replace("X", "."),
+            "basis": f"deine Eingabe vom {h_date:%d.%m.%Y}: "
+                     + f"{cash_eur:,.2f} € Cash".replace(",", "X").replace(".", ",").replace("X", ".").replace("-", "−"),
             "detail": detail}
 
 
@@ -146,7 +149,7 @@ def run(out_dir, state, send=None, today=None):
     ps = {r["key"]: r for r in j("perf_stats.json", [])}
     hist = j("wikifolio_history.csv", [])
     res, sent = [], []
-    rank = {"ok": 0, "warn": 1, "neg": 2}
+    rank = {"ok": 0, "below": 0, "warn": 1, "neg": 2}
     for w in wfs:
         if w["key"] not in STRAT:
             continue
@@ -163,7 +166,7 @@ def run(out_dir, state, send=None, today=None):
                       r["detail"] + f"\nBasis: {r.get('basis', '')}\n\n{URL}", tags="moneybag")
             sent.append((f"Cash {r['name']}", ok))
             state[k] = {"level": lv, "date": today.isoformat()}
-        elif lv in ("ok", "warn", "neg"):
+        elif lv in ("ok", "below", "warn", "neg"):
             state[k] = {"level": lv if lv != "ok" else "ok", "date": old.get("date") if lv != "ok" else today.isoformat()}
     with open(os.path.join(out_dir, "cash_watch.json"), "w", encoding="utf-8") as f:
         json.dump(res, f, ensure_ascii=False)
