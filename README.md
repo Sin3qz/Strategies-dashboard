@@ -51,6 +51,12 @@ das mit einem externen Anstoß der Aktualisierung:
    alle 30 Minuten, Methode POST, Header `Authorization: Bearer <Token>`, `Accept: application/vnd.github+json`,
    `Content-Type: application/json`, Body `{"ref":"main"}`. Antwort 204 = ok.
 
+## Alle Signale jetzt neu rechnen (von Hand)
+Nur im Repo **Strategies-dashboard**: *Actions → Dashboard-Daten aktualisieren → Run workflow*. Ohne Haken stößt der Lauf
+die Bots an, die heute noch nicht gerechnet haben; mit Haken **„Alle vier Bots jetzt neu rechnen lassen“** rechnen alle
+vier sofort neu (Bots, die gerade laufen, werden übersprungen). Der Lauf wartet, bis die Bots fertig sind (höchstens 8 min),
+und übernimmt ihr Ergebnis gleich in die Seite. In den einzelnen Bot-Repos musst du nichts starten.
+
 ## Wie es sich aktualisiert
 Die GitHub Action `.github/workflows/refresh-dashboard.yml` läuft werktags stündlich (05:41–21:41 UTC) und am Wochenende 3×
 und kann unter *Actions → Dashboard-Daten aktualisieren → Run workflow* auch von Hand gestartet werden. Sie

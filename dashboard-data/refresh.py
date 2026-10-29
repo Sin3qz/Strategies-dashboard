@@ -32,7 +32,7 @@ SIG_COLS = {"levgtaa": ["baustein", "momentum", "trend", "vola", "ziel"],
 # Backtest-Kennzahlen aus strategies/constants.py der Bot-Repos (Stand Freigabe 29.09./17.10.2026)
 WIKIFOLIOS = {
     "levgtaa": dict(symbol="wfxlevgtaa", strategy="levGTAA", bt_cagr=0.319, bt_maxdd=-0.43, bt_sortino=1.23,
-                    bt_label="Backtest 1993+ laut Bot-Repo (3x IEF, Signal TLT)"),
+                    bt_label="Backtest 1993+ laut Bot-Repo (Anleihe-Baustein 3x IEF, Signal TLT)"),
     "levtipsregime": dict(symbol="wfxtipsreg", strategy="levTipsRegime", bt_cagr=0.361, bt_maxdd=-0.49, bt_sortino=1.13,
                           bt_label="Backtest 10/2004+ (studien/STUDIE.md: 100 % 3x S&P 500, 3x IEF bei TIPS < SMA220 und TLT > SMA200, synthetisch)"),
 }

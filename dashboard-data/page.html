@@ -347,9 +347,9 @@
       </div>
       <div class="sd-card" id="wf-tracking">
         <h3>wikifolio vs. Bot-Soll seit Start</h3>
-        <p class="sd-note">Linie = Bot-Allokation mit den echten Produkten seit dem Erstellungstag (Index 100); Punkte = wikifolio, auf 100 am Start normiert. Unterschiede entstehen durch Ausführungszeitpunkt, Kurse und Gebühren.</p>
+        <p class="sd-note">Durchgezogen = Bot-Allokation mit den echten Produkten seit dem Erstellungstag (Index 100). Gestrichelt mit Punkten = wikifolio-Kurs, auf 100 am Start normiert: Startpunkt plus die Kurse, die das Dashboard täglich mitschreibt (<span data-draw="trackfrom" data-source="wikifolio_history">—</span>; den Verlauf davor zeigt wikifolio nur angemeldet). Unterschiede entstehen durch Ausführungszeitpunkt, Kurse und Gebühren.</p>
         <div class="sd-chart sm" data-draw="tracking" data-source="tracking wikifolio_history wikifolios"></div>
-        <div class="sd-legend"><span><span class="sd-sw" data-draw="sw" data-i="0"></span>LevGTAA</span><span><span class="sd-sw" data-draw="sw" data-i="1"></span>LevTipsRegime</span><span>Linie = Bot-Soll, Punkt = wikifolio</span></div>
+        <div class="sd-legend"><span><span class="sd-sw" data-draw="sw" data-i="0"></span>LevGTAA</span><span><span class="sd-sw" data-draw="sw" data-i="1"></span>LevTipsRegime</span><span>durchgezogen = Bot-Soll · gestrichelt/Punkte = wikifolio</span></div>
         <div class="sd-tw">
           <table data-source="tracking_cmp" data-row-key="key">
             <thead><tr><th data-field="name">wikifolio</th><th class="n" data-field="wf">wikifolio</th><th class="n" data-field="bot">Bot-Soll</th><th class="n" data-field="diff">Differenz</th></tr></thead>
@@ -599,7 +599,7 @@
     <div class="sd-card" id="botbetrieb">
       <h3>So laufen die Bots</h3>
       <dl class="sd-dl">
-        <dt>Läufe</dt><dd>GitHub Actions täglich 05:17 UTC (der US-Schluss vom Vortag liegt vor), Sicherheitsläufe 06:47, 08:47, 11:47, 15:17, 18:47 UTC: jeder rechnet nur, wenn an diesem Tag noch kein Lauf erfolgreich war. GitHub startet geplante Läufe oft Stunden später. Deshalb stößt jede Dashboard-Aktualisierung jeden Bot an, der an diesem Tag noch nicht gelaufen ist (Zeitgeber, 05:15–21:30 UTC); mit dem externen Anstoß alle 30 Minuten (cron-job.org) kommen die Signale pünktlich.</dd>
+        <dt>Läufe</dt><dd>GitHub Actions täglich 05:17 UTC (der US-Schluss vom Vortag liegt vor), Sicherheitsläufe 06:47, 08:47, 11:47, 15:17, 18:47 UTC: jeder rechnet nur, wenn an diesem Tag noch kein Lauf erfolgreich war. GitHub startet geplante Läufe oft Stunden später. Deshalb stößt jede Dashboard-Aktualisierung jeden Bot an, der an diesem Tag noch nicht gelaufen ist (Zeitgeber, 05:15–21:30 UTC); mit dem externen Anstoß alle 30 Minuten (cron-job.org) kommen die Signale pünktlich. Alle vier Bots sofort neu rechnen: im Repo Strategies-dashboard → Actions → Dashboard-Daten aktualisieren → Run workflow mit Haken „Alle vier Bots jetzt neu rechnen lassen“.</dd>
         <dt>Signal</dt><dd>immer auf 1x-Schlusskursen (Yahoo) der Signal-Ticker, nie auf den gehebelten Produkten; Handel am Handelstag nach dem Signal (NYSE-Kalender).</dd>
         <dt>Datenprüfung</dt><dd>letzter Kurs vom erwarteten Handelstag, Lücken, Tagessprünge &gt; 30 % (nicht bei Bitcoin), Mindestlänge der Reihen, abgeschnittene Yahoo-Antworten; sind Kurse veraltet, entscheidet der Bot nicht und versucht es im nächsten Lauf.</dd>
         <dt>Meldungen</dt><dd>Discord bei jedem Lauf. ntfy-Push: levTipsRegime und 1xGTAA nur bei echtem Wechsel, levGTAA und MR-Rebound an jedem Monatswechsel (auch „keine Änderung“); nur an US-Handelstagen, genau einmal (gespeicherter Zustand), schlägt ein Push fehl, wiederholt der nächste Lauf. Das Dashboard meldet zusätzlich, wenn ein Tagessignal kippt oder die Aktualisierung gestört ist.</dd>
@@ -686,8 +686,8 @@
         </label>
         <label class="sd-field">Cash-Puffer für Gebühren (%)<input class="sd-in-reserve" type="number" min="0" max="5" step="0.05" inputmode="decimal" placeholder="Vorschlag"></label>
       </div>
-      <p class="sd-note">Gebühren-Puffer: <span data-draw="reservehint" data-source="wikifolios monthly_returns">—</span> Leer lassen = Vorschlag verwenden.</p>
-      <div class="sd-tw"><div data-draw="wfcalc" data-source="holdings prices allocations alloc_cash daily_levgtaa daily_levtips wikifolios monthly_returns"></div></div>
+      <p class="sd-note">Gebühren-Puffer: <span data-draw="reservehint" data-source="wikifolios monthly_returns perf_stats">—</span> Leer lassen = Vorschlag verwenden.</p>
+      <div class="sd-tw"><div data-draw="wfcalc" data-source="holdings prices allocations alloc_cash daily_levgtaa daily_levtips wikifolios monthly_returns perf_stats"></div></div>
       <div class="sd-block">
         <div class="sd-block-h"><span>Order-Vorschlag (ganze Stück; Käufe abgerundet, damit das Cash reicht)</span><span></span></div>
         <div class="sd-orders" data-draw="orders" data-source="holdings prices"></div>
@@ -715,10 +715,12 @@
   const LEV = {levgtaa: {NASDAQ100: 3, BTC: 1, UST_IEF: 3, GOLD: 3}, mrreboundgtaa: {NASDAQ100: 3, EM: 3, INDIA: 3, TLT_LONG: 5},
     '1xgtaa': {}, levtipsregime: {SP500: 3, BTC: 1, UST_IEF: 3}};
   const colorOf = (a) => (a === 'CASH' || a === 'cash') ? 'var(--cds-chart-muted)' : dash.colors[(ASSET_COLOR[a] ?? 7) % dash.colors.length];
-  const num = (x, d) => Number(x).toLocaleString('de-DE', {minimumFractionDigits: d, maximumFractionDigits: d});
+  const num = (x, d) => { const v = Number(x), r = Math.round(v * 10 ** d) === 0 ? 0 : v;   // kein „−0,0“
+    return r.toLocaleString('de-DE', {minimumFractionDigits: d, maximumFractionDigits: d}); };
   const ok = (x) => x != null && x !== '' && !isNaN(Number(x));
   const pct = (x, d) => ok(x) ? num(Number(x) * 100, d) + ' %' : '–';
-  const spct = (x, d) => ok(x) ? (Number(x) > 0 ? '+' : Number(x) < 0 ? '−' : '') + num(Math.abs(Number(x)) * 100, d) + ' %' : '–';
+  const spct = (x, d) => { if (!ok(x)) return '–'; const v = Number(x), z = Math.round(Math.abs(v) * 100 * 10 ** d) === 0;
+    return (z ? '' : v > 0 ? '+' : '−') + num(Math.abs(v) * 100, d) + ' %'; };
   const deDate = (s) => { if (!s) return '–'; const [y, m, d] = String(s).slice(0, 10).split('-'); return d ? `${d}.${m}.${y}` : String(s); };
   const FMT = {
     pct0: (v) => pct(v, 0), pct1: (v) => pct(v, 1), pct2: (v) => pct(v, 2), spct0: (v) => spct(v, 0), spct1: (v) => spct(v, 1),
@@ -1039,10 +1041,12 @@
     el.appendChild(fill);
   });
 
+  const critN = window.sdCritN = (w) => [['test_days', 'test_days_req'], ['reservations', 'reservations_req'], ['capital_eur', 'capital_req_eur']]
+    .filter(([a, b]) => w && w[a] != null && w[b] != null && Number(w[a]) >= Number(w[b])).length;
   dash.draw('critword', (el) => {
     const rows = rowsOf('wikifolios'), w = rows && rows.find((r) => r.key === el.dataset.key);
     if (!w) { el.textContent = '—'; return; }
-    const n = [['test_days', 'test_days_req'], ['reservations', 'reservations_req'], ['capital_eur', 'capital_req_eur']].filter(([a, b]) => Number(w[a]) >= Number(w[b])).length;
+    const n = critN(w);
     el.textContent = `${n} von 3 Kriterien erfüllt` + (n === 3 && w.status !== 'Investierbar' ? ' – Emission beantragt bzw. ausstehend (wikifolio prüft, dauert einige Wochen)' : '');
   });
 
@@ -1064,7 +1068,7 @@
     const key = el.dataset.key;
     const d = ((st || []).find((r) => r.key === key) || {}).weightDecimals || 0;
     al.filter((a) => a.strategy === key && a.asset !== 'CASH').forEach((a) =>
-      el.appendChild(chipEl(a.asset, ` ${a.leverage}x ${a.display}`, a.weight == null ? null : pct(a.weight, d))));
+      el.appendChild(chipEl(a.asset, ` ${a.leverage}x ${NAMES[a.asset] || a.display}`, a.weight == null ? null : pct(a.weight, d))));   // gleiche Namen wie beim Tagessignal
     const cash = ((cashRows || []).find((r) => r.strategy === key) || {}).cash;
     if (cash != null && cash > (d ? 0.0005 : 0.005)) el.appendChild(chipEl('CASH', ' Cash', pct(cash, d)));
   });
@@ -1216,8 +1220,16 @@
     el.replaceChildren();
     if (!s) { el.textContent = '—'; return; }
     const dot = document.createElement('span'); dot.className = 'sd-dot';
-    dot.style.background = s.needsRetry ? 'var(--color-warn)' : dash.colors[5];
-    el.append(dot, s.needsRetry ? 'Daten evtl. verspätet' : 'frisch');
+    // neuester US-Schluss, den irgendein Bot schon hat; liegt dieser Bot dahinter, ist sein heutiger Lauf noch offen
+    const newest = st.map((r) => String(r.asOf || '')).sort().pop();
+    let behind = 0;
+    for (let d = new Date(String(s.asOf) + 'T12:00:00Z'); s.asOf && d < new Date(newest + 'T12:00:00Z');) {
+      d.setUTCDate(d.getUTCDate() + 1); if (d.getUTCDay() % 6) behind += 1;
+    }
+    const late = s.needsRetry || behind > 0;
+    dot.style.background = late ? 'var(--color-warn)' : dash.colors[5];
+    el.append(dot, s.needsRetry ? 'Daten evtl. verspätet' : behind > 0
+      ? `${behind} Handelstag${behind > 1 ? 'e' : ''} älter als bei den anderen Bots (heutiger Lauf steht noch aus)` : 'aktuell');
   });
 
   dash.draw('warn', (el) => {
@@ -1506,6 +1518,10 @@
       .on('pointerleave', () => { tip.hidden = true; rule.attr('visibility', 'hidden'); });
   });
 
+  dash.draw('trackfrom', (el) => {
+    const d = (rowsOf('wikifolio_history') || []).map((r) => String(r.date).slice(0, 10)).sort();
+    el.textContent = d.length ? `seit ${deDate(d[0])}, bisher ${new Set(d).size} Tag${new Set(d).size === 1 ? '' : 'e'}` : 'noch keine Tage';
+  });
   // wikifolio-Index vs. Bot-Soll
   dash.draw('tracking', (el) => {
     el.replaceChildren();
@@ -1537,6 +1553,9 @@
     keys.forEach((k, i) => {
       g.append('path').datum(lines[k]).attr('fill', 'none').attr('stroke', dash.colors[i]).attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round')
         .attr('d', d3.line().x((p) => X(p.date)).y((p) => y(p.v)));
+      const rec = pts[k].slice(1);                                   // mitgeschriebene Tage (ohne Startpunkt) verbinden
+      if (rec.length > 1) g.append('path').datum(rec).attr('fill', 'none').attr('stroke', dash.colors[i]).attr('stroke-width', 1.5)
+        .attr('stroke-dasharray', '4 3').attr('d', d3.line().x((p) => X(p.date)).y((p) => y(p.v)));
       g.selectAll(`circle.k${i}`).data(pts[k]).join('circle').attr('class', `k${i}`).attr('r', 4).attr('cx', (p) => X(p.date)).attr('cy', (p) => y(p.v))
         .attr('fill', 'var(--color-panel)').attr('stroke', dash.colors[i]).attr('stroke-width', 2);
     });
@@ -1710,23 +1729,39 @@
     return t;
   };
 
-  // Cash-Puffer fuer wikifolio-Gebuehren: Zertifikategebuehr 0,95 % p. a. (~0,08 %/Monat) wird laufend aus dem Cash
-  // entnommen, die Performancegebuehr (5 %) nur auf Gewinne ueber der High-Watermark. Vorschlag = 0,1 % + 5 % x (starker
-  // Monat - Abstand unter der HWM), hoechstens 1 %. Starker Monat = 90-%-Quantil der Monatsrenditen der Strategie.
+  // Cash-Puffer fuer wikifolio-Gebuehren (beide werden aus dem wikifolio-Cash entnommen): Zertifikategebuehr 0,95 % p. a.
+  // (~0,08 %/Monat) und Performancegebuehr 5 % auf jedes neue Hoch ueber der High-Watermark (auch wenn der Kurs danach
+  // wieder faellt). Puffer reicht einen Monat: levGTAA bis zur naechsten Monatsumschichtung, levTipsRegime (selten Trades)
+  // bis zum monatlichen Cash-Check. Vorschlag = Monatsgebuehr + 5 % x (hoechster Stand in 21 Handelstagen - Anstieg bis
+  // zur HWM) + 0,05 %, auf 0,05 % aufgerundet, hoechstens 1 %. Hoechster Stand: 95-%-Wert, solange die Emission laeuft
+  // (Cash darf dann nicht negativ werden), sonst 90-%-Wert. Backtest 2014-2026 (dashboard-data, studien/STUDIE.md).
   const STRAT_KEY = {levgtaa: 'levgtaa', levtipsregime: 'levtips'};
   const reserveSuggest = (wf) => {
-    const w = (rowsOf('wikifolios') || []).find((x) => x.key === wf);
-    const mr = (rowsOf('monthly_returns') || []).filter((r) => r.key === STRAT_KEY[wf]).map((r) => Number(r.ret)).sort((a, b) => a - b);
-    const strong = mr.length ? mr[Math.floor(0.9 * (mr.length - 1))] : 0.1;
-    const gap = w && Number(w.high_watermark) > 0 ? Math.min(0, Number(w.price) / Number(w.high_watermark) - 1) : 0;   // <= 0
-    const fee = Number((w || {}).fee_cert || 0.0095) / 12, perf = Number((w || {}).fee_perf || 0.05);
-    const r = Math.min(0.01, Math.max(0, Math.ceil((fee + perf * Math.max(0, strong + gap)) * 2000) / 2000 + 0.0005));
-    return {r, strong, gap, fee, perf};
+    const w = (rowsOf('wikifolios') || []).find((x) => x.key === wf) || {};
+    const ps = (rowsOf('perf_stats') || []).find((x) => x.key === STRAT_KEY[wf]) || {};
+    const stage = w.status === 'Investierbar' ? 'invest' : window.sdCritN && window.sdCritN(w) === 3 ? 'emission' : 'preview';
+    const qv = stage === 'emission' ? 0.95 : 0.9;
+    let strong = Number(stage === 'emission' ? ps.hi1m_q95 : ps.hi1m_q90);
+    if (!(strong > 0)) {                                           // alte Daten ohne Monatshoch: Monatsrenditen
+      const mr = (rowsOf('monthly_returns') || []).filter((r) => r.key === STRAT_KEY[wf]).map((r) => Number(r.ret)).sort((a, b) => a - b);
+      strong = mr.length ? mr[Math.floor(qv * (mr.length - 1))] : 0.2;
+    }
+    const gap = Number(w.high_watermark) > 0 && Number(w.price) > 0 ? Math.min(0, Number(w.price) / Number(w.high_watermark) - 1) : 0;   // <= 0
+    const need = gap < 0 ? 1 / (1 + gap) - 1 : 0;                    // noetiger Anstieg bis zur HWM
+    const fee = Number(w.fee_cert || 0.0095) / 12, perf = Number(w.fee_perf || 0.05);
+    const r = Math.min(0.01, Math.max(0, Math.ceil((fee + perf * Math.max(0, strong - need)) * 2000) / 2000 + 0.0005));
+    return {r, strong, gap, need, fee, perf, stage, qv};
   };
   const reserveOf = (wf) => { const v = dash.params()['reserve_' + wf]; return ok(v) && v !== '' ? Math.min(0.05, Math.max(0, Number(v) / 100)) : reserveSuggest(wf).r; };
+  const STAGE_TXT = {emission: 'Emission läuft: Cash darf nicht negativ werden, daher 95-%-Wert',
+                     preview: 'Vorschau-wikifolio: ein kleines Minus im Cash wird geduldet, daher 90-%-Wert',
+                     invest: 'investierbar: ein Minus im Cash muss binnen 7 Tagen ausgeglichen werden, daher 90-%-Wert'};
+  const RHYTHM_TXT = {levgtaa: 'Reicht bis zur nächsten Monatsumschichtung; dort füllt der Rechner das Cash automatisch wieder auf.',
+                      levtipsregime: 'Signal täglich mit Cooldown, Wechsel sind selten: am ersten Handelstag jedes Monats den Rechner öffnen; fehlt Cash, zeigt er einen kleinen Verkauf.'};
   dash.draw('reservehint', (el) => {
     const wf = dash.params().wf === 'levtipsregime' ? 'levtipsregime' : 'levgtaa', s = reserveSuggest(wf);
-    el.textContent = `Vorschlag ${pct(s.r, 2)} = laufende Gebühr ${pct(s.fee, 2)} je Monat + Performancegebühr ${pct(s.perf, 0)} auf den Teil eines starken Monats (${spct(s.strong, 1)}, 90-%-Wert der Strategie), der über die High-Watermark hinausginge (${s.gap < -0.0005 ? `wikifolio steht ${pct(-s.gap, 1)} darunter` : 'wikifolio steht an der HWM'}), plus 0,05 % Rundungsreserve, höchstens 1 %. Aktiv: ${pct(reserveOf(wf), 2)}.`;
+    const hw = s.gap < -0.0005 ? `wikifolio steht ${pct(-s.gap, 1)} unter der HWM, bis dorthin fehlen ${pct(s.need, 1)}` : 'wikifolio steht an der HWM';
+    el.textContent = `Vorschlag ${pct(s.r, 2)} = Zertifikategebühr ${pct(s.fee, 2)} je Monat + ${pct(s.perf, 0)} Performancegebühr auf den Teil eines starken Monats über der HWM (höchster Stand binnen 21 Handelstagen ${spct(s.strong, 1)}, ${STAGE_TXT[s.stage]}; ${hw}) + 0,05 % Reserve, höchstens 1 %. ${RHYTHM_TXT[wf]} Aktiv: ${pct(reserveOf(wf), 2)}.`;
   });
   window.sdReserve = reserveOf;
 
