@@ -158,3 +158,46 @@ CAGR in % (Zeile = kurze SMA S, Spalte = lange SMA L):
   21 Tage, 1 % länger als 63 Tage), und 107 von 293 Umschichtungen sind bereits ein Tausch von Platz 1 und 2 (40/60 → 60/40),
   also ein Rebalancing. Die Gewichte driften deshalb kaum.
 - **Ergebnis: kein zusätzliches Rebalancing.** Es kostet nur zusätzliche Orders.
+
+## Nachtrag 29.10.2026: Gewichtung 1xGTAA, SMA 8/175, levGTAA-Parameter, Cash-Puffer
+
+**1xGTAA 50/50 statt 40/60** (2009-07 bis 2026-10, SMA8/150, 1/3/6/12, Cooldown 10, nicht besetzter Platz verzinst mit BIL):
+
+| Gewichtung | CAGR | MaxDD | Sharpe | Trades p. a. | Umschlag p. a. | 2009–14 | 2015–20 | 2021–26 |
+|---|---|---|---|---|---|---|---|---|
+| 40/60 (aktuell) | 15,1 % | −17,1 % | 1,12 | 16,9 | 13,7× | 12,9 % | 10,9 % | 21,8 % |
+| 50/50 | 14,3 % | −16,3 % | 1,06 | 12,6 | 11,0× | 12,7 % | 9,8 % | 20,7 % |
+| 60/40 | 15,3 % | −17,7 % | 1,08 | 16,9 | 10,7× | 13,0 % | 10,6 % | 22,8 % |
+
+50/50 spart rund ein Viertel der Trades (Platztausch 1↔2 löst keinen Handel aus), ist aber in allen drei Teilzeiträumen,
+in allen 16 SMA-Kombinationen (S 5–15, L 125–200; Sharpe 50/50 stets 0,04–0,07 niedriger) und auch bei 0,2 % Kosten
+(13,1 % vs. 13,6 %) schwächer. **Entscheidung: 40/60 bleibt.**
+
+**1xGTAA SMA8/175 statt 8/150** (feines Gitter S 5–15 × L 140–200): Plateau 14,4–15,5 % CAGR überall. 8/175: 15,3 % /
+−19,2 % / Sharpe 1,13; 8/150: 15,1 % / −17,1 % / 1,12. Ab L 175 springt der MaxDD bei kurzer SMA (S ≤ 8) auf −19 bis −23 %,
+unter L 150 sinkt die CAGR. Die Mitte zwischen beiden Kanten liegt bei L 150–160, nicht bei 175. Unterschiede in der CAGR
+(±0,3 Pp) liegen weit unter dem Standardfehler (~3 Pp über 17 Jahre). **Entscheidung: 8/150 bleibt.**
+
+**levGTAA Momentum-Ranglisten × SMA-Längen × kurze SMA** (72 Varianten, 2004–2026, Bot-Kern momentum_core, Vol-Target 55 %):
+alle Varianten 39,7–43,8 % CAGR, MaxDD −39 bis −48 %, Sharpe 1,15–1,22. Aktuell (1/3/6/9 + 3/6/12, L 125–225, SMA30):
+40,5 % / −44,5 % / 1,16. Nur 1/3/6/12 läge im Mittel bei 42,8 %, war aber 2004–2014 nicht besser (Sharpe 0,98 vs. 1,00);
+die bessere Variante in-sample (1/3/6/9, L 100–200, SMA40: 33,1 % in-sample) lag out-of-sample (2015–2026) unter dem
+Median (48,3 % vs. 53,3 %). Rangkorrelation in-sample/out-of-sample: **−0,55** – wer nach der Vergangenheit das Beste
+auswählt, liegt danach eher schlechter. **Entscheidung: levGTAA bleibt unverändert** (breites Ensemble, kein Datamining).
+
+**Cash-Puffer für wikifolio-Gebühren** (tägliche Produkt-Equity 12/2014–10/2026, Gebühren wie bei wikifolio aus dem Cash:
+0,95 % p. a. täglich, 5 % auf jedes neue Hoch über der HWM). wikifolio-Regeln (Hilfecenter): negatives Cash muss bei
+investierbaren wikifolios binnen 7 Tagen ausgeglichen werden, **während der Emission darf es nicht negativ werden**.
+Anteil der Zeiträume, in denen das Cash vor dem nächsten Auffüllen unter 0 fällt / mittlerer Puffer:
+
+| | Auffüllen | fest 0,5 % | fest 1 % | bisher (Monatsende q90) | neu q90 Monatshoch | neu q95 Monatshoch |
+|---|---|---|---|---|---|---|
+| levGTAA | monatliche Umschichtung | 17,6 % / 0,50 % | 6,3 % / 1,00 % | 9,2 % / 0,43 % | 8,5 % / 0,51 % | 7,0 % / 0,63 % |
+| levTipsRegime | nur bei Signalwechsel | 16,9 % | 7,0 % | 21,1 % | 16,9 % | 15,5 % (bis −3,8 %) |
+| levTipsRegime | Wechsel + monatlicher Cash-Check | 5,7 % | 0,5 % | 3,8 % | 2,4 % / 0,43 % | 1,4 % / 0,54 % |
+
+Regel im Rechner: Puffer = 0,08 % Monatsgebühr + 5 % × (höchster Stand in 21 Handelstagen − nötiger Anstieg bis zur HWM)
++ 0,05 %, aufgerundet auf 0,05 %, höchstens 1 %. Höchster Stand = 95-%-Wert während der Emission, sonst 90-%-Wert
+(levGTAA 26,7 % / 20,6 %, levTipsRegime 17,7 % / 14,3 %). Bei levTipsRegime (täglich mit Cooldown, Wechsel selten) ist der
+monatliche Cash-Check nötig: ohne ihn läuft das Cash in 15–21 % der Zeiträume leer. Der Puffer kostet im Mittel
+0,1–0,3 Pp Rendite im Jahr.

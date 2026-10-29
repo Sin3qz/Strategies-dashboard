@@ -7,6 +7,11 @@ on:
     - cron: "41 5-21 * * 1-5"
     - cron: "41 7,13,19 * * 0,6"
   workflow_dispatch:
+    inputs:
+      force:
+        description: "Alle vier Bots jetzt neu rechnen lassen (auch wenn sie heute schon gelaufen sind)"
+        type: boolean
+        default: false
   # Nach jedem Merge von Code-Änderungen sofort neu rechnen (Daten-Commits unter data/ lösen nichts aus -> keine Schleife)
   push:
     branches: [main]
@@ -44,9 +49,9 @@ jobs:
           # Token mit „Actions: Read and write“ für die vier Bot-Repos; ohne eigenes PAT_DISPATCH wird PAT_PUSH genommen
           PAT_DISPATCH: ${{ secrets.PAT_DISPATCH || secrets.PAT_PUSH }}
           KICK_FILE: ${{ runner.temp }}/kick.json
-        run: |
-          python3 dashboard-data/kick_bots.py
-          if grep -q '"kicked"' "$KICK_FILE" 2>/dev/null; then echo "Bot angestoßen - 150 s warten, damit sein Ergebnis gleich mitkommt"; sleep 150; fi
+          KICK_FORCE: ${{ inputs.force && 'true' || 'false' }}   # Schalter beim „Run workflow“
+          KICK_WAIT: "480"                            # bis zu 8 min warten, bis angestoßene Bots fertig sind (Ergebnis kommt gleich mit)
+        run: python3 dashboard-data/kick_bots.py
 
       - name: Daten neu berechnen
         env:

@@ -11,6 +11,8 @@ Regeln je Bot (Status-Datei auf main):
   - läuft schon ein Lauf oder wartet einer -> nichts tun (keine Doppelmeldung in Discord)
   - Wiederholung gemeldet: frühestens 60 Minuten nach dem letzten Lauf erneut anstoßen
   - sonst: workflow_dispatch auf main (manueller Start rechnet im Bot immer)
+Manuell mit Schalter „force“ (Run workflow): alle Bots sofort neu rechnen, egal ob heute schon gelaufen
+(nur nicht, wenn gerade ein Lauf läuft). KICK_WAIT: so viele Sekunden höchstens warten, bis angestoßene Läufe fertig sind.
 Benötigt ein Token mit „Actions: Read and write“ für die vier Bot-Repos (Secret PAT_DISPATCH, sonst PAT_PUSH).
 Ohne Token wird nur geprüft.
 Ergebnis als JSON-Liste nach KICK_FILE (für den Datenstatus der Seite).
@@ -19,6 +21,7 @@ import datetime as dt
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.request
 from zoneinfo import ZoneInfo
@@ -78,14 +81,30 @@ def decide(st, now):
                   else f"heute noch kein Lauf (letzter {upd.astimezone(TZ):%d.%m. %H:%M} Uhr)")
 
 
+def wait_done(kicked, token, limit):
+    """Warten, bis die angestoßenen Läufe fertig sind (höchstens limit Sekunden)."""
+    t0 = time.time()
+    time.sleep(min(30, limit))                         # der neue Lauf erscheint erst nach ein paar Sekunden als „queued“
+    while time.time() - t0 < limit:
+        left = [name for name, repo, wf in kicked if busy(repo, wf, token)]
+        if not left:
+            print(f"angestoßene Bots fertig nach {time.time() - t0:.0f} s")
+            return True
+        print(f"warte auf {', '.join(left)} …")
+        time.sleep(20)
+    print(f"nach {limit} s noch nicht fertig – ihr Ergebnis kommt mit der nächsten Aktualisierung")
+    return False
+
+
 def main():
     token = (os.environ.get("PAT_DISPATCH") or "").strip()
+    force = (os.environ.get("KICK_FORCE") or "").lower() == "true"
     now = dt.datetime.now(dt.timezone.utc)
-    out = []
+    out, kicked = [], []
     for key, name, repo, fn, wf in BOTS:
         rec = {"key": key, "name": name, "at": now.isoformat(timespec="minutes")}
         try:
-            go, why = decide(status(repo, fn, token or None), now)
+            go, why = (True, "manuell erzwungen (Schalter force)") if force else decide(status(repo, fn, token or None), now)
             if go and token and busy(repo, wf, token):
                 go, why = False, "Lauf läuft bereits oder wartet"
             if go and not token:
@@ -93,6 +112,8 @@ def main():
             elif go:
                 code, _ = call(f"https://api.github.com/repos/{USER}/{repo}/actions/workflows/{wf}/dispatches", token, {"ref": "main"})
                 rec.update(action="kicked" if code == 204 else "error", detail=f"angestoßen: {why}" if code == 204 else f"HTTP {code}")
+                if code == 204:
+                    kicked.append((name, repo, wf))
             else:
                 rec.update(action="none", detail=why)
         except urllib.error.HTTPError as e:
@@ -101,6 +122,12 @@ def main():
             rec.update(action="error", detail=f"{type(e).__name__}: {e}")
         print(f"{name}: {rec['action']} – {rec['detail']}")
         out.append(rec)
+    wait = int(os.environ.get("KICK_WAIT") or 0)
+    if kicked and wait > 0:
+        try:
+            wait_done(kicked, token, wait)
+        except Exception as e:
+            print("Warten abgebrochen:", e)
     path = os.environ.get("KICK_FILE")
     if path:
         with open(path, "w", encoding="utf-8") as f:

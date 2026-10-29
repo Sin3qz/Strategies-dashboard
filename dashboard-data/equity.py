@@ -165,6 +165,10 @@ def stats(s):
     y0 = s[s.index < pd.Timestamp(f"{s.index[-1].year}-01-01")]
     a1 = s[s.index <= s.index[-1] - pd.Timedelta(days=365)]
     down = r[r < 0]
+    # hoechster Stand in den naechsten 21 Handelstagen je Starttag (fuer den Gebuehren-Puffer: wikifolio nimmt die
+    # Performancegebuehr bei jedem neuen Hoch, auch wenn der Kurs bis Monatsende wieder faellt)
+    v = s.values
+    hi = np.array([v[i + 1:i + 22].max() / v[i] - 1 for i in range(len(v) - 21)]) if len(v) > 42 else np.array([])
     return {
         "start": s.index[0].date().isoformat(), "end": s.index[-1].date().isoformat(), "years": round(yrs, 2),
         "total": s.iloc[-1] / s.iloc[0] - 1,
@@ -175,6 +179,7 @@ def stats(s):
         "ytd": s.iloc[-1] / y0.iloc[-1] - 1 if len(y0) else None,
         "y1": s.iloc[-1] / a1.iloc[-1] - 1 if len(a1) else None,
         "best_month": mr.max(), "worst_month": mr.min(), "pos_months": float((mr > 0).mean()),
+        "hi1m_q90": float(np.quantile(hi, 0.9)) if len(hi) else None, "hi1m_q95": float(np.quantile(hi, 0.95)) if len(hi) else None,
     }, mr
 
 
