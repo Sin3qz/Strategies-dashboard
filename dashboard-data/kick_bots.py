@@ -7,7 +7,8 @@ Diese Datei läuft zu Beginn jeder Dashboard-Aktualisierung. Wird die Aktualisie
 
 Regeln je Bot (Status-Datei auf main):
   - nur zwischen 05:15 und 21:30 UTC (morgens liegt der US-Schluss des Vortags sicher vor; nachts keine Meldungen)
-  - heute (Berlin) schon gelaufen und keine Wiederholung gemeldet (needsRetry / ntfyFailed) -> nichts tun
+  - Kursstand (asOf) = letzte NYSE-Sitzung bis gestern (Handelskalender, Feiertage/Wochenende beachtet) und keine
+    Wiederholung gemeldet (needsRetry / ntfyFailed) -> nichts tun; ohne Kalender: heute (Berlin) schon gelaufen -> nichts
   - läuft schon ein Lauf oder wartet einer -> nichts tun (keine Doppelmeldung in Discord)
   - Wiederholung gemeldet: frühestens 60 Minuten nach dem letzten Lauf erneut anstoßen
   - sonst: workflow_dispatch auf main (manueller Start rechnet im Bot immer)
@@ -65,17 +66,39 @@ def busy(repo, wf, token):
     return n > 0
 
 
-def decide(st, now):
+def expected_session(now):
+    """Wie die Bots (common.expected_session_date): letzte NYSE-Sitzung <= gestern (Berlin) – deren Schlusskurs muss
+    vorliegen. Feiertage/Wochenenden ueber den NYSE-Kalender; ohne Kalender None (dann alte Regel „heute gelaufen?“)."""
+    try:
+        import pandas_market_calendars as mcal
+        yday = now.astimezone(TZ).date() - dt.timedelta(days=1)
+        sch = mcal.get_calendar("XNYS").schedule(start_date=yday - dt.timedelta(days=20), end_date=yday)
+        return sch.index[-1].date() if len(sch) else None
+    except Exception as e:
+        print("NYSE-Kalender nicht verfügbar:", e)
+        return None
+
+
+def decide(st, now, exp=None):
     """-> (anstoßen?, Grund)"""
     if (now.hour, now.minute) < EARLIEST_UTC or (now.hour, now.minute) > LATEST_UTC:
         return False, "außerhalb 05:15–21:30 UTC (nachts keine Anstöße)"
     upd = dt.datetime.fromisoformat(st.get("updated", "1970-01-01T00:00:00+00:00"))
+    retry = st.get("needsRetry") or st.get("ntfyFailed")
+    recent = (now - upd).total_seconds() < 3600
+    if exp is not None:                                  # Regel nach Handelskalender: fehlt der erwartete Schlusskurs?
+        asof = dt.date.fromisoformat(str(st.get("asOf") or "1970-01-01")[:10])
+        if asof >= exp and not retry:
+            return False, f"Kursstand aktuell (Schluss {asof:%d.%m.}; Wochenende/Feiertag: kein neuer)"
+        if recent:
+            return False, "letzter Lauf vor weniger als 60 min – nächster Versuch später"
+        return True, (f"Schluss {exp:%d.%m.} fehlt noch (Bot-Stand {asof:%d.%m.})" if asof < exp
+                      else "Wiederholung gemeldet (veraltete Kurse / Push fehlgeschlagen)")
     today = now.astimezone(TZ).date()
     ran_today = upd.astimezone(TZ).date() == today
-    retry = st.get("needsRetry") or st.get("ntfyFailed")
     if ran_today and not retry:
         return False, f"heute schon gelaufen ({upd.astimezone(TZ):%H:%M} Uhr)"
-    if ran_today and retry and (now - upd).total_seconds() < 3600:
+    if ran_today and retry and recent:
         return False, "Wiederholung gemeldet, letzter Lauf vor weniger als 60 min"
     return True, ("Wiederholung gemeldet (veraltete Kurse / Push fehlgeschlagen)" if ran_today
                   else f"heute noch kein Lauf (letzter {upd.astimezone(TZ):%d.%m. %H:%M} Uhr)")
@@ -101,10 +124,11 @@ def main():
     force = (os.environ.get("KICK_FORCE") or "").lower() == "true"
     now = dt.datetime.now(dt.timezone.utc)
     out, kicked = [], []
+    exp = expected_session(now)
     for key, name, repo, fn, wf in BOTS:
         rec = {"key": key, "name": name, "at": now.isoformat(timespec="minutes")}
         try:
-            go, why = (True, "manuell erzwungen (Schalter force)") if force else decide(status(repo, fn, token or None), now)
+            go, why = (True, "manuell erzwungen (Schalter force)") if force else decide(status(repo, fn, token or None), now, exp)
             if go and token and busy(repo, wf, token):
                 go, why = False, "Lauf läuft bereits oder wartet"
             if go and not token:

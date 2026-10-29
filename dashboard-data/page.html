@@ -415,7 +415,7 @@
           <div class="sd-legend" data-draw="legend" data-source="daily_levgtaa" data-series="NASDAQ100 BTC UST_IEF GOLD"></div>
         </div>
         <div class="sd-slot">
-          <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="levgtaa" data-source="strategies">—</span></div>
+          <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="levgtaa" data-source="strategies build">—</span></div>
           <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="levgtaa" data-source="strategies build">—</span></span></div>
           <div class="sd-line"><span>Letzter Bot-Lauf</span><span data-draw="val" data-source="strategies" data-field="updated" data-where="key=levgtaa" data-fmt="datetime">—</span></div>
           <div class="sd-warn" data-draw="warn" data-key="levgtaa" data-source="strategies"></div>
@@ -475,7 +475,7 @@
           <div class="sd-legend"><span><span class="sd-sw" data-draw="sw" data-i="0"></span>S&amp;P 500 TR / SMA280</span><span><span class="sd-sw" data-draw="sw" data-i="1"></span>TIPS / SMA220</span><span><span class="sd-sw" data-draw="sw" data-i="2"></span>TLT / SMA200</span><span><span class="sd-sw" data-draw="sw" data-i="5"></span>Markt-Signal</span><span><span class="sd-sw" data-draw="sw" data-i="2"></span>3x-IEF-Signal (hinterlegt)</span></div>
         </div>
         <div class="sd-slot">
-          <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="levtipsregime" data-source="strategies">—</span></div>
+          <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="levtipsregime" data-source="strategies build">—</span></div>
           <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levtipsregime" data-fmt="date">—</span> · <span data-draw="fresh" data-key="levtipsregime" data-source="strategies build">—</span></span></div>
           <div class="sd-line"><span>Letzter Bot-Lauf</span><span data-draw="val" data-source="strategies" data-field="updated" data-where="key=levtipsregime" data-fmt="datetime">—</span></div>
           <div class="sd-warn" data-draw="warn" data-key="levtipsregime" data-source="strategies"></div>
@@ -529,7 +529,7 @@
           <div class="sd-legend" data-draw="legend" data-source="daily_1xgtaa" data-series="NASDAQ100 EM_SMALLCAP EMU_VALUE BONDS_7_10 GOLD COMMODITIES CASH_USD"></div>
         </div>
         <div class="sd-slot">
-          <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="1xgtaa" data-source="strategies">—</span></div>
+          <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="1xgtaa" data-source="strategies build">—</span></div>
           <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=1xgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="1xgtaa" data-source="strategies build">—</span></span></div>
           <div class="sd-line"><span>Letzter Bot-Lauf</span><span data-draw="val" data-source="strategies" data-field="updated" data-where="key=1xgtaa" data-fmt="datetime">—</span></div>
           <div class="sd-warn" data-draw="warn" data-key="1xgtaa" data-source="strategies"></div>
@@ -584,7 +584,7 @@
           <div class="sd-legend" data-draw="legend" data-source="daily_mrrebound" data-series="NASDAQ100 EM INDIA TLT_LONG"></div>
         </div>
         <div class="sd-slot">
-          <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="mrreboundgtaa" data-source="strategies">—</span></div>
+          <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="mrreboundgtaa" data-source="strategies build">—</span></div>
           <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=mrreboundgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="mrreboundgtaa" data-source="strategies build">—</span></span></div>
           <div class="sd-line"><span>Letzter Bot-Lauf</span><span data-draw="val" data-source="strategies" data-field="updated" data-where="key=mrreboundgtaa" data-fmt="datetime">—</span></div>
           <div class="sd-warn" data-draw="warn" data-key="mrreboundgtaa" data-source="strategies"></div>
@@ -1027,10 +1027,21 @@
     const b = (rowsOf('build') || [])[0] || {};
     return b.last_close || (rowsOf('strategies') || []).map((r) => String(r.asOf || '')).sort().pop() || null;
   };
-  const tdBehind = (d) => {                                        // Handelstage (Mo–Fr) zwischen d und dem Bezug
-    const ref = refClose(); if (!d || !ref) return null;
-    let n = 0; for (let x = new Date(String(d).slice(0, 10) + 'T12:00:00Z'); x < new Date(ref + 'T12:00:00Z');) { x.setUTCDate(x.getUTCDate() + 1); if (x.getUTCDay() % 6) n += 1; }
+  // Handelstage zwischen zwei Daten: echte NYSE-Sitzungen aus build.json (Feiertage beachtet), sonst Mo–Fr
+  const sessions = () => String(((rowsOf('build') || [])[0] || {}).nyse_sessions || '').split(' ').filter(Boolean);
+  const tdBetween = (a, b) => {                                    // Sitzungen in (a, b]
+    if (!a || !b) return null;
+    a = String(a).slice(0, 10); b = String(b).slice(0, 10);
+    const ss = sessions();
+    if (ss.length && a >= ss[0] && b <= ss[ss.length - 1]) return ss.filter((x) => x > a && x <= b).length;
+    let n = 0; for (let x = new Date(a + 'T12:00:00Z'); x < new Date(b + 'T12:00:00Z');) { x.setUTCDate(x.getUTCDate() + 1); if (x.getUTCDay() % 6) n += 1; }
     return n;
+  };
+  const tdBehind = (d) => tdBetween(d, refClose());
+  // deutscher Boersenfeiertag an einem Werktag -> naechster Boersentag (gehandelt wird im wikifolio)
+  const deClosed = (d) => {
+    const m = String(((rowsOf('build') || [])[0] || {}).de_closed || '').split(' ').map((x) => x.split('>')).find((x) => x[0] === String(d || '').slice(0, 10));
+    return m ? m[1] || null : undefined;
   };
   const freshTxt = (d) => { const n = tdBehind(d); return n == null ? '' : n <= 0 ? 'aktuell' : `${n} Handelstag${n > 1 ? 'e' : ''} alt`; };
   const freshEl = (el, parts, d) => {
@@ -1038,7 +1049,7 @@
     const n = tdBehind(d); if (n == null) return;
     const f = document.createElement('span'); f.className = n <= 0 ? 'sd-ok' : 'sd-badge-warn'; f.textContent = ' · ' + freshTxt(d); el.appendChild(f);
   };
-  window.sdFresh = {tdBehind, freshTxt, refClose};
+  window.sdFresh = {tdBehind, tdBetween, freshTxt, refClose, deClosed};
   dash.draw('lastclose', (el) => {
     const ref = refClose(); const b = (rowsOf('build') || [])[0] || {};
     el.textContent = ref ? deDate(ref) + (b.next_close ? ` (nächster ${deDate(b.next_close).slice(0, 6)})` : '') : '—';
@@ -1288,8 +1299,11 @@
   dash.draw('reb', (el) => {
     const st = rowsOf('strategies'), s = st && st.find((r) => r.key === el.dataset.key);
     if (!s) { el.textContent = '—'; return; }
-    if (s.rebalance === 'monthly') el.textContent = `Signal ${deDate(s.decisionDate)} → Handel ${deDate(s.tradeDate)} · nächstes ${deDate(s.nextDecision)} → ${deDate(s.nextRebalance)}`;
-    else el.textContent = (Number(s.cooldown) > 0 ? `Cooldown: noch ${s.cooldown} Handelstage gesperrt` : 'Cooldown frei (Wechsel möglich)') + (s.since ? ` · Position seit ${deDate(s.since)}` : '');
+    const nb = (rowsOf('build') || [])[0] || {};
+    const de = (d) => { const x = window.sdFresh && window.sdFresh.deClosed(d); return x === undefined ? '' : ` (deutsche Börsen zu – im wikifolio am ${deDate(x)} handeln)`; };
+    if (s.rebalance === 'monthly') el.textContent = `Signal ${deDate(s.decisionDate)} → Handel ${deDate(s.tradeDate)} · nächstes ${deDate(s.nextDecision)} → ${deDate(s.nextRebalance)}${de(s.nextRebalance)}`;
+    else el.textContent = (Number(s.cooldown) > 0 ? `Cooldown: noch ${s.cooldown} Handelstage gesperrt` : 'Cooldown frei (Wechsel möglich)') + (s.since ? ` · Position seit ${deDate(s.since)}` : '')
+      + (nb.next_close && de(nb.next_close) ? ` · nächster US-Handelstag ${deDate(nb.next_close)}${de(nb.next_close)}` : '');
   });
 
   dash.draw('fresh', (el) => {
@@ -1746,6 +1760,10 @@
   // ---------- wikifolio-Rechner (Stückzahlen, Ist, Ziel, Order) ----------
   const {pct, num, ok, NAMES, rowsOf, chipEl, spct} = window.sdFmt;
   const PRODUCTS = {levgtaa: ['NDX3', 'BTC1', 'BTCW', 'UST3', 'GOLD3', 'MM'], levtipsregime: ['SPX3', 'BTC1', 'UST3', 'MM']};
+  const PINFO = {NDX3: ['WisdomTree NASDAQ 100 3x Daily Leveraged', 'IE00BLRPRL42'], SPX3: ['WisdomTree S&P 500 3x Daily Leveraged', 'IE00B7Y34M31'],
+    BTC1: ['iShares Bitcoin ETP', 'XS2940466316'], BTCW: ['WisdomTree Physical Bitcoin', 'GB00BJYDH287'],
+    UST3: ['WisdomTree US Treasuries 10Y 3x Daily Leveraged', 'IE00BKT09032'], GOLD3: ['WisdomTree Gold 3x Daily Leveraged', 'IE00B8HGT870'],
+    MM: ['Xtrackers II EUR Overnight Rate Swap UCITS ETF 1C (XEON)', 'LU0290358497']};
   const ASSET = {levgtaa: {NDX3: 'NASDAQ100', BTC1: 'BTC', UST3: 'UST_IEF', GOLD3: 'GOLD'}, levtipsregime: {SPX3: 'SP500', BTC1: 'BTC', UST3: 'UST_IEF'}};
   const store = {
     get() { try { return JSON.parse(localStorage.getItem('sd-holdings') || 'null'); } catch (e) { return null; } },
@@ -1913,7 +1931,7 @@
     const s = (rowsOf('strategies') || []).find((r) => r.key === wf) || {};
     if (wf === 'levgtaa' && s.nextDecision) {
       const F = window.sdFresh, ref = F && F.refClose();
-      let n = 0; if (ref) for (let x = new Date(ref + 'T12:00:00Z'); x < new Date(s.nextDecision + 'T12:00:00Z');) { x.setUTCDate(x.getUTCDate() + 1); if (x.getUTCDay() % 6) n += 1; }
+      const n = ref ? (F.tdBetween(ref, s.nextDecision) || 0) : 0;
       if (ref && n <= 10) return {mode: 'today', why: `Referenz: heute simuliertes Signal – das Monatssignal kommt in ${n} Handelstag${n === 1 ? '' : 'en'} (Schluss ${window.sdFmt.deDate(s.nextDecision)}) und liegt im Backtest bis 10 Tage vorher deutlich näher an der Entscheidung als die gehaltene Allokation`};
       return {mode: 'held', why: `Referenz: gehaltene Allokation – das Monatssignal ist noch ${n} Handelstage entfernt`};
     }
@@ -1996,7 +2014,9 @@
       const pr = prices.find((x) => x.key === p);
       td0.textContent = p === 'CASH' ? 'Cash (€)' : NAMES[p];
       const sub = document.createElement('span'); sub.className = 'sd-prod';
-      sub.textContent = p === 'CASH' ? 'Betrag in € eintragen' : (pr ? `${pr.name} · ${pr.isin} · Ref. ${pr.ticker} ${window.sdFmt.deDate(pr.date)}` : '');
+      const fix = PINFO[p] || [];                                        // Name/ISIN auch ohne Kursdaten
+      sub.textContent = p === 'CASH' ? 'Betrag in € eintragen (darf negativ sein)'
+        : pr ? `${pr.name} · ${pr.isin} · Ref. ${pr.ticker} ${window.sdFmt.deDate(pr.date)}` : (fix.length ? `${fix[0]} · ${fix[1]} · Kurs bitte eintragen` : '');
       td0.appendChild(sub);
       const q = document.createElement('input'); q.type = 'number'; if (p !== 'CASH') q.min = '0'; q.step = p === 'CASH' ? '0.01' : 'any'; q.inputMode = p === 'CASH' ? 'text' : 'decimal';
       q.value = r.stueck || ''; q.placeholder = '0'; q.setAttribute('aria-label', `${NAMES[p] || p} Stück`);

@@ -546,16 +546,33 @@ def alert(health, streak, alerted):
 
 def us_closes():
     """Letzter abgeschlossener und naechster NYSE-Handelstag (Bezug fuer „aktuell“ auf der Seite)."""
+    c = calendars()
+    return c.get("last_close"), c.get("next_close")
+
+
+def calendars():
+    """Handelskalender fuer die Seite: NYSE-Sitzungen (+-30 Tage; Signale beruhen auf US-Schlusskursen) und Tage, an
+    denen deutsche Boersen (Xetra-Kalender) an Werktagen geschlossen sind, mit dem naechsten Boersentag (gehandelt wird im
+    wikifolio)."""
     try:
         import pandas as pd, pandas_market_calendars as mcal
         now = pd.Timestamp.now(tz="UTC")
-        sch = mcal.get_calendar("XNYS").schedule(start_date=(now - pd.Timedelta(days=12)).date(), end_date=(now + pd.Timedelta(days=12)).date())
-        done = sch[sch["market_close"] <= now]
-        nxt = sch[sch["market_close"] > now]
-        return (done.index[-1].date().isoformat() if len(done) else None, nxt.index[0].date().isoformat() if len(nxt) else None)
+        sch = mcal.get_calendar("XNYS").schedule(start_date=(now - pd.Timedelta(days=30)).date(), end_date=(now + pd.Timedelta(days=30)).date())
+        done, nxt = sch[sch["market_close"] <= now], sch[sch["market_close"] > now]
+        de = mcal.get_calendar("XETR").schedule(start_date=now.date(), end_date=(now + pd.Timedelta(days=100)).date())
+        de_days = {d.date() for d in de.index}
+        closed = []
+        for d in pd.bdate_range(now.date(), (now + pd.Timedelta(days=90)).date()):
+            if d.date() not in de_days:
+                after = [x for x in sorted(de_days) if x > d.date()]
+                closed.append({"date": d.date().isoformat(), "next": after[0].isoformat() if after else None})
+        return {"last_close": done.index[-1].date().isoformat() if len(done) else None,
+                "next_close": nxt.index[0].date().isoformat() if len(nxt) else None,
+                "nyse_sessions": " ".join(d.date().isoformat() for d in sch.index),
+                "de_closed": " ".join(f"{c['date']}>{c['next']}" for c in closed)}
     except Exception as e:
         print("Handelskalender nicht verfügbar:", e)
-        return None, None
+        return {}
 
 
 def main():
@@ -625,10 +642,9 @@ def main():
     man = {k: {"file": f, "title": t, "description": d} for k, (f, t, d) in MANIFEST.items()}
     missing = [k for k, m in man.items() if not os.path.exists(os.path.join(OUT, m["file"]))]
     wjson("manifest.json", {"datasets": man})
-    last_close, next_close = us_closes()
+    cal = calendars()
     wjson("build.json", [{"built": NOW.isoformat(timespec="minutes"), "errors": " · ".join(ERRORS),
-                          "botAsOf": (st or {}).get("levgtaa", {}).get("asOf"),
-                          "last_close": last_close, "next_close": next_close}])
+                          "botAsOf": (st or {}).get("levgtaa", {}).get("asOf"), **cal}])
     print(json.dumps({"built": NOW.isoformat(), "overall": worst, "passes": passes, "errors": ERRORS, "missing": missing},
                      ensure_ascii=False))
     if not any(h["status"] not in BAD for h in health):
