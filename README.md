@@ -6,14 +6,16 @@ Zeigt die Bots **levGTAA · MR-Rebound-GTAA · levTipsRegime · 1xGTAA** und die
 **LevGTAA (WFXLEVGTAA)** und **LevTipsRegime (WFXTIPSREG)**. Keine Anlageberatung.
 
 ## Bereiche
-- **Überblick** – je wikifolio (LevGTAA, LevTipsRegime) alle Kennzahlen von wikifolio.com (Performance, Monat, High-Watermark,
+- **wikifolios** (Startseite) – je wikifolio (LevGTAA, LevTipsRegime) alle Kennzahlen von wikifolio.com (Performance, Monat, High-Watermark,
   Watchlistings, Rangliste, Gebühren, investiertes Kapital, Investierbarkeit), Bot-Soll mit Produkt und ISIN, deine
   Ist-Allokation, levTipsRegime-Abstand zur Linie; dazu Monatsperformance und wikifolio vs. Bot-Soll seit Start.
-- **Signale** – je Bot (levGTAA, levTipsRegime, 1xGTAA, MR-Rebound-GTAA) die gehaltene Position und das Tagessignal
+- **Signale** – je Bot (levGTAA, levTipsRegime, 1xGTAA, MR-Rebound-GTAA) Aufbau & Parameter (Idee, Bausteine mit Signal und
+  ISIN, Auswahl, Gewichtung, Risiko, Zeitplan), die gehaltene Position und das Tagessignal
   („wenn heute gehandelt würde“; levGTAA/MR-Rebound: jeder Tag wie ein Monatsletzter, 1xGTAA/levTipsRegime ohne Cooldown),
   jeweils mit Produkt und ISIN, Abweichung, Verlauf seit 2025, Zeitbalken der gehaltenen Position, Signaltabelle des Bots;
-  dazu die Liste der Signalwechsel und der levGTAA-Allokationsverlauf.
-- **Performance** – Equity der Strategien und deiner Mischungen mit den gehandelten Produkten in EUR, Kennzahlen,
+  dazu „So laufen die Bots“ (Läufe, Datenprüfung, Meldungen), die Liste der Signalwechsel und der levGTAA-Allokationsverlauf.
+- **Performance** – Equity der Strategien und deiner Mischungen (Mix A = 1/3 levTipsRegime + 2/3 levGTAA, Mix B = je 1/3
+  levTipsRegime, 1xGTAA, levGTAA) mit den gehandelten Produkten in EUR, Kennzahlen,
   Monatsrenditen, Korrelation (`dashboard-data/equity.py`).
 - **Rechner** – nur für deine wikifolios: Stückzahlen eintragen → Ist-Allokation, Ziel (Bot-Soll oder Tagessignal) mit
   Cash-Puffer für die wikifolio-Gebühren, Order in ganzen Stück. Positionen optional für alle Geräte in
@@ -21,6 +23,19 @@ Zeigt die Bots **levGTAA · MR-Rebound-GTAA · levTipsRegime · 1xGTAA** und die
 - **Push** – ntfy-Meldung, wenn das simulierte Tagessignal kippt oder ein wikifolio investierbar wird (Secret `NTFY_TOPIC`).
 - **App** – auf dem Handy „Zum Home-Bildschirm“: öffnet sich wie eine App, zeigt offline den letzten Stand.
 - **Studien** – `studien/STUDIE.md`: Robustheit levGTAA, levTipsRegime (inkl. IEF) und 1xGTAA mit Empfehlungen.
+
+## Datenstatus und Rückfallebenen
+Oben auf jeder Seite zeigt ein Punkt den Datenstatus (grün = alles aktuell, gelb = Hinweis oder letzter Stand, rot =
+überfällig oder Fehler). Ein Klick öffnet die Liste aller Quellen mit Status, Datenstand, letztem Erfolg, Weg und Grund
+(`data/health.json`). Rückfallebenen beim Abruf:
+1. jede Anfrage bis zu 3 Versuche mit Pause,
+2. Bot-Dateien über Ersatzwege (GitHub-API, jsDelivr-Spiegel), Bot-Code notfalls als Tarball,
+3. fällt eine Quelle trotzdem aus, bleibt nur ihr letzter gültiger Stand (die anderen werden aktualisiert),
+4. zweiter Durchgang für ausgefallene Quellen nach 150 s,
+5. bricht der ganze Lauf ab, Neustart nach 5 Minuten (GitHub schickt bei endgültigem Fehlschlag eine E-Mail),
+6. nächster stündlicher Lauf; nach 3 gestörten Läufen in Folge ein ntfy-Push mit dem Grund, nach der Erholung ein zweiter,
+7. im Browser: je Datei 3 Ladeversuche; ohne Netz zeigt die Seite den zuletzt gespeicherten Stand und sagt das.
+Die Seite erkennt außerdem, wenn die Action überfällig ist (GitHub startet geplante Läufe teils Stunden später).
 
 ## Wie es sich aktualisiert
 Die GitHub Action `.github/workflows/refresh-dashboard.yml` läuft werktags stündlich (05:41–21:41 UTC) und am Wochenende 3×

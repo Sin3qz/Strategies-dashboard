@@ -118,3 +118,43 @@ Grund: levGTAA mittelt über 202 Teilentscheidungen und skaliert per Vol-Target;
 wenig, ein „Wechsel“ ist nicht klar definiert und das Ergebnis hängt an willkürlichen Schwellen. 1xGTAA dagegen kennt nur
 „Baustein qualifiziert ja/nein“ (Top-2, 40/60) – ein Wechsel ist eindeutig, die tägliche Prüfung reagiert früher und es
 entfällt das Glück des Handelstags (monatliche Tranchen 11,1–15,0 %).
+
+**1xGTAA – SMA-Längen (Momentum 1/3/6/12, täglich, Cooldown 10, ab 07/2009, 56 Kombinationen; lange Historie mit EEM vor
+EEMS und EZU vor EMU Value)**
+
+CAGR in % (Zeile = kurze SMA S, Spalte = lange SMA L):
+
+| S \ L | 100 | 125 | 150 | 175 | 200 | 225 | 250 |
+|---|---|---|---|---|---|---|---|
+| 1 | 11,6 | 12,2 | 13,8 | 14,1 | 14,5 | 14,5 | 14,8 |
+| 3 | 11,9 | 13,7 | 13,4 | 14,6 | 15,2 | 14,4 | 14,5 |
+| 5 | 11,3 | 14,0 | 14,5 | 15,1 | 14,7 | 14,4 | 14,4 |
+| **8** | 11,8 | 14,0 | **15,1** | 15,3 | 15,1 | 14,9 | 14,4 |
+| 10 | 12,5 | 13,9 | 15,2 | 15,5 | 15,0 | 14,6 | 14,4 |
+| 15 | 13,3 | 13,9 | 14,7 | 15,1 | 14,3 | 14,4 | 14,1 |
+| 20 | 12,9 | 13,2 | 14,6 | 14,7 | 14,1 | 13,8 | 13,8 |
+| 30 | 12,0 | 13,2 | 13,7 | 14,0 | 14,0 | 13,8 | 13,2 |
+
+- SMA8/150: 15,1 % CAGR, −17,1 % Max-DD, Sharpe 1,12 (Platz 8 von 56 nach CAGR, Platz 6 nach Sharpe).
+- Hochebene S 5–15 / L 150–200: 14,3–15,5 % CAGR, Sharpe 1,07–1,14 → 8/150 liegt mitten drin, kein Ausreißer.
+- Nur L = 100 (11–13 %) und S = 30 fallen klar ab.
+- Out-of-Sample: Das beste Paar auf 2009–2017 (10/175, 11,9 %) brachte 2018–2026 18,9 %; 8/150 brachte 18,4 %
+  (Median aller Paare 17,8 %). Rangkorrelation In- zu Out-of-Sample 0,59 → die Hochebene ist stabil, die Wahl innerhalb
+  der Hochebene ist Rauschen. **Ergebnis: SMA8/150 beibehalten.**
+
+**1xGTAA – zusätzliches Rebalancing auf 40/60, solange die Position gleich bleibt?** (ab 07/2009, 1/3/6/12, Cooldown 10,
+0,1 % Kosten; Median über 16 SMA-Kombinationen, dazu SMA8/150)
+
+| Variante | CAGR 8/150 | Max-DD 8/150 | Umschichtungen/Jahr | Median CAGR (16 SMA) |
+|---|---|---|---|---|
+| **keins (Bot heute)** | **15,1 %** | **−17,1 %** | 16,9 | 14,9 % |
+| alle 21 Handelstage nach dem Kauf | 15,0 % | −17,1 % | 20,1 | 14,8 % |
+| alle 42 / 63 / 126 Tage | 15,0 / 15,1 / 15,1 % | −17,1 % | 17,5 / 17,1 / 16,9 | 14,8–14,9 % |
+| am Monatsende | 15,1 % | −16,9 % | 28,9 | 14,9 % |
+| bei Drift > 5 / 10 / 15 Pp | 15,1 % | −17,1 % | 16,9 | 14,9 % |
+| Kontrolle: Drift > 0,5 / 1 / 2 Pp | 15,05 / 15,05 / 15,08 % | −17,0 bis −17,3 % | 54,9 / 28,4 / 19,3 | – |
+
+- Kein Unterschied über 0,1 Pp. Grund: Positionen werden kurz gehalten (Median 11 Handelstage, nur 14 % länger als
+  21 Tage, 1 % länger als 63 Tage), und 107 von 293 Umschichtungen sind bereits ein Tausch von Platz 1 und 2 (40/60 → 60/40),
+  also ein Rebalancing. Die Gewichte driften deshalb kaum.
+- **Ergebnis: kein zusätzliches Rebalancing.** Es kostet nur zusätzliche Orders.

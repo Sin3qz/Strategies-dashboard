@@ -9,7 +9,8 @@ Ablauf je Strategie:
   - Kurse: Produktkurse von Yahoo (liquideste Notierung); USD- und Pence-Notierungen (London) mit EURUSD bzw. EURGBP
     in EUR umgerechnet. Bitcoin: BTC-EUR als
     Naeherung fuer ein 1x-Bitcoin-ETP (ohne dessen Gebuehr).
-Mischungen: deine Aufteilungen, monatlich (1. Handelstag) auf die Zielanteile zurueckgesetzt.
+Mischungen: Mix A = 1/3 levTipsRegime + 2/3 levGTAA, Mix B = je 1/3 levTipsRegime, 1xGTAA, levGTAA; monatlich
+(1. Handelstag) auf die Zielanteile zurueckgesetzt, mit COST auf den umgeschichteten Anteil.
 """
 import json, math, os
 import numpy as np, pandas as pd
@@ -20,7 +21,7 @@ PRODUCTS = {   # key: (Name, ISIN, Yahoo-Ticker, Waehrung)
     "SPX3": ("WisdomTree S&P 500 3x Daily Leveraged", "IE00B7Y34M31", "3USL.L", "USD"),
     "UST3": ("WisdomTree US Treasuries 10Y 3x Daily Leveraged", "IE00BKT09032", "3TYL.L", "GBp"),   # 3TYL.MI: zu viele Tage ohne Kurs
     "GOLD3": ("WisdomTree Gold 3x Daily Leveraged", "IE00B8HGT870", "3GOL.L", "USD"),
-    "BTC1": ("Bitcoin (BTC-EUR, Näherung für ein 1x-Bitcoin-ETP)", "", "BTC-EUR", "EUR"),
+    "BTC1": ("iShares Bitcoin ETP", "XS2940466316", "BTC-EUR", "EUR"),   # Verlauf BTC-EUR (länger), Stückkurs IB1T.DE
     "EM3": ("WisdomTree Emerging Markets 3x Daily Leveraged", "IE00BYTYHN28", "3EML.L", "USD"),
     "IND3": ("Leverage Shares 3x Long India", "XS2595675302", "IND3.L", "USD"),
     "TLT5": ("Leverage Shares 5x Long 20+ Year Treasury Bond", "XS2595672036", "TLT5.L", "USD"),
@@ -32,6 +33,8 @@ PRODUCTS = {   # key: (Name, ISIN, Yahoo-Ticker, Waehrung)
     "CMDTY": ("WisdomTree Enhanced Commodity UCITS USD Acc", "IE00BYMLZY74", "WCOA.L", "USD"),
     "USDON": ("Xtrackers II USD Overnight Rate Swap 1C", "LU0321465469", "XFFE.DE", "EUR"),
 }
+LAST_PX = {"BTC1": ("IB1T.DE", "EUR")}   # Kurs je Stück für den Rechner, wenn der Verlauf von einem anderen Ticker kommt
+
 MAP = {   # Strategie-Baustein -> Produkt
     "levgtaa": {"NASDAQ100": "NDX3", "BTC": "BTC1", "UST_IEF": "UST3", "GOLD": "GOLD3"},
     "mrrebound": {"NASDAQ100": "NDX3", "EM": "EM3", "INDIA": "IND3", "TLT_LONG": "TLT5"},
@@ -42,14 +45,14 @@ SPX_SHARE = 1.0     # levTipsRegime im Markt: 100 % 3x S&P 500 (seit 28.10.2026 
 STATE_W = {"MARKET": {"SPX3": SPX_SHARE, "BTC1": 1 - SPX_SHARE}, "IEF": {"UST3": 1.0}, "CASH": {}}
 LABEL = {"levgtaa": "levGTAA", "levtips": "levTipsRegime", "levtips_old": "levTipsRegime (alte Regel ohne IEF)",
          "1xgtaa": "1xGTAA", "mrrebound": "MR-Rebound-GTAA",
-         "mix_a": "Mix A: 1/3 levTipsRegime + 2/3 levGTAA", "mix_b": "Mix B: 1/3 levTipsRegime + 2/9 1xGTAA + 4/9 levGTAA"}
-MIXES = {"mix_a": {"levtips": 1 / 3, "levgtaa": 2 / 3}, "mix_b": {"levtips": 1 / 3, "1xgtaa": 2 / 9, "levgtaa": 4 / 9}}
+         "mix_a": "Mix A: 1/3 levTipsRegime + 2/3 levGTAA", "mix_b": "Mix B: je 1/3 levTipsRegime, 1xGTAA, levGTAA"}
+MIXES = {"mix_a": {"levtips": 1 / 3, "levgtaa": 2 / 3}, "mix_b": {"levtips": 1 / 3, "1xgtaa": 1 / 3, "levgtaa": 1 / 3}}   # gleichgewichtet (ab 29.10.2026)
 WF_START = "2026-10-01"   # Erstellung beider wikifolios (Index 100)
 
 
 def load_prices(grid):
     from yahooquery import Ticker
-    tick = sorted({p[2] for p in PRODUCTS.values()} | {"EURUSD=X", "EURGBP=X"})
+    tick = sorted({p[2] for p in PRODUCTS.values()} | {t for t, _ in LAST_PX.values()} | {"EURUSD=X", "EURGBP=X"})
     h = Ticker(tick, asynchronous=True).history(period="max", interval="1d", adj_ohlc=True)
     out, issues = {}, []
     for t in tick:
@@ -71,6 +74,9 @@ def load_prices(grid):
             f = fx[ccy].reindex(s.index.union(fx[ccy].index)).ffill().reindex(s.index)
             s = (s / f).dropna()
         last[k] = (float(s.iloc[-1]), s.index[-1].date().isoformat())   # echter letzter Kurs in EUR (fuer den Rechner)
+        if k in LAST_PX and LAST_PX[k][0] in out and LAST_PX[k][1] == "EUR":
+            q = out[LAST_PX[k][0]]
+            last[k] = (float(q.iloc[-1]), q.index[-1].date().isoformat())
         r = s.pct_change()
         bad = r.abs() > 0.6                                    # Datenfehler (z. B. Pence/Dollar-Verwechslung)
         if bad.any():
@@ -140,6 +146,8 @@ def mix(series, weights, grid):
         if units is not None:
             V = sum(units[k] * row[k] for k in weights)
         if units is None or d.month != month:                  # 1. Handelstag des Monats: auf Zielanteile
+            if units is not None:                              # Kosten auf den umgeschichteten Anteil (wie bei den Strategien)
+                V *= 1 - COST * sum(abs(units[k] * row[k] / V - w) for k, w in weights.items())
             units = {k: V * w / row[k] for k, w in weights.items()}
             month = d.month
         out.append(V)
@@ -177,7 +185,9 @@ def run(work, out_dir, grid_start="2009-01-01"):
     grid = pd.DatetimeIndex(pd.to_datetime(sched.index.date))
     dec = {m: pd.read_csv(os.path.join(work, f"decisions_{m}.csv")) for m in ("levgtaa", "mrrebound", "1xgtaa", "levtips")}
     last_signal = max(pd.Timestamp(d["date"].iloc[-1]) for d in dec.values())
-    grid = grid[grid <= grid[grid.searchsorted(last_signal, side="right")] if grid.searchsorted(last_signal, side="right") < len(grid) else grid[-1]]
+    nxt = grid.searchsorted(last_signal, side="right")            # Handelstag nach dem letzten Signal (falls schon im Kalender)
+    if nxt < len(grid):
+        grid = grid[grid <= grid[nxt]]
     prices, last, issues = load_prices(grid)
     series = {}
     for m in ("levgtaa", "levtips", "1xgtaa", "mrrebound"):
@@ -214,7 +224,7 @@ def run(work, out_dir, grid_start="2009-01-01"):
     px = []
     for k, (name, isin, t, ccy) in PRODUCTS.items():
         if k in last:
-            px.append({"key": k, "name": name, "isin": isin, "ticker": t, "quote": ccy, "price_eur": round(last[k][0], 4),
+            px.append({"key": k, "name": name, "isin": isin, "ticker": LAST_PX.get(k, (t,))[0], "quote": ccy, "price_eur": round(last[k][0], 4),
                        "date": last[k][1]})
     for name, obj in (("perf_stats.json", st), ("monthly_returns.json", months), ("correlation.json", corr),
                       ("tracking.json", track), ("prices.json", px)):
