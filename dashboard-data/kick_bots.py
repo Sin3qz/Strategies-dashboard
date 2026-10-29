@@ -84,15 +84,16 @@ def decide(st, now, exp=None):
     if (now.hour, now.minute) < EARLIEST_UTC or (now.hour, now.minute) > LATEST_UTC:
         return False, "außerhalb 05:15–21:30 UTC (nachts keine Anstöße)"
     upd = dt.datetime.fromisoformat(st.get("updated", "1970-01-01T00:00:00+00:00"))
-    retry = st.get("needsRetry") or st.get("ntfyFailed")
+    retry = st.get("needsRetry") or st.get("ntfyFailed") or st.get("refreshLater")   # refreshLater: Xetra-Kurs fehlte noch
     recent = (now - upd).total_seconds() < 3600
     if exp is not None:                                  # Regel nach Handelskalender: fehlt der erwartete Schlusskurs?
         asof = dt.date.fromisoformat(str(st.get("asOf") or "1970-01-01")[:10])
         if asof >= exp and not retry:
-            return False, f"Kursstand aktuell (Schluss {asof:%d.%m.}; Wochenende/Feiertag: kein neuer)"
+            return False, f"Kursstand aktuell (Schluss {asof:%d.%m.})"
         if recent:
             return False, "letzter Lauf vor weniger als 60 min – nächster Versuch später"
         return True, (f"Schluss {exp:%d.%m.} fehlt noch (Bot-Stand {asof:%d.%m.})" if asof < exp
+                      else "Xetra-Kurs fehlte beim letzten Lauf – nachrechnen" if st.get("refreshLater") and not st.get("needsRetry")
                       else "Wiederholung gemeldet (veraltete Kurse / Push fehlgeschlagen)")
     today = now.astimezone(TZ).date()
     ran_today = upd.astimezone(TZ).date() == today

@@ -1535,6 +1535,9 @@
     const behind = Math.max(0, window.sdFresh ? (window.sdFresh.tdBehind(s.asOf) || 0) : 0);
     const late = s.needsRetry || behind > 0;
     dot.style.background = late ? 'var(--color-warn)' : dash.colors[5];
+    if (s.refreshLater && !s.needsRetry && behind <= 0) {                // Xetra-Kurs (EMU Value) folgt, Bot rechnet nach
+      dot.style.background = 'var(--color-warn)'; el.append(dot, 'aktuell – ein Xetra-Kurs folgt noch, der Bot rechnet nach'); return;
+    }
     el.append(dot, s.needsRetry ? 'Daten evtl. verspätet' : behind > 0
       ? `${behind} Handelstag${behind > 1 ? 'e' : ''} alt (Bot-Lauf steht noch aus; der Zeitgeber stößt ihn an)` : 'aktuell');
   });
