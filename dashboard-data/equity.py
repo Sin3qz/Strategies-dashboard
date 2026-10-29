@@ -32,6 +32,7 @@ PRODUCTS = {   # key: (Name, ISIN, Yahoo-Ticker, Waehrung)
     "XGOLD": ("Xetra-Gold", "DE000A0S9GB0", "4GLD.DE", "EUR"),
     "CMDTY": ("WisdomTree Enhanced Commodity UCITS USD Acc", "IE00BYMLZY74", "WCOA.L", "USD"),
     "USDON": ("Xtrackers II USD Overnight Rate Swap 1C", "LU0321465469", "XFFE.DE", "EUR"),
+    "MM": ("Xtrackers II EUR Overnight Rate Swap UCITS ETF 1C", "LU0290358497", "XEON.DE", "EUR"),   # Cash-Baustein der wikifolios
 }
 LAST_PX = {"BTC1": ("IB1T.DE", "EUR")}   # Kurs je Stück für den Rechner, wenn der Verlauf von einem anderen Ticker kommt
 

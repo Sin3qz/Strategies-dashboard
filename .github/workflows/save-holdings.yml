@@ -1,0 +1,51 @@
+name: Positionen speichern
+
+# Startet der Rechner der Seite (Knopf „Auf GitHub speichern“) mit deinem Token (Actions: Read and write).
+# Die Eingabe kommt nur über eine Umgebungsvariable in das Python-Skript (kein Einbau in Shell-Befehle).
+on:
+  workflow_dispatch:
+    inputs:
+      holdings:
+        description: "Positionen als JSON (kommt vom Rechner)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: holdings-save                # eigene Warteschlange: eine Speicherung wird nie von einer Aktualisierung verdrängt
+  cancel-in-progress: false
+
+jobs:
+  save:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_PUSH || github.token }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Prüfen und speichern
+        env:
+          HOLDINGS: ${{ inputs.holdings }}
+        run: python3 dashboard-data/save_holdings.py
+      - name: Commit und Push
+        run: |
+          git config --global user.name "Sin3qz"
+          git config --global user.email "patrickdietrich2@gmail.com"
+          git add data/wikifolio_holdings.json data/holdings_log.csv
+          git diff --cached --quiet && echo "Keine Aenderung" && exit 0
+          git commit -m "Positionen gespeichert (Rechner)"
+          for i in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep 10
+          done
+          exit 1
+      - name: Dashboard neu rechnen (Cash-Wächter mit den neuen Zahlen)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run refresh-dashboard.yml --ref "${GITHUB_REF_NAME}"
