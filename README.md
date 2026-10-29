@@ -37,6 +37,20 @@ Oben auf jeder Seite zeigt ein Punkt den Datenstatus (grün = alles aktuell, gel
 7. im Browser: je Datei 3 Ladeversuche; ohne Netz zeigt die Seite den zuletzt gespeicherten Stand und sagt das.
 Die Seite erkennt außerdem, wenn die Action überfällig ist (GitHub startet geplante Läufe teils Stunden später).
 
+## Pünktliche Läufe (empfohlen)
+GitHub startet geplante Läufe oft Stunden später (Oktober 2026: Bot-Lauf 05:17 UTC kam um 10:40–11:25 UTC) oder lässt
+sie aus. Deshalb gibt es einen **Zeitgeber**: Jede Dashboard-Aktualisierung stößt zwischen 05:15 und 21:30 UTC jeden Bot
+an, der heute noch nicht erfolgreich gelaufen ist (`dashboard-data/kick_bots.py`, Ergebnis im Datenstatus). Pünktlich wird
+das mit einem externen Anstoß der Aktualisierung:
+1. **Ein Token für alles:** GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens →
+   Generate new token. Repository access: Strategies-dashboard, levgtaa-signalbot, levtipsregime-signalbot,
+   1xgtaa-signalbot, mrreboundgtaa-signalbot. Permissions: **Actions: Read and write**, **Contents: Read and write**.
+2. Im Repo Strategies-dashboard: Settings → Secrets and variables → Actions → Secret **`PAT_PUSH`** = dieses Token.
+3. https://cron-job.org (kostenlos): Cronjob mit URL
+   `https://api.github.com/repos/Sin3qz/Strategies-dashboard/actions/workflows/refresh-dashboard.yml/dispatches`,
+   alle 30 Minuten, Methode POST, Header `Authorization: Bearer <Token>`, `Accept: application/vnd.github+json`,
+   `Content-Type: application/json`, Body `{"ref":"main"}`. Antwort 204 = ok.
+
 ## Wie es sich aktualisiert
 Die GitHub Action `.github/workflows/refresh-dashboard.yml` läuft werktags stündlich (05:41–21:41 UTC) und am Wochenende 3×
 und kann unter *Actions → Dashboard-Daten aktualisieren → Run workflow* auch von Hand gestartet werden. Sie
