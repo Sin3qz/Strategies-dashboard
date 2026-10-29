@@ -1342,10 +1342,17 @@
     document.querySelectorAll(`[data-badge][data-key="${key}"]`).forEach((b) => { b.hidden = inv == null || (b.dataset.badge === 'in') !== inv; });
   });
 
-  dash.draw('chips', (el) => {
+  // Das wikifolio-Ziel braucht den Gebuehren-Puffer aus dem Rechner-Skript weiter unten. Liegen die Daten schon im
+  // Speicher, zeichnet die Laufzeit sofort beim Anmelden, also bevor der Puffer bereitsteht: dann vormerken und
+  // nachzeichnen, sobald er da ist (sonst bliebe die reine Bot-Quote ohne Puffer stehen)
+  const wfLater = new Map();
+  const wfWait = (el, fn) => { if (el.dataset.wf && !window.sdReserve) { wfLater.set(el, () => fn(el)); return true; } return false; };
+  window.sdWfRedraw = () => { const f = [...wfLater.entries()]; wfLater.clear(); f.forEach(([el, fn]) => { if (el.isConnected) fn(); }); };
+  const drawChips = (el) => {
     const al = rowsOf('allocations'), cashRows = rowsOf('alloc_cash'), st = rowsOf('strategies');
     el.replaceChildren();
     if (!al) return;
+    if (wfWait(el, drawChips)) return;
     const key = el.dataset.key;
     const d = ((st || []).find((r) => r.key === key) || {}).weightDecimals || 0;
     const inv = al.filter((a) => a.strategy === key && a.asset !== 'CASH');
@@ -1360,7 +1367,8 @@
     inv.forEach((a) =>
       el.appendChild(chipEl(a.asset, ` ${a.leverage}x ${NAMES[a.asset] || a.display}`, a.weight == null ? null : pct(a.weight, d))));   // gleiche Namen wie beim Tagessignal
     if (cash != null && cash > (d ? 0.0005 : 0.005)) el.appendChild(chipEl('CASH', ' Cash', pct(cash, d)));
-  });
+  };
+  dash.draw('chips', drawChips);
   // Ziel im wikifolio wie im Rechner: Bot-Quoten so weit gekuerzt, dass der Gebuehren-Puffer frei bleibt; Bot-Cash
   // (ab 2 %) im Geldmarkt-ETF, Rest Cash
   const wfTarget = (key, inv) => {
@@ -1398,9 +1406,10 @@
       CASH_USD: ['Xtrackers II USD Overnight Rate Swap UCITS ETF 1C', 'LU0321465469']},
   };
   const DAILY_SRC = {levgtaa: 'daily_levgtaa', mrreboundgtaa: 'daily_mrrebound', '1xgtaa': 'daily_1xgtaa'};
-  dash.draw('prods', (el) => {
+  const drawProds = (el) => {
     const key = el.dataset.key, mode = el.dataset.mode;
     el.replaceChildren();
+    if (mode === 'held' && wfWait(el, drawProds)) return;
     let assets = [];
     if (mode === 'held') {
       assets = (rowsOf('allocations') || []).filter((a) => a.strategy === key && a.asset !== 'CASH' && (a.weight == null || Number(a.weight) > 0.0005)).map((a) => a.asset);
@@ -1426,7 +1435,8 @@
       d.append(b, ' · ', i);
       el.appendChild(d);
     });
-  });
+  };
+  dash.draw('prods', drawProds);
 
   // Zeitbalken der gehaltenen Position (aus timeline der Bot-Status-Dateien)
   const tlKey = (lead) => (lead === 'MARKET' ? 'SP500' : lead || 'CASH');
@@ -2106,6 +2116,7 @@
     el.textContent = `Vorschlag ${pct(s.r, 2)} = Zertifikategebühr ${pct(s.fee, 2)} je Monat + ${pct(s.perf, 0)} Performancegebühr auf den Teil eines starken Monats über der HWM (höchster Stand binnen 21 Handelstagen ${spct(s.strong, 1)}${mix}, ${STAGE_TXT[s.stage]}; ${hw}) + 0,05 % Reserve, höchstens 1 %. ${RHYTHM_TXT[wf]} Aktiv: ${pct(reserveOf(wf), 2)}.`;
   });
   window.sdReserve = reserveOf;
+  if (window.sdWfRedraw) window.sdWfRedraw();                      // wikifolio-Ziel nachzeichnen, falls schon gezeichnet
 
   // Soll-Cash auf einen Blick: Soll / Ist / fehlt, dazu der Puffer je HWM-Abstand (je weiter unter der HWM, desto
   // unwahrscheinlicher eine Performancegebuehr im naechsten Monat -> kleinerer Puffer)
