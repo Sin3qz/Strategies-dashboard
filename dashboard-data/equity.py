@@ -9,7 +9,8 @@ Ablauf je Strategie:
   - Kurse: Produktkurse von Yahoo (liquideste Notierung); USD- und Pence-Notierungen (London) mit EURUSD bzw. EURGBP
     in EUR umgerechnet. Bitcoin: BTC-EUR als
     Naeherung fuer ein 1x-Bitcoin-ETP (ohne dessen Gebuehr).
-Mischungen: deine Aufteilungen, monatlich (1. Handelstag) auf die Zielanteile zurueckgesetzt.
+Mischungen: Mix A = 1/3 levTipsRegime + 2/3 levGTAA, Mix B = je 1/3 levTipsRegime, 1xGTAA, levGTAA; monatlich
+(1. Handelstag) auf die Zielanteile zurueckgesetzt, mit COST auf den umgeschichteten Anteil.
 """
 import json, math, os
 import numpy as np, pandas as pd
@@ -44,8 +45,8 @@ SPX_SHARE = 1.0     # levTipsRegime im Markt: 100 % 3x S&P 500 (seit 28.10.2026 
 STATE_W = {"MARKET": {"SPX3": SPX_SHARE, "BTC1": 1 - SPX_SHARE}, "IEF": {"UST3": 1.0}, "CASH": {}}
 LABEL = {"levgtaa": "levGTAA", "levtips": "levTipsRegime", "levtips_old": "levTipsRegime (alte Regel ohne IEF)",
          "1xgtaa": "1xGTAA", "mrrebound": "MR-Rebound-GTAA",
-         "mix_a": "Mix A: 1/3 levTipsRegime + 2/3 levGTAA", "mix_b": "Mix B: 1/3 levTipsRegime + 2/9 1xGTAA + 4/9 levGTAA"}
-MIXES = {"mix_a": {"levtips": 1 / 3, "levgtaa": 2 / 3}, "mix_b": {"levtips": 1 / 3, "1xgtaa": 2 / 9, "levgtaa": 4 / 9}}
+         "mix_a": "Mix A: 1/3 levTipsRegime + 2/3 levGTAA", "mix_b": "Mix B: je 1/3 levTipsRegime, 1xGTAA, levGTAA"}
+MIXES = {"mix_a": {"levtips": 1 / 3, "levgtaa": 2 / 3}, "mix_b": {"levtips": 1 / 3, "1xgtaa": 1 / 3, "levgtaa": 1 / 3}}   # gleichgewichtet (ab 29.10.2026)
 WF_START = "2026-10-01"   # Erstellung beider wikifolios (Index 100)
 
 
@@ -145,6 +146,8 @@ def mix(series, weights, grid):
         if units is not None:
             V = sum(units[k] * row[k] for k in weights)
         if units is None or d.month != month:                  # 1. Handelstag des Monats: auf Zielanteile
+            if units is not None:                              # Kosten auf den umgeschichteten Anteil (wie bei den Strategien)
+                V *= 1 - COST * sum(abs(units[k] * row[k] / V - w) for k, w in weights.items())
             units = {k: V * w / row[k] for k, w in weights.items()}
             month = d.month
         out.append(V)

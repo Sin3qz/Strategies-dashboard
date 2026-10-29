@@ -141,3 +141,20 @@ CAGR in % (Zeile = kurze SMA S, Spalte = lange SMA L):
 - Out-of-Sample: Das beste Paar auf 2009–2017 (10/175, 11,9 %) brachte 2018–2026 18,9 %; 8/150 brachte 18,4 %
   (Median aller Paare 17,8 %). Rangkorrelation In- zu Out-of-Sample 0,59 → die Hochebene ist stabil, die Wahl innerhalb
   der Hochebene ist Rauschen. **Ergebnis: SMA8/150 beibehalten.**
+
+**1xGTAA – zusätzliches Rebalancing auf 40/60, solange die Position gleich bleibt?** (ab 07/2009, 1/3/6/12, Cooldown 10,
+0,1 % Kosten; Median über 16 SMA-Kombinationen, dazu SMA8/150)
+
+| Variante | CAGR 8/150 | Max-DD 8/150 | Umschichtungen/Jahr | Median CAGR (16 SMA) |
+|---|---|---|---|---|
+| **keins (Bot heute)** | **15,1 %** | **−17,1 %** | 16,9 | 14,9 % |
+| alle 21 Handelstage nach dem Kauf | 15,0 % | −17,1 % | 20,1 | 14,8 % |
+| alle 42 / 63 / 126 Tage | 15,0 / 15,1 / 15,1 % | −17,1 % | 17,5 / 17,1 / 16,9 | 14,8–14,9 % |
+| am Monatsende | 15,1 % | −16,9 % | 28,9 | 14,9 % |
+| bei Drift > 5 / 10 / 15 Pp | 15,1 % | −17,1 % | 16,9 | 14,9 % |
+| Kontrolle: Drift > 0,5 / 1 / 2 Pp | 15,05 / 15,05 / 15,08 % | −17,0 bis −17,3 % | 54,9 / 28,4 / 19,3 | – |
+
+- Kein Unterschied über 0,1 Pp. Grund: Positionen werden kurz gehalten (Median 11 Handelstage, nur 14 % länger als
+  21 Tage, 1 % länger als 63 Tage), und 107 von 293 Umschichtungen sind bereits ein Tausch von Platz 1 und 2 (40/60 → 60/40),
+  also ein Rebalancing. Die Gewichte driften deshalb kaum.
+- **Ergebnis: kein zusätzliches Rebalancing.** Es kostet nur zusätzliche Orders.

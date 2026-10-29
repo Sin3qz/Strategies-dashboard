@@ -9,11 +9,13 @@ Zeigt die Bots **levGTAA · MR-Rebound-GTAA · levTipsRegime · 1xGTAA** und die
 - **wikifolios** (Startseite) – je wikifolio (LevGTAA, LevTipsRegime) alle Kennzahlen von wikifolio.com (Performance, Monat, High-Watermark,
   Watchlistings, Rangliste, Gebühren, investiertes Kapital, Investierbarkeit), Bot-Soll mit Produkt und ISIN, deine
   Ist-Allokation, levTipsRegime-Abstand zur Linie; dazu Monatsperformance und wikifolio vs. Bot-Soll seit Start.
-- **Signale** – je Bot (levGTAA, levTipsRegime, 1xGTAA, MR-Rebound-GTAA) die gehaltene Position und das Tagessignal
+- **Signale** – je Bot (levGTAA, levTipsRegime, 1xGTAA, MR-Rebound-GTAA) Aufbau & Parameter (Idee, Bausteine mit Signal und
+  ISIN, Auswahl, Gewichtung, Risiko, Zeitplan), die gehaltene Position und das Tagessignal
   („wenn heute gehandelt würde“; levGTAA/MR-Rebound: jeder Tag wie ein Monatsletzter, 1xGTAA/levTipsRegime ohne Cooldown),
   jeweils mit Produkt und ISIN, Abweichung, Verlauf seit 2025, Zeitbalken der gehaltenen Position, Signaltabelle des Bots;
-  dazu die Liste der Signalwechsel und der levGTAA-Allokationsverlauf.
-- **Performance** – Equity der Strategien und deiner Mischungen mit den gehandelten Produkten in EUR, Kennzahlen,
+  dazu „So laufen die Bots“ (Läufe, Datenprüfung, Meldungen), die Liste der Signalwechsel und der levGTAA-Allokationsverlauf.
+- **Performance** – Equity der Strategien und deiner Mischungen (Mix A = 1/3 levTipsRegime + 2/3 levGTAA, Mix B = je 1/3
+  levTipsRegime, 1xGTAA, levGTAA) mit den gehandelten Produkten in EUR, Kennzahlen,
   Monatsrenditen, Korrelation (`dashboard-data/equity.py`).
 - **Rechner** – nur für deine wikifolios: Stückzahlen eintragen → Ist-Allokation, Ziel (Bot-Soll oder Tagessignal) mit
   Cash-Puffer für die wikifolio-Gebühren, Order in ganzen Stück. Positionen optional für alle Geräte in
