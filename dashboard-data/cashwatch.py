@@ -161,13 +161,22 @@ def run(out_dir, state, send=None, today=None):
         k = "cash_" + w["key"]
         old = state.get(k) or {}
         lv = r.get("level")
-        if lv in ("warn", "neg") and send and (rank[lv] > rank.get(old.get("level"), 0) or (lv == "neg" and old.get("date") != today.isoformat())):
+        if lv not in rank:                               # unbekannt: Zustand nicht anfassen
+            continue
+        # Melden: wenn es schlimmer wird (ok/unter Soll -> bald leer -> negativ); bei negativem Cash nur erneut,
+        # wenn es um mindestens 0,1 Prozentpunkte weiter gefallen ist oder die letzte Meldung 3 Tage her ist
+        last_d = dt.date.fromisoformat(old["alert_date"]) if old.get("alert_date") else None
+        worse = rank[lv] > rank.get(old.get("level"), 0)
+        again = (lv == "neg" and (last_d is None or (today - last_d).days >= 3
+                                  or r.get("cash", 0) <= float(old.get("alert_cash", 0)) - 0.001))
+        if lv in ("warn", "neg") and send and (worse or again):
             ok = send(f"{r['name']}: Cash-Puffer {'negativ' if lv == 'neg' else 'fast leer'}",
                       r["detail"] + f"\nBasis: {r.get('basis', '')}\n\n{URL}", tags="moneybag")
             sent.append((f"Cash {r['name']}", ok))
-            state[k] = {"level": lv, "date": today.isoformat()}
-        elif lv in ("ok", "below", "warn", "neg"):
-            state[k] = {"level": lv if lv != "ok" else "ok", "date": old.get("date") if lv != "ok" else today.isoformat()}
+            if ok:
+                old = {**old, "alert_date": today.isoformat(), "alert_cash": r.get("cash")}
+        state[k] = {**{x: old[x] for x in ("alert_date", "alert_cash") if x in old and lv in ("warn", "neg")},
+                    "level": lv, "date": today.isoformat()}
     with open(os.path.join(out_dir, "cash_watch.json"), "w", encoding="utf-8") as f:
         json.dump(res, f, ensure_ascii=False)
     return sent
