@@ -52,6 +52,11 @@
   .sd-badge-cash { color: var(--color-fg-muted); }
   .sd-badge-warn { color: var(--color-warn); }
   .sd-chips { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); min-height: 1.9rem; }
+  .sd-chips.big { gap: var(--cds-gap-sm); min-height: 2.4rem; }
+  .sd-chips.big .sd-chip { font-size: var(--cds-font-size-heading); padding: 6px 14px; gap: 8px; }
+  .sd-chips.big .sd-chip b { font-size: 1.05rem; white-space: nowrap; }
+  @media (max-width: 480px) { .sd-chips.big .sd-chip { font-size: var(--cds-font-size-body); padding: 5px 11px; } .sd-chips.big .sd-chip b { font-size: 1rem; } }
+  .sd-chips.big .sd-sw { width: 11px; height: 11px; }
   .sd-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border: 1px solid var(--color-border-line); border-radius: 999px; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
   .sd .sd-chip b { font-weight: 600; }
   .sd-change { font-size: var(--cds-font-size-caption); padding: 4px 8px; border-radius: var(--cds-radius); background: var(--cds-chart-grid); }
@@ -131,6 +136,8 @@
   .sd input, .sd select, .sd textarea { font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 5px 8px; }
   .sd-field select { min-width: 11rem; }
   .sd-cashplan { display: grid; gap: var(--cds-gap-sm); }
+  .sd-savebanner { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-sm); }
+  .sd-savebanner:empty { display: none; }
   .sd-cp-head { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--cds-gap-sm); }
   .sd-cp-box { display: grid; gap: 2px; padding: 8px 10px; border-radius: var(--cds-radius); background: var(--cds-chart-grid); }
   .sd-cp-box b { font-size: var(--cds-font-size-heading); font-variant-numeric: tabular-nums; }
@@ -233,10 +240,10 @@
         </div>
         <div class="sd-block">
           <div class="sd-block-h"><span>Soll (Bot)</span><span data-draw="change" data-key="levgtaa" data-source="strategies" data-plain="1">—</span></div>
-          <div class="sd-chips" data-draw="chips" data-key="levgtaa" data-source="allocations alloc_cash"></div>
+          <div class="sd-chips big" data-draw="chips" data-key="levgtaa" data-source="allocations alloc_cash"></div>
           <div class="sd-prods" data-draw="prods" data-key="levgtaa" data-mode="held" data-source="allocations"></div>
           <div class="sd-block-h"><span>Ist im wikifolio (deine Stückzahlen)</span><span data-draw="istdate" data-key="levgtaa" data-source="holdings">—</span></div>
-          <div class="sd-chips" data-draw="istchips" data-key="levgtaa" data-source="holdings prices"></div>
+          <div class="sd-chips big" data-draw="istchips" data-key="levgtaa" data-source="holdings prices"></div>
           <p class="sd-note" data-ist="none" data-key="levgtaa" hidden>Noch keine Stückzahlen hinterlegt: im Tab „Rechner“ eintragen.</p>
           <div class="sd-block-h"><span>Cash-Wächter (Gebühren)</span><span data-draw="cwlevel" data-key="levgtaa" data-source="cash_watch">—</span></div>
           <p class="sd-note" data-draw="cwtext" data-key="levgtaa" data-source="cash_watch">—</p>
@@ -297,10 +304,10 @@
         </div>
         <div class="sd-block">
           <div class="sd-block-h"><span>Soll (Bot)</span><span data-draw="change" data-key="levtipsregime" data-source="strategies" data-plain="1">—</span></div>
-          <div class="sd-chips" data-draw="chips" data-key="levtipsregime" data-source="allocations alloc_cash"></div>
+          <div class="sd-chips big" data-draw="chips" data-key="levtipsregime" data-source="allocations alloc_cash"></div>
           <div class="sd-prods" data-draw="prods" data-key="levtipsregime" data-mode="held" data-source="allocations"></div>
           <div class="sd-block-h"><span>Ist im wikifolio (deine Stückzahlen)</span><span data-draw="istdate" data-key="levtipsregime" data-source="holdings">—</span></div>
-          <div class="sd-chips" data-draw="istchips" data-key="levtipsregime" data-source="holdings prices"></div>
+          <div class="sd-chips big" data-draw="istchips" data-key="levtipsregime" data-source="holdings prices"></div>
           <p class="sd-note" data-ist="none" data-key="levtipsregime" hidden>Noch keine Stückzahlen hinterlegt: im Tab „Rechner“ eintragen.</p>
           <div class="sd-block-h"><span>Cash-Wächter (Gebühren)</span><span data-draw="cwlevel" data-key="levtipsregime" data-source="cash_watch">—</span></div>
           <p class="sd-note" data-draw="cwtext" data-key="levtipsregime" data-source="cash_watch">—</p>
@@ -393,13 +400,13 @@
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot)</b> · <span data-draw="heldwhen" data-key="levgtaa" data-source="strategies build">—</span></p>
-          <div class="sd-chips" data-draw="chips" data-key="levgtaa" data-source="allocations alloc_cash"></div>
+          <div class="sd-chips big" data-draw="chips" data-key="levgtaa" data-source="allocations alloc_cash"></div>
           <div class="sd-prods" data-draw="prods" data-key="levgtaa" data-mode="held" data-source="allocations"></div>
           <div class="sd-change" data-draw="change" data-key="levgtaa" data-source="strategies">—</div>
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Wenn heute gehandelt würde (inkl. Vol-Target, Faktor <span data-draw="val" data-source="levgtaa_today" data-field="vt_factor" data-row="0" data-fmt="num2">—</span>)</b> · <span data-draw="todaywhen" data-src="daily_levgtaa" data-source="daily_levgtaa build strategies">—</span></p>
-          <div class="sd-chips" data-draw="daychips" data-source="daily_levgtaa" data-series="NASDAQ100 BTC UST_IEF GOLD" data-strat="levgtaa"></div>
+          <div class="sd-chips big" data-draw="daychips" data-source="daily_levgtaa" data-series="NASDAQ100 BTC UST_IEF GOLD" data-strat="levgtaa"></div>
           <div class="sd-prods" data-draw="prods" data-key="levgtaa" data-mode="today" data-source="daily_levgtaa"></div>
           <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=levgtaa" data-fmt="pct1">—</b></div>
         </div>
@@ -453,13 +460,13 @@
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot)</b> · <span data-draw="heldwhen" data-key="levtipsregime" data-source="strategies build">—</span></p>
-          <div class="sd-chips" data-draw="chips" data-key="levtipsregime" data-source="allocations alloc_cash"></div>
+          <div class="sd-chips big" data-draw="chips" data-key="levtipsregime" data-source="allocations alloc_cash"></div>
           <div class="sd-prods" data-draw="prods" data-key="levtipsregime" data-mode="held" data-source="allocations"></div>
           <div class="sd-change" data-draw="change" data-key="levtipsregime" data-source="strategies">—</div>
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Wenn heute gehandelt würde (ohne Cooldown)</b> · <span data-draw="todaywhen" data-src="daily_levtips" data-source="daily_levtips build strategies">—</span></p>
-          <div class="sd-chips" data-draw="tipschips" data-source="levtips_today"></div>
+          <div class="sd-chips big" data-draw="tipschips" data-source="levtips_today"></div>
           <div class="sd-prods" data-draw="prods" data-key="levtipsregime" data-mode="today" data-source="levtips_today"></div>
           <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=levtipsregime" data-fmt="pct1">—</b></div>
         </div>
@@ -507,13 +514,13 @@
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot)</b> · <span data-draw="heldwhen" data-key="1xgtaa" data-source="strategies build">—</span></p>
-          <div class="sd-chips" data-draw="chips" data-key="1xgtaa" data-source="allocations alloc_cash"></div>
+          <div class="sd-chips big" data-draw="chips" data-key="1xgtaa" data-source="allocations alloc_cash"></div>
           <div class="sd-prods" data-draw="prods" data-key="1xgtaa" data-mode="held" data-source="allocations"></div>
           <div class="sd-change" data-draw="change" data-key="1xgtaa" data-source="strategies">—</div>
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Wenn heute gehandelt würde (ohne Cooldown)</b> · <span data-draw="todaywhen" data-src="daily_1xgtaa" data-source="daily_1xgtaa build strategies">—</span></p>
-          <div class="sd-chips" data-draw="daychips" data-source="daily_1xgtaa" data-series="NASDAQ100 EM_SMALLCAP EMU_VALUE BONDS_7_10 GOLD COMMODITIES CASH_USD" data-strat="1xgtaa"></div>
+          <div class="sd-chips big" data-draw="daychips" data-source="daily_1xgtaa" data-series="NASDAQ100 EM_SMALLCAP EMU_VALUE BONDS_7_10 GOLD COMMODITIES CASH_USD" data-strat="1xgtaa"></div>
           <div class="sd-prods" data-draw="prods" data-key="1xgtaa" data-mode="today" data-source="daily_1xgtaa"></div>
           <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=1xgtaa" data-fmt="pct1">—</b></div>
         </div>
@@ -562,13 +569,13 @@
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot)</b> · <span data-draw="heldwhen" data-key="mrreboundgtaa" data-source="strategies build">—</span></p>
-          <div class="sd-chips" data-draw="chips" data-key="mrreboundgtaa" data-source="allocations alloc_cash"></div>
+          <div class="sd-chips big" data-draw="chips" data-key="mrreboundgtaa" data-source="allocations alloc_cash"></div>
           <div class="sd-prods" data-draw="prods" data-key="mrreboundgtaa" data-mode="held" data-source="allocations"></div>
           <div class="sd-change" data-draw="change" data-key="mrreboundgtaa" data-source="strategies">—</div>
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Wenn heute gehandelt würde</b> · <span data-draw="todaywhen" data-src="daily_mrrebound" data-source="daily_mrrebound build strategies">—</span></p>
-          <div class="sd-chips" data-draw="daychips" data-source="daily_mrrebound" data-series="NASDAQ100 EM INDIA TLT_LONG" data-strat="mrreboundgtaa"></div>
+          <div class="sd-chips big" data-draw="daychips" data-source="daily_mrrebound" data-series="NASDAQ100 EM INDIA TLT_LONG" data-strat="mrreboundgtaa"></div>
           <div class="sd-prods" data-draw="prods" data-key="mrreboundgtaa" data-mode="today" data-source="daily_mrrebound"></div>
           <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=mrreboundgtaa" data-fmt="pct1">—</b></div>
         </div>
@@ -702,6 +709,7 @@
         <label class="sd-field">Cash-Puffer für Gebühren (%)<input class="sd-in-reserve" type="number" min="0" max="5" step="0.05" inputmode="decimal" placeholder="Vorschlag"></label>
         <label class="sd-field sd-check"><input class="sd-in-mm" type="checkbox" checked> Bot-Cash im Geldmarkt-ETF halten</label>
       </div>
+      <div class="sd-warn sd-savebanner" data-draw="savebanner" data-source="holdings"></div>
       <div class="sd-cashplan" data-draw="cashplan" data-source="wikifolios perf_stats holdings prices allocations"></div>
       <details class="sd-more">
         <summary>Wie der Puffer berechnet wird</summary>
@@ -1151,7 +1159,7 @@
 
   // Produktvorschlag je Baustein (wie in den Bot-Repos; Bitcoin: günstiges physisches ETP, vor dem Kauf in wikifolio prüfen)
   const PROD = {
-    levgtaa: {NASDAQ100: ['WisdomTree NASDAQ 100 3x Daily Leveraged', 'IE00BLRPRL42'], BTC: ['iShares Bitcoin ETP', 'XS2940466316'],
+    levgtaa: {NASDAQ100: ['WisdomTree NASDAQ 100 3x Daily Leveraged', 'IE00BLRPRL42'], BTC: ['iShares Bitcoin ETP (oder WisdomTree Physical Bitcoin, GB00BJYDH287)', 'XS2940466316'],
       UST_IEF: ['WisdomTree US Treasuries 10Y 3x Daily Leveraged', 'IE00BKT09032'], GOLD: ['WisdomTree Gold 3x Daily Leveraged', 'IE00B8HGT870']},
     levtipsregime: {SP500: ['WisdomTree S&P 500 3x Daily Leveraged', 'IE00B7Y34M31'], BTC: ['iShares Bitcoin ETP', 'XS2940466316'],
       UST_IEF: ['WisdomTree US Treasuries 10Y 3x Daily Leveraged', 'IE00BKT09032']},
@@ -1746,9 +1754,11 @@
   };
   // Positionen: die neuere von lokaler Eingabe (dieses Geräts) und gespeicherter Datei data/wikifolio_holdings.json
   const repoSaved = () => (rowsOf('holdings') || []).map((r) => String(r.saved_at || r.stand || '')).sort().pop() || '';
+  const ms = (t) => { if (!t) return 0; const x = Date.parse(/[zZ]|[+-]\d\d:\d\d$/.test(t) || t.length <= 10 ? t : t + 'Z'); return Number.isFinite(x) ? x : 0; };
+  const localNewer = (local) => !!(local && local.rows && (!local.savedAt || ms(local.savedAt) > ms(repoSaved())));
   const holdings = () => {
     const local = store.get();
-    if (local && local.rows && (!local.savedAt || local.savedAt >= repoSaved())) return local.rows;
+    if (localNewer(local) || (local && local.rows && !repoSaved())) return local.rows;
     return (rowsOf('holdings') || []).map((r) => ({...r}));
   };
   const cell = (rows, wf, p) => rows.find((r) => r.wikifolio === wf && r.product === p);
@@ -1963,7 +1973,7 @@
     mut(rows);
     const today = new Date().toISOString().slice(0, 10);
     rows.forEach((r) => { r.stand = today; });
-    store.set({rows, savedAt: new Date().toISOString().slice(0, 16)});
+    store.set({rows, savedAt: new Date().toISOString()});
     dash.setParams({holdings_rev: Date.now()});
   };
 
@@ -2018,7 +2028,7 @@
       const set = (c, t, cls) => { const td = tr.querySelector(`[data-c="${c}"]`); td.textContent = t; td.classList.remove('sd-pos', 'sd-neg'); if (cls) td.classList.add(cls); };
       set('val', eur(l.cur)); set('w', pct(l.w, 1)); set('tw', pct(l.tw, 1)); set('want', eur(l.want));
       set('diff', Math.abs(l.diffEur) < 0.5 ? '–' : (l.diffEur > 0 ? '+' : '−') + eur(Math.abs(l.diffEur)), l.diffEur > 0.5 ? 'sd-pos' : l.diffEur < -0.5 ? 'sd-neg' : '');
-      set('order', l.px == null ? 'Kurs fehlt' : !l.diffQ ? '–' : (l.diffQ > 0 ? `kaufen ${num(l.diffQ, 0)}` : `verkaufen ${num(-l.diffQ, 0)}`), l.diffQ > 0 ? 'sd-pos' : l.diffQ < 0 ? 'sd-neg' : '');
+      set('order', l.px == null ? 'Kurs fehlt' : !l.diffQ ? '–' : (l.diffQ > 0 ? `${num(l.diffQ, 0)} Stück kaufen` : `${num(-l.diffQ, 0)} Stück verkaufen`), l.diffQ > 0 ? 'sd-pos' : l.diffQ < 0 ? 'sd-neg' : '');
     });
     const tr = el.querySelector('tr[data-p="CASH"]');
     if (tr) {
@@ -2038,11 +2048,22 @@
     if (!s || !(s.total > 0)) { const d = document.createElement('div'); d.className = 'sd-note'; d.textContent = 'Trag oben deine Stückzahlen und das Cash ein.'; el.appendChild(d); return; }
     if (s.missing.length) { const d = document.createElement('div'); d.className = 'sd-warn'; d.textContent = `Kurs fehlt für: ${s.missing.map((p) => NAMES[p] || p).join(', ')}`; el.appendChild(d); }
     const orders = s.lines.filter((l) => l.diffQ);
+    // Wie dringend ist das Cash? (Zertifikategebuehr je Tag auf den Wert; Performancegebuehr nur bei neuem Hoch)
+    const w = (rowsOf('wikifolios') || []).find((x) => x.key === s.wf) || {};
+    const burn = Number(w.fee_cert || 0.0095) / 365 * s.total, days = burn > 0 ? s.cash0 / burn : null;
+    const emi = window.sdCritN && window.sdCritN(w) === 3 && w.status !== 'Investierbar';
+    const u = document.createElement('div');
+    if (s.cash0 < 0) { u.className = 'sd-warn'; u.textContent = `Cash negativ (${num(Math.round(s.cash0), 0)} €): ausgleichen${emi ? ' – im Emissionsprozess darf das Cash nicht negativ sein' : ''}.`; }
+    else if (days != null) { u.className = 'sd-note'; u.textContent = days > 5
+      ? `Cash nicht dringend: ${num(Math.round(s.cash0), 0)} € reichen für die Zertifikategebühr noch etwa ${num(Math.floor(days), 0)} Tage. Auffüllen kannst du beim nächsten Handel; der Cash-Wächter meldet sich 2 Handelstage vorher (dafür Stand auf GitHub speichern).`
+      : `Cash knapp: ${num(Math.round(s.cash0), 0)} € reichen nur noch etwa ${num(Math.max(0, Math.floor(days)), 0)} Tage – jetzt auffüllen.`; }
+    if (u.textContent) el.appendChild(u);
     if (!orders.length) { const d = document.createElement('div'); d.textContent = 'Keine Order nötig – das wikifolio entspricht dem Ziel (auf ganze Stück gerundet).'; el.appendChild(d); return; }
     orders.sort((a, b) => a.diffQ - b.diffQ).forEach((l) => {
       const d = document.createElement('div');
-      const b = document.createElement('b'); b.textContent = l.diffQ > 0 ? `Kaufen ${num(l.diffQ, 0)}` : `Verkaufen ${num(-l.diffQ, 0)}`; b.className = l.diffQ > 0 ? 'sd-pos' : 'sd-neg';
-      d.append(b, ` Stück ${NAMES[l.pr]} à ${num(l.px, 2)} € ≈ ${num(Math.abs(l.diffQ * l.px), 0)} €`);
+      const b = document.createElement('b'); b.className = l.diffQ > 0 ? 'sd-pos' : 'sd-neg';
+      b.textContent = `${num(Math.abs(l.diffQ), 0)} Stück ${NAMES[l.pr]} ${l.diffQ > 0 ? 'kaufen' : 'verkaufen'}`;
+      d.append(b, ` · Kurs ${num(l.px, 2)} € · ≈ ${num(Math.abs(l.diffQ * l.px), 0)} € · danach ${num(l.q + l.diffQ, 0)} Stück im wikifolio`);
       el.appendChild(d);
     });
     const d = document.createElement('div'); d.className = 'sd-note';
@@ -2050,6 +2071,17 @@
     el.appendChild(d);
   };
   dash.draw('orders', drawOrders);
+  // Hinweis oben im Rechner, solange die Eingaben nur auf diesem Geraet liegen
+  dash.draw('savebanner', (el) => {
+    el.replaceChildren();
+    const local = store.get(), t = repoSaved();
+    const has = local && local.rows && local.rows.some((r) => Number(r.stueck));
+    if (!has || !localNewer(local)) return;
+    const p = document.createElement('span'); p.textContent = 'Deine Eingaben liegen nur auf diesem Gerät – der Cash-Wächter kennt sie noch nicht.';
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'sd-btn'; b.textContent = 'Jetzt auf GitHub speichern';
+    b.addEventListener('click', () => { const s2 = document.querySelector('.sd-save'); if (s2) { s2.scrollIntoView({behavior: 'smooth', block: 'center'}); s2.click(); } });
+    el.append(p, ' ', b);
+  });
   const drawJson = (el) => { el.value = JSON.stringify(holdings().map((r) => ({wikifolio: r.wikifolio, product: r.product, stueck: Number(r.stueck) || 0, kurs_eur: ok(r.kurs_eur) && Number(r.kurs_eur) > 0 ? Number(r.kurs_eur) : null, stand: r.stand || null})), null, 1); };
   dash.draw('holdjson', drawJson);
 
@@ -2087,7 +2119,7 @@
   dash.draw('savedinfo', (el) => {
     const t = repoSaved(), local = store.get();
     el.textContent = (t ? `auf GitHub: ${window.sdFmt.deDate(t)}${t.length > 10 ? ' ' + t.slice(11, 16) + ' Uhr' : ''}` : 'auf GitHub: noch nichts')
-      + (local && local.savedAt && local.savedAt > t ? ' · dieses Gerät hat neuere Eingaben' : '');
+      + (local && local.savedAt && localNewer(local) ? ' · dieses Gerät hat neuere Eingaben' : '');
   });
   dash.draw('holdlog', (tb) => {
     tb.replaceChildren();
