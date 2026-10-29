@@ -86,6 +86,7 @@
   .sd-label { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
   .sd-big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.2; }
   .sd-neg { color: var(--color-bad); }
+  .sd-ok { color: var(--color-ok); }
   .sd-pos { color: var(--color-ok); }
   .sd-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr)); gap: var(--cds-gap-sm) var(--cds-gap-md); }
   .sd-stat { display: grid; gap: 2px; font-size: var(--cds-font-size-body); font-variant-numeric: tabular-nums; align-content: start; }
@@ -266,7 +267,7 @@
 <div class="sd">
   <header class="sd-head" id="top">
     <h1>Strategien &amp; wikifolios</h1>
-    <p class="sd-take">Kursstand der Bots <b data-draw="botasof" data-source="strategies">—</b> · wikifolio-Daten vom <b data-draw="val" data-source="wikifolios" data-field="asOf" data-where="key=levgtaa" data-fmt="date">—</b> · nächstes Monatssignal (levGTAA, MR-Rebound) auf den Schluss vom <b data-draw="val" data-source="strategies" data-field="nextDecision" data-where="key=levgtaa" data-fmt="date">—</b>, <span data-draw="countdown" data-source="strategies">—</span>. Keine Anlageberatung.</p>
+    <p class="sd-take">Letzter US-Handelsschluss <b data-draw="lastclose" data-source="build strategies">—</b> · Kursstand der Bots <b data-draw="botasof" data-source="strategies build">—</b> · wikifolio-Daten vom <b data-draw="val" data-source="wikifolios" data-field="asOf" data-where="key=levgtaa" data-fmt="date">—</b> · nächstes Monatssignal (levGTAA, MR-Rebound) auf den Schluss vom <b data-draw="val" data-source="strategies" data-field="nextDecision" data-where="key=levgtaa" data-fmt="date">—</b>, <span data-draw="countdown" data-source="strategies">—</span>. Keine Anlageberatung.</p>
     <details class="sd-health">
       <summary><span class="sd-hpill" data-draw="hpill" data-source="health build">Datenstatus wird geladen …</span></summary>
       <div class="sd-hpanel" data-draw="hpanel" data-source="health build"></div>
@@ -456,13 +457,13 @@
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="levgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="levgtaa" hidden>Cash</span><span data-draw="badge" data-key="levgtaa" data-source="allocations"></span></span>
         </div>
         <div class="sd-slot">
-          <p class="sd-note"><b>Gehalten (Bot):</b></p>
+          <p class="sd-note"><b>Gehalten (Bot)</b> · <span data-draw="heldwhen" data-key="levgtaa" data-source="strategies build">—</span></p>
           <div class="sd-chips" data-draw="chips" data-key="levgtaa" data-source="allocations alloc_cash"></div>
           <div class="sd-prods" data-draw="prods" data-key="levgtaa" data-mode="held" data-source="allocations"></div>
           <div class="sd-change" data-draw="change" data-key="levgtaa" data-source="strategies">—</div>
         </div>
         <div class="sd-slot">
-          <p class="sd-note"><b>Wenn heute gehandelt würde (inkl. Vol-Target, Faktor <span data-draw="val" data-source="levgtaa_today" data-field="vt_factor" data-row="0" data-fmt="num2">—</span>):</b></p>
+          <p class="sd-note"><b>Wenn heute gehandelt würde (inkl. Vol-Target, Faktor <span data-draw="val" data-source="levgtaa_today" data-field="vt_factor" data-row="0" data-fmt="num2">—</span>)</b> · <span data-draw="todaywhen" data-src="daily_levgtaa" data-source="daily_levgtaa build strategies">—</span></p>
           <div class="sd-chips" data-draw="daychips" data-source="daily_levgtaa" data-series="NASDAQ100 BTC UST_IEF GOLD" data-strat="levgtaa"></div>
           <div class="sd-prods" data-draw="prods" data-key="levgtaa" data-mode="today" data-source="daily_levgtaa"></div>
           <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=levgtaa" data-fmt="pct1">—</b></div>
@@ -473,7 +474,7 @@
         </div>
         <div class="sd-slot">
           <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="levgtaa" data-source="strategies">—</span></div>
-          <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="levgtaa" data-source="strategies">—</span></span></div>
+          <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="levgtaa" data-source="strategies build">—</span></span></div>
           <div class="sd-line"><span>Letzter Bot-Lauf</span><span data-draw="val" data-source="strategies" data-field="updated" data-where="key=levgtaa" data-fmt="datetime">—</span></div>
           <div class="sd-warn" data-draw="warn" data-key="levgtaa" data-source="strategies"></div>
         </div>
@@ -516,13 +517,13 @@
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="levtipsregime" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="levtipsregime" hidden>Cash</span><span data-draw="badge" data-key="levtipsregime" data-source="allocations"></span></span>
         </div>
         <div class="sd-slot">
-          <p class="sd-note"><b>Gehalten (Bot):</b></p>
+          <p class="sd-note"><b>Gehalten (Bot)</b> · <span data-draw="heldwhen" data-key="levtipsregime" data-source="strategies build">—</span></p>
           <div class="sd-chips" data-draw="chips" data-key="levtipsregime" data-source="allocations alloc_cash"></div>
           <div class="sd-prods" data-draw="prods" data-key="levtipsregime" data-mode="held" data-source="allocations"></div>
           <div class="sd-change" data-draw="change" data-key="levtipsregime" data-source="strategies">—</div>
         </div>
         <div class="sd-slot">
-          <p class="sd-note"><b>Wenn heute gehandelt würde (ohne Cooldown):</b></p>
+          <p class="sd-note"><b>Wenn heute gehandelt würde (ohne Cooldown)</b> · <span data-draw="todaywhen" data-src="daily_levtips" data-source="daily_levtips build strategies">—</span></p>
           <div class="sd-chips" data-draw="tipschips" data-source="levtips_today"></div>
           <div class="sd-prods" data-draw="prods" data-key="levtipsregime" data-mode="today" data-source="levtips_today"></div>
           <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=levtipsregime" data-fmt="pct1">—</b></div>
@@ -533,7 +534,7 @@
         </div>
         <div class="sd-slot">
           <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="levtipsregime" data-source="strategies">—</span></div>
-          <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levtipsregime" data-fmt="date">—</span> · <span data-draw="fresh" data-key="levtipsregime" data-source="strategies">—</span></span></div>
+          <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levtipsregime" data-fmt="date">—</span> · <span data-draw="fresh" data-key="levtipsregime" data-source="strategies build">—</span></span></div>
           <div class="sd-line"><span>Letzter Bot-Lauf</span><span data-draw="val" data-source="strategies" data-field="updated" data-where="key=levtipsregime" data-fmt="datetime">—</span></div>
           <div class="sd-warn" data-draw="warn" data-key="levtipsregime" data-source="strategies"></div>
         </div>
@@ -570,13 +571,13 @@
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="1xgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="1xgtaa" hidden>Cash</span><span data-draw="badge" data-key="1xgtaa" data-source="allocations"></span></span>
         </div>
         <div class="sd-slot">
-          <p class="sd-note"><b>Gehalten (Bot):</b></p>
+          <p class="sd-note"><b>Gehalten (Bot)</b> · <span data-draw="heldwhen" data-key="1xgtaa" data-source="strategies build">—</span></p>
           <div class="sd-chips" data-draw="chips" data-key="1xgtaa" data-source="allocations alloc_cash"></div>
           <div class="sd-prods" data-draw="prods" data-key="1xgtaa" data-mode="held" data-source="allocations"></div>
           <div class="sd-change" data-draw="change" data-key="1xgtaa" data-source="strategies">—</div>
         </div>
         <div class="sd-slot">
-          <p class="sd-note"><b>Wenn heute gehandelt würde (ohne Cooldown):</b></p>
+          <p class="sd-note"><b>Wenn heute gehandelt würde (ohne Cooldown)</b> · <span data-draw="todaywhen" data-src="daily_1xgtaa" data-source="daily_1xgtaa build strategies">—</span></p>
           <div class="sd-chips" data-draw="daychips" data-source="daily_1xgtaa" data-series="NASDAQ100 EM_SMALLCAP EMU_VALUE BONDS_7_10 GOLD COMMODITIES CASH_USD" data-strat="1xgtaa"></div>
           <div class="sd-prods" data-draw="prods" data-key="1xgtaa" data-mode="today" data-source="daily_1xgtaa"></div>
           <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=1xgtaa" data-fmt="pct1">—</b></div>
@@ -587,7 +588,7 @@
         </div>
         <div class="sd-slot">
           <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="1xgtaa" data-source="strategies">—</span></div>
-          <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=1xgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="1xgtaa" data-source="strategies">—</span></span></div>
+          <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=1xgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="1xgtaa" data-source="strategies build">—</span></span></div>
           <div class="sd-line"><span>Letzter Bot-Lauf</span><span data-draw="val" data-source="strategies" data-field="updated" data-where="key=1xgtaa" data-fmt="datetime">—</span></div>
           <div class="sd-warn" data-draw="warn" data-key="1xgtaa" data-source="strategies"></div>
         </div>
@@ -625,13 +626,13 @@
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="mrreboundgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="mrreboundgtaa" hidden>Cash</span><span data-draw="badge" data-key="mrreboundgtaa" data-source="allocations"></span></span>
         </div>
         <div class="sd-slot">
-          <p class="sd-note"><b>Gehalten (Bot):</b></p>
+          <p class="sd-note"><b>Gehalten (Bot)</b> · <span data-draw="heldwhen" data-key="mrreboundgtaa" data-source="strategies build">—</span></p>
           <div class="sd-chips" data-draw="chips" data-key="mrreboundgtaa" data-source="allocations alloc_cash"></div>
           <div class="sd-prods" data-draw="prods" data-key="mrreboundgtaa" data-mode="held" data-source="allocations"></div>
           <div class="sd-change" data-draw="change" data-key="mrreboundgtaa" data-source="strategies">—</div>
         </div>
         <div class="sd-slot">
-          <p class="sd-note"><b>Wenn heute gehandelt würde:</b></p>
+          <p class="sd-note"><b>Wenn heute gehandelt würde</b> · <span data-draw="todaywhen" data-src="daily_mrrebound" data-source="daily_mrrebound build strategies">—</span></p>
           <div class="sd-chips" data-draw="daychips" data-source="daily_mrrebound" data-series="NASDAQ100 EM INDIA TLT_LONG" data-strat="mrreboundgtaa"></div>
           <div class="sd-prods" data-draw="prods" data-key="mrreboundgtaa" data-mode="today" data-source="daily_mrrebound"></div>
           <div class="sd-line"><span>Abweichung Tagessignal zu gehalten</span><b data-draw="val" data-source="today_compare" data-field="turnover" data-where="key=mrreboundgtaa" data-fmt="pct1">—</b></div>
@@ -642,7 +643,7 @@
         </div>
         <div class="sd-slot">
           <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="mrreboundgtaa" data-source="strategies">—</span></div>
-          <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=mrreboundgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="mrreboundgtaa" data-source="strategies">—</span></span></div>
+          <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=mrreboundgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="mrreboundgtaa" data-source="strategies build">—</span></span></div>
           <div class="sd-line"><span>Letzter Bot-Lauf</span><span data-draw="val" data-source="strategies" data-field="updated" data-where="key=mrreboundgtaa" data-fmt="datetime">—</span></div>
           <div class="sd-warn" data-draw="warn" data-key="mrreboundgtaa" data-source="strategies"></div>
         </div>
@@ -771,10 +772,10 @@
         <summary>Wie der Puffer berechnet wird</summary>
         <p class="sd-note">Gebühren-Puffer: <span data-draw="reservehint" data-source="wikifolios monthly_returns perf_stats">—</span> Feld „Cash-Puffer“ leer lassen = Vorschlag verwenden.</p>
       </details>
-      <div class="sd-tw"><div data-draw="wfcalc" data-source="holdings prices allocations alloc_cash daily_levgtaa daily_levtips wikifolios monthly_returns perf_stats"></div></div>
+      <div class="sd-tw"><div data-draw="wfcalc" data-source="holdings prices allocations alloc_cash daily_levgtaa daily_levtips wikifolios monthly_returns perf_stats strategies build"></div></div>
       <div class="sd-block">
         <div class="sd-block-h"><span>Order-Vorschlag (ganze Stück; Käufe abgerundet, damit das Cash reicht)</span><span></span></div>
-        <div class="sd-orders" data-draw="orders" data-source="holdings prices"></div>
+        <div class="sd-orders" data-draw="orders" data-source="holdings prices allocations daily_levgtaa daily_levtips strategies build wikifolios perf_stats"></div>
       </div>
       <div class="sd-block">
         <div class="sd-block-h"><span>Dauerhaft speichern (für Cash-Wächter und alle Geräte)</span><span data-draw="savedinfo" data-source="holdings">—</span></div>
@@ -1207,6 +1208,40 @@
     el.textContent = d.length === 1 ? deDate(d[0]) : st.map((r) => `${NAMES_S[r.key] || r.key} ${deDate(r.asOf).slice(0, 6)}`).join(' · ');
   });
   const NAMES_S = {levgtaa: 'levGTAA', levtipsregime: 'levTips', mrreboundgtaa: 'MR-Rebound', '1xgtaa': '1xGTAA'};
+  // Bezug fuer „aktuell“: letzter abgeschlossener NYSE-Handelstag laut Aktualisierung (Handelskalender), sonst neuester Bot-Stand
+  const refClose = () => {
+    const b = (rowsOf('build') || [])[0] || {};
+    return b.last_close || (rowsOf('strategies') || []).map((r) => String(r.asOf || '')).sort().pop() || null;
+  };
+  const tdBehind = (d) => {                                        // Handelstage (Mo–Fr) zwischen d und dem Bezug
+    const ref = refClose(); if (!d || !ref) return null;
+    let n = 0; for (let x = new Date(String(d).slice(0, 10) + 'T12:00:00Z'); x < new Date(ref + 'T12:00:00Z');) { x.setUTCDate(x.getUTCDate() + 1); if (x.getUTCDay() % 6) n += 1; }
+    return n;
+  };
+  const freshTxt = (d) => { const n = tdBehind(d); return n == null ? '' : n <= 0 ? 'aktuell' : `${n} Handelstag${n > 1 ? 'e' : ''} alt`; };
+  const freshEl = (el, parts, d) => {
+    el.replaceChildren(parts);
+    const n = tdBehind(d); if (n == null) return;
+    const f = document.createElement('span'); f.className = n <= 0 ? 'sd-ok' : 'sd-badge-warn'; f.textContent = ' · ' + freshTxt(d); el.appendChild(f);
+  };
+  window.sdFresh = {tdBehind, freshTxt, refClose};
+  dash.draw('lastclose', (el) => {
+    const ref = refClose(); const b = (rowsOf('build') || [])[0] || {};
+    el.textContent = ref ? deDate(ref) + (b.next_close ? ` (nächster ${deDate(b.next_close).slice(0, 6)})` : '') : '—';
+  });
+  dash.draw('heldwhen', (el) => {
+    const s = (rowsOf('strategies') || []).find((r) => r.key === el.dataset.key);
+    if (!s) { el.textContent = '—'; return; }
+    const base = s.rebalance === 'monthly'
+      ? `Signal vom Schluss ${deDate(s.decisionDate)}, gehandelt ${deDate(s.tradeDate)} · Bot geprüft mit Schluss ${deDate(s.asOf)}`
+      : `Position seit ${deDate(s.since)} · Bot geprüft mit Schluss ${deDate(s.asOf)}`;
+    freshEl(el, base, s.asOf);
+  });
+  dash.draw('todaywhen', (el) => {
+    const d = rowsOf(el.dataset.src), r = d && d[d.length - 1];
+    if (!r) { el.textContent = '—'; return; }
+    freshEl(el, `Schluss ${deDate(r.date)}`, r.date);
+  });
   dash.draw('hpill', (el) => {
     const s = healthState();
     el.textContent = s.text;
@@ -1335,8 +1370,11 @@
       const d = rowsOf(DAILY_SRC[key]), r = d && d[d.length - 1];
       if (r) assets = Object.keys(PROD[key]).filter((a) => Number(r[a]) > 0.0005);
     }
-    assets.filter((a) => PROD[key] && PROD[key][a]).forEach((a) => {
-      const [name, isin] = PROD[key][a];
+    // wikifolios: Bot-Cash liegt im Geldmarkt-ETF (Rechner), daher bei reinem Cash dieses Produkt nennen
+    if (!assets.length && (key === 'levtipsregime' || key === 'levgtaa')) assets = ['MM_WF'];
+    const MMP = ['Xtrackers II EUR Overnight Rate Swap UCITS ETF 1C (Geldmarkt-ETF im wikifolio)', 'LU0290358497'];
+    assets.filter((a) => a === 'MM_WF' || (PROD[key] && PROD[key][a])).forEach((a) => {
+      const [name, isin] = a === 'MM_WF' ? MMP : PROD[key][a];
       const d = document.createElement('div');
       const b = document.createElement('b'); b.textContent = name;
       const i = document.createElement('span'); i.className = 'sd-isin'; i.textContent = isin;
@@ -1445,16 +1483,12 @@
     el.replaceChildren();
     if (!s) { el.textContent = '—'; return; }
     const dot = document.createElement('span'); dot.className = 'sd-dot';
-    // neuester US-Schluss, den irgendein Bot schon hat; liegt dieser Bot dahinter, ist sein heutiger Lauf noch offen
-    const newest = st.map((r) => String(r.asOf || '')).sort().pop();
-    let behind = 0;
-    for (let d = new Date(String(s.asOf) + 'T12:00:00Z'); s.asOf && d < new Date(newest + 'T12:00:00Z');) {
-      d.setUTCDate(d.getUTCDate() + 1); if (d.getUTCDay() % 6) behind += 1;
-    }
+    // Bezug: letzter abgeschlossener US-Handelstag (Handelskalender); liegt der Bot dahinter, ist sein Lauf noch offen
+    const behind = Math.max(0, window.sdFresh ? (window.sdFresh.tdBehind(s.asOf) || 0) : 0);
     const late = s.needsRetry || behind > 0;
     dot.style.background = late ? 'var(--color-warn)' : dash.colors[5];
     el.append(dot, s.needsRetry ? 'Daten evtl. verspätet' : behind > 0
-      ? `${behind} Handelstag${behind > 1 ? 'e' : ''} älter als bei den anderen Bots (heutiger Lauf steht noch aus)` : 'aktuell');
+      ? `${behind} Handelstag${behind > 1 ? 'e' : ''} alt (Bot-Lauf steht noch aus; der Zeitgeber stößt ihn an)` : 'aktuell');
   });
 
   dash.draw('warn', (el) => {
@@ -2052,10 +2086,31 @@
     el.append(t, n);
   });
 
+  // Woraus wird Cash geholt? Aus der Position, die gegenueber der wahrscheinlich NAECHSTEN Allokation am staerksten
+  // uebergewichtet ist (spart Hin-und-her-Handel). levGTAA: in den letzten 10 Handelstagen vor dem Monatssignal ist das
+  // heute simulierte Signal die bessere Vorhersage (Backtest 2004-2026, 267 Monate: 3 Tage vorher Ø 6,6 % Abstand zur
+  // Entscheidung statt 16,3 % bei der gehaltenen Allokation; 10 Tage vorher 11,3 %), sonst die gehaltene Allokation.
+  // levTipsRegime: gehaltene Position; weicht das Tagessignal ab (Wechsel steht an), das Tagessignal.
+  const cashRef = (wf) => {
+    const s = (rowsOf('strategies') || []).find((r) => r.key === wf) || {};
+    if (wf === 'levgtaa' && s.nextDecision) {
+      const F = window.sdFresh, ref = F && F.refClose();
+      let n = 0; if (ref) for (let x = new Date(ref + 'T12:00:00Z'); x < new Date(s.nextDecision + 'T12:00:00Z');) { x.setUTCDate(x.getUTCDate() + 1); if (x.getUTCDay() % 6) n += 1; }
+      if (ref && n <= 10) return {mode: 'today', why: `Referenz: heute simuliertes Signal – das Monatssignal kommt in ${n} Handelstag${n === 1 ? '' : 'en'} (Schluss ${window.sdFmt.deDate(s.nextDecision)}) und liegt im Backtest bis 10 Tage vorher deutlich näher an der Entscheidung als die gehaltene Allokation`};
+      return {mode: 'held', why: `Referenz: gehaltene Allokation – das Monatssignal ist noch ${n} Handelstage entfernt`};
+    }
+    if (wf === 'levtipsregime') {
+      const d = rowsOf('daily_levtips'), r = d && d[d.length - 1];
+      if (r && r.state && r.held_state && r.state !== r.held_state) return {mode: 'today', why: `Referenz: Tagessignal (${r.state}) – ein Wechsel steht an, sobald der Cooldown frei ist`};
+      return {mode: 'held', why: 'Referenz: gehaltene Position (Tagessignal gleich, kein Wechsel absehbar)'};
+    }
+    return {mode: 'held', why: 'Referenz: gehaltene Allokation'};
+  };
   let calcState = null;     // letzte Berechnung fuer den Order-Block
   const compute = (wf) => {
     const p = dash.params(), mode = p.wf_target === 'today' ? 'today' : p.wf_target === 'cash' ? 'cash' : 'held';
-    const rows = holdings(), ist = istOf(wf), tgt0 = targetOf(wf, mode === 'cash' ? 'held' : mode);
+    const ref = mode === 'cash' ? cashRef(wf) : null;
+    const rows = holdings(), ist = istOf(wf), tgt0 = targetOf(wf, ref ? ref.mode : mode);
     const reserve = reserveOf(wf), inv = Object.values(tgt0).reduce((s2, v) => s2 + v, 0);
     const scale = inv > 0 ? Math.min(1, (1 - reserve) / inv) : 1;          // Bot-Cash reicht schon -> nichts kuerzen
     const tgt = Object.fromEntries(Object.entries(tgt0).map(([k, v]) => [k, v * scale]));
@@ -2091,7 +2146,7 @@
     }
     if (mode === 'cash') lines.forEach((l) => { l.tw = total ? ((l.q + (l.diffQ || 0)) * (l.px || 0)) / total : 0; l.want = l.tw * total; l.diffEur = l.want - l.cur; });
     const tgtCash = mode === 'cash' ? (total ? cashAfter() / total : 0) : 1 - Object.values(tgt).reduce((s, v) => s + v, 0);
-    calcState = {wf, mode, lines, total, cash0, cashAfter: cashAfter(), tgtCash, missing: ist.missing, reserve};
+    calcState = {wf, mode, ref, lines, total, cash0, cashAfter: cashAfter(), tgtCash, missing: ist.missing, reserve};
     return calcState;
   };
 
@@ -2183,7 +2238,7 @@
       el.appendChild(d);
     });
     const d = document.createElement('div'); d.className = 'sd-note';
-    d.textContent = `Verkäufe zuerst. Cash danach ≈ ${num(Math.round(s.cashAfter), 0)} € (Ziel ${pct(s.tgtCash, s.tgtCash < 0.01 ? 2 : 1)} = ${num(Math.round(s.total * s.tgtCash), 0)} €, davon Gebühren-Puffer ${pct(s.reserve, 2)}). Spreads nicht eingerechnet.`;
+    d.textContent = `Verkäufe zuerst. Cash danach ≈ ${num(Math.round(s.cashAfter), 0)} € (Ziel ${pct(s.tgtCash, s.tgtCash < 0.01 ? 2 : 1)} = ${num(Math.round(s.total * s.tgtCash), 0)} €, davon Gebühren-Puffer ${pct(s.reserve, 2)}). Spreads nicht eingerechnet.${s.ref ? ' ' + s.ref.why + '; verkauft wird, was dagegen am stärksten übergewichtet ist.' : ''}`;
     el.appendChild(d);
   };
   dash.draw('orders', drawOrders);
