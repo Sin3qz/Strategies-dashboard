@@ -239,9 +239,9 @@
           <div class="sd-stat"><span class="sd-label">Watchlistings</span><span data-draw="val" data-source="wikifolios" data-field="watchlistings" data-where="key=levgtaa" data-fmt="int">—</span></div>
         </div>
         <div class="sd-block">
-          <div class="sd-block-h"><span>Soll (Bot)</span><span data-draw="change" data-key="levgtaa" data-source="strategies" data-plain="1">—</span></div>
-          <div class="sd-chips big" data-draw="chips" data-key="levgtaa" data-source="allocations alloc_cash"></div>
-          <div class="sd-prods" data-draw="prods" data-key="levgtaa" data-mode="held" data-source="allocations"></div>
+          <div class="sd-block-h"><span>Soll im wikifolio (Bot-Quoten mit Gebühren-Puffer, Bot-Cash im Geldmarkt-ETF)</span><span data-draw="change" data-key="levgtaa" data-source="strategies" data-plain="1">—</span></div>
+          <div class="sd-chips big" data-draw="chips" data-key="levgtaa" data-wf="1" data-source="allocations alloc_cash wikifolios perf_stats"></div>
+          <div class="sd-prods" data-draw="prods" data-key="levgtaa" data-mode="held" data-wf="1" data-source="allocations alloc_cash wikifolios perf_stats"></div>
           <div class="sd-block-h"><span>Ist im wikifolio (deine Stückzahlen)</span><span data-draw="istdate" data-key="levgtaa" data-source="holdings">—</span></div>
           <div class="sd-chips big" data-draw="istchips" data-key="levgtaa" data-source="holdings prices"></div>
           <p class="sd-note" data-ist="none" data-key="levgtaa" hidden>Noch keine Stückzahlen hinterlegt: im Tab „Rechner“ eintragen.</p>
@@ -303,9 +303,9 @@
           <div class="sd-stat"><span class="sd-label">Watchlistings</span><span data-draw="val" data-source="wikifolios" data-field="watchlistings" data-where="key=levtipsregime" data-fmt="int">—</span></div>
         </div>
         <div class="sd-block">
-          <div class="sd-block-h"><span>Soll (Bot)</span><span data-draw="change" data-key="levtipsregime" data-source="strategies" data-plain="1">—</span></div>
-          <div class="sd-chips big" data-draw="chips" data-key="levtipsregime" data-source="allocations alloc_cash"></div>
-          <div class="sd-prods" data-draw="prods" data-key="levtipsregime" data-mode="held" data-source="allocations"></div>
+          <div class="sd-block-h"><span>Soll im wikifolio (Bot-Quoten mit Gebühren-Puffer, Bot-Cash im Geldmarkt-ETF)</span><span data-draw="change" data-key="levtipsregime" data-source="strategies" data-plain="1">—</span></div>
+          <div class="sd-chips big" data-draw="chips" data-key="levtipsregime" data-wf="1" data-source="allocations alloc_cash wikifolios perf_stats"></div>
+          <div class="sd-prods" data-draw="prods" data-key="levtipsregime" data-mode="held" data-wf="1" data-source="allocations alloc_cash wikifolios perf_stats"></div>
           <div class="sd-block-h"><span>Ist im wikifolio (deine Stückzahlen)</span><span data-draw="istdate" data-key="levtipsregime" data-source="holdings">—</span></div>
           <div class="sd-chips big" data-draw="istchips" data-key="levtipsregime" data-source="holdings prices"></div>
           <p class="sd-note" data-ist="none" data-key="levtipsregime" hidden>Noch keine Stückzahlen hinterlegt: im Tab „Rechner“ eintragen.</p>
@@ -1152,11 +1152,31 @@
     if (!al) return;
     const key = el.dataset.key;
     const d = ((st || []).find((r) => r.key === key) || {}).weightDecimals || 0;
-    al.filter((a) => a.strategy === key && a.asset !== 'CASH').forEach((a) =>
-      el.appendChild(chipEl(a.asset, ` ${a.leverage}x ${NAMES[a.asset] || a.display}`, a.weight == null ? null : pct(a.weight, d))));   // gleiche Namen wie beim Tagessignal
+    const inv = al.filter((a) => a.strategy === key && a.asset !== 'CASH');
     const cash = ((cashRows || []).find((r) => r.strategy === key) || {}).cash;
+    const w = el.dataset.wf ? wfTarget(key, inv) : null;              // wikifolio: genau das Ziel des Rechners
+    if (w) {
+      inv.forEach((a) => el.appendChild(chipEl(a.asset, ` ${a.leverage}x ${NAMES[a.asset] || a.display}`, pct(w.inv[a.asset], 2))));
+      if (w.mm) el.appendChild(chipEl('MM', ' Geldmarkt-ETF', pct(w.mm, 2)));
+      el.appendChild(chipEl('CASH', ' Cash (Gebühren-Puffer)', pct(w.cash, 2)));
+      return;
+    }
+    inv.forEach((a) =>
+      el.appendChild(chipEl(a.asset, ` ${a.leverage}x ${NAMES[a.asset] || a.display}`, a.weight == null ? null : pct(a.weight, d))));   // gleiche Namen wie beim Tagessignal
     if (cash != null && cash > (d ? 0.0005 : 0.005)) el.appendChild(chipEl('CASH', ' Cash', pct(cash, d)));
   });
+  // Ziel im wikifolio wie im Rechner: Bot-Quoten so weit gekuerzt, dass der Gebuehren-Puffer frei bleibt; Bot-Cash
+  // (ab 2 %) im Geldmarkt-ETF, Rest Cash
+  const wfTarget = (key, inv) => {
+    if (!window.sdReserve) return null;
+    const r = window.sdReserve(key), tot = inv.reduce((s2, a) => s2 + (Number(a.weight) || 0), 0);
+    const sc = tot > 0 ? Math.min(1, (1 - r) / tot) : 1;
+    const o = {inv: {}, mm: 0}; let sum = 0;
+    inv.forEach((a) => { o.inv[a.asset] = (Number(a.weight) || 0) * sc; sum += o.inv[a.asset]; });
+    const m = 1 - r - sum; if (m >= 0.02) { o.mm = m; sum += m; }
+    o.cash = Math.max(0, 1 - sum); return o;
+  };
+
 
   dash.draw('daychips', (el) => {
     const rows = rowsOf(el.dataset.source);
@@ -1197,6 +1217,10 @@
     }
     // wikifolios: Bot-Cash liegt im Geldmarkt-ETF (Rechner), daher bei reinem Cash dieses Produkt nennen
     if (!assets.length && (key === 'levtipsregime' || key === 'levgtaa')) assets = ['MM_WF'];
+    else if (el.dataset.wf && mode === 'held') {
+      const o = wfTarget(key, (rowsOf('allocations') || []).filter((a) => a.strategy === key && a.asset !== 'CASH'));
+      if (o && o.mm > 0) assets = assets.concat('MM_WF');
+    }
     const MMP = ['Xtrackers II EUR Overnight Rate Swap UCITS ETF 1C (Geldmarkt-ETF im wikifolio)', 'LU0290358497'];
     assets.filter((a) => a === 'MM_WF' || (PROD[key] && PROD[key][a])).forEach((a) => {
       const [name, isin] = a === 'MM_WF' ? MMP : PROD[key][a];
