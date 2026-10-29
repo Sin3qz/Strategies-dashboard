@@ -51,6 +51,20 @@ das mit einem externen Anstoß der Aktualisierung:
    alle 30 Minuten, Methode POST, Header `Authorization: Bearer <Token>`, `Accept: application/vnd.github+json`,
    `Content-Type: application/json`, Body `{"ref":"main"}`. Antwort 204 = ok.
 
+**cron-job.org am schnellsten:** „Cronjob erstellen“ → unten **„CURL-Befehl importieren“** → diesen Befehl einfügen
+(Token einsetzen) → Import; danach Terminplan „Alle 30 Minuten“ und **Testlauf** (Antwort 204):
+```
+curl -X POST -H "Authorization: Bearer DEIN_TOKEN" -H "Accept: application/vnd.github+json" -H "Content-Type: application/json" -d '{"ref":"main"}' https://api.github.com/repos/Sin3qz/Strategies-dashboard/actions/workflows/refresh-dashboard.yml/dispatches
+```
+
+## Cash-Wächter und Push (ntfy)
+Secret **`NTFY_TOPIC`** im Repo Strategies-dashboard (gleiches Topic wie bei den Bots). Das Dashboard meldet:
+gekipptes Tagessignal, wikifolio investierbar, **Cash-Puffer fast leer** (Reserve für die nächsten 2 Handelstage reicht nicht
+mehr) bzw. **negativ**. Der Cash-Wächter (`dashboard-data/cashwatch.py`) schätzt das wikifolio-Cash aus deiner Eingabe im
+Rechner (auf GitHub gespeichert) oder – ohne Eingabe – aus dem Rechner-Vorschlag beim letzten Bot-Handel, minus
+Zertifikategebühr je Tag und Performancegebühr bei jedem neuen Hoch (zieht wikifolio auch vor der Emission schon simulativ ab).
+Test: *Run workflow* mit Haken **„Test-Nachricht an dein ntfy-Topic senden“**; der Datenstatus zeigt die Zeile „Push (ntfy)“.
+
 ## Alle Signale jetzt neu rechnen (von Hand)
 Nur im Repo **Strategies-dashboard**: *Actions → Dashboard-Daten aktualisieren → Run workflow*. Ohne Haken stößt der Lauf
 die Bots an, die heute noch nicht gerechnet haben; mit Haken **„Alle vier Bots jetzt neu rechnen lassen“** rechnen alle

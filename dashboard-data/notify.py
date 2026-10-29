@@ -2,12 +2,15 @@
 
 Meldet je einmal, wenn
   - das simulierte Tagessignal einer Strategie die Bausteine wechselt (levTipsRegime: Markt / 3x IEF / Cash),
-  - ein wikifolio investierbar wird.
+  - ein wikifolio investierbar wird,
+  - das wikifolio-Cash bald nicht mehr fuer die Gebuehren reicht (cashwatch.py, 2 Handelstage Vorlauf).
+Mit NTFY_TEST=true (Schalter beim „Run workflow“) geht zusaetzlich eine Test-Nachricht raus.
 Zustand in data/notify_state.json (verhindert Doppelmeldungen bei 5 Laeufen am Tag). Ohne Secret NTFY_TOPIC wird nur
 der Zustand gefuehrt, nichts gesendet. Der erste Lauf meldet nichts, er merkt sich nur den Stand.
 """
 import csv, json, os
 
+import cashwatch
 from send_ntfy import send_ntfy
 
 URL = "https://sin3qz.github.io/Strategies-dashboard/#signale"
@@ -69,6 +72,14 @@ def run(out_dir):
         for title, body in msgs:
             ok = send_ntfy(title, body + "\n\n" + URL, tags="chart_with_upwards_trend")
             sent.append((title, ok))
+    try:
+        sent += cashwatch.run(out_dir, state, send=send_ntfy)
+    except Exception as e:
+        print("Cash-Waechter nicht gelaufen:", e)
+    if (os.environ.get("NTFY_TEST") or "").lower() == "true":
+        ok = send_ntfy("Dashboard: Test-Nachricht", "ntfy funktioniert – so sehen die Hinweise des Dashboards aus.\n\n" + URL,
+                       tags="white_check_mark")
+        sent.append(("Test-Nachricht", ok))
     with open(path, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=1)
     return sent

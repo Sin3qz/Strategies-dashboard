@@ -8,6 +8,7 @@
   .sd-tabs { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--color-border-line); padding-bottom: var(--cds-gap-xs); position: sticky; top: 0; z-index: 3; background: var(--color-bg); padding-top: var(--cds-gap-xs); }
   .sd-tab { font: inherit; font-size: var(--cds-font-size-body); background: none; border: 0; border-radius: var(--cds-radius); padding: 6px 12px; color: var(--color-fg-muted); cursor: pointer; }
   .sd-tab:hover { color: var(--color-fg); background: var(--cds-chart-grid); }
+  @media (max-width: 480px) { .sd-tabs { flex-wrap: nowrap; gap: 2px; } .sd-tab { padding: 6px 8px; flex: 1 1 auto; } }   /* Handy: alle 4 Tabs in einer Zeile */
   .sd-tab[aria-selected=true] { color: var(--color-fg); background: var(--color-panel); box-shadow: inset 0 0 0 1px var(--color-border-line); font-weight: 600; }
   .sd section { display: grid; gap: var(--cds-gap-md); }
   .sd h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: var(--cds-gap-sm) 0 0; }
@@ -227,6 +228,8 @@
           <div class="sd-block-h"><span>Ist im wikifolio (deine Stückzahlen)</span><span data-draw="istdate" data-key="levgtaa" data-source="holdings">—</span></div>
           <div class="sd-chips" data-draw="istchips" data-key="levgtaa" data-source="holdings prices"></div>
           <p class="sd-note" data-ist="none" data-key="levgtaa" hidden>Noch keine Stückzahlen hinterlegt: im Tab „Rechner“ eintragen.</p>
+          <div class="sd-block-h"><span>Cash-Wächter (Gebühren)</span><span data-draw="cwlevel" data-key="levgtaa" data-source="cash_watch">—</span></div>
+          <p class="sd-note" data-draw="cwtext" data-key="levgtaa" data-source="cash_watch">—</p>
         </div>
         <div class="sd-block">
           <div class="sd-block-h"><span>Monatssignal und Vola (Kursstand <span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levgtaa" data-fmt="date">—</span>)</span><span>Vol-Faktor <span data-draw="val" data-source="strategies" data-field="vola_factor" data-where="key=levgtaa" data-fmt="num2">—</span></span></div>
@@ -289,6 +292,8 @@
           <div class="sd-block-h"><span>Ist im wikifolio (deine Stückzahlen)</span><span data-draw="istdate" data-key="levtipsregime" data-source="holdings">—</span></div>
           <div class="sd-chips" data-draw="istchips" data-key="levtipsregime" data-source="holdings prices"></div>
           <p class="sd-note" data-ist="none" data-key="levtipsregime" hidden>Noch keine Stückzahlen hinterlegt: im Tab „Rechner“ eintragen.</p>
+          <div class="sd-block-h"><span>Cash-Wächter (Gebühren)</span><span data-draw="cwlevel" data-key="levtipsregime" data-source="cash_watch">—</span></div>
+          <p class="sd-note" data-draw="cwtext" data-key="levtipsregime" data-source="cash_watch">—</p>
         </div>
         <div class="sd-block">
           <div class="sd-block-h"><span>Abstand zur Linie (Schluss <span data-draw="val" data-source="levtips_today" data-field="date" data-row="0" data-fmt="date">—</span>)</span><span>Cooldown <span data-draw="val" data-source="strategies" data-field="cooldown" data-where="key=levtipsregime" data-fmt="int">—</span> Tage</span></div>
@@ -347,7 +352,7 @@
       </div>
       <div class="sd-card" id="wf-tracking">
         <h3>wikifolio vs. Bot-Soll seit Start</h3>
-        <p class="sd-note">Durchgezogen = Bot-Allokation mit den echten Produkten seit dem Erstellungstag (Index 100). Gestrichelt mit Punkten = wikifolio-Kurs, auf 100 am Start normiert: Startpunkt plus die Kurse, die das Dashboard täglich mitschreibt (<span data-draw="trackfrom" data-source="wikifolio_history">—</span>; den Verlauf davor zeigt wikifolio nur angemeldet). Unterschiede entstehen durch Ausführungszeitpunkt, Kurse und Gebühren.</p>
+        <p class="sd-note">Durchgezogen = Bot-Allokation mit den echten Produkten seit dem Erstellungstag (Index 100), nach den wikifolio-Gebühren, die wikifolio auch vor der Emission schon simulativ abzieht (0,95 % p. a., 5 % auf jedes neue Hoch). Gestrichelt mit Punkten = wikifolio-Kurs, auf 100 am Start normiert: Startpunkt plus die Kurse, die das Dashboard täglich mitschreibt (<span data-draw="trackfrom" data-source="wikifolio_history">—</span>; den Verlauf davor zeigt wikifolio nur angemeldet). Unterschiede entstehen durch Ausführungszeitpunkt, Kurse und Gebühren.</p>
         <div class="sd-chart sm" data-draw="tracking" data-source="tracking wikifolio_history wikifolios"></div>
         <div class="sd-legend"><span><span class="sd-sw" data-draw="sw" data-i="0"></span>LevGTAA</span><span><span class="sd-sw" data-draw="sw" data-i="1"></span>LevTipsRegime</span><span>durchgezogen = Bot-Soll · gestrichelt/Punkte = wikifolio</span></div>
         <div class="sd-tw">
@@ -364,7 +369,7 @@
   <!-- ===================== Signale ===================== -->
   <section id="signale" data-page="signale" hidden>
     <div class="sd-controls">
-      <p class="sd-sub">Je Strategie die gehaltene Bot-Position und darunter für jeden US-Handelstag die Position, die die Bot-Regel auf dem Schlusskurs dieses Tages ergäbe (gehandelt am nächsten Handelstag). levGTAA und MR-Rebound: jeder Tag wie ein Monatsletzter. 1xGTAA und levTipsRegime: ohne 10-Tage-Cooldown. Gerechnet mit dem Code der Bot-Repos; letzter Schluss <span data-draw="val" data-source="levgtaa_today" data-field="date" data-row="0" data-fmt="date">—</span>.</p>
+      <p class="sd-sub">Je Strategie oben das aktuelle Bot-Signal (gehalten) und das heute simulierte Signal, darunter für jeden US-Handelstag die Position, die die Bot-Regel auf dem Schlusskurs dieses Tages ergäbe (gehandelt am nächsten Handelstag); ganz unten, wie die Strategie aufgebaut ist. levGTAA und MR-Rebound: jeder Tag wie ein Monatsletzter. 1xGTAA und levTipsRegime: ohne 10-Tage-Cooldown. Gerechnet mit dem Code der Bot-Repos; letzter Schluss <span data-draw="val" data-source="levgtaa_today" data-field="date" data-row="0" data-fmt="date">—</span>.</p>
       <div class="sd-seg" role="group" aria-label="Zeitraum">
         <button data-range="3m" aria-pressed="false">3 M</button><button data-range="6m" aria-pressed="false">6 M</button><button data-range="1y" aria-pressed="true">1 J</button><button data-range="all" aria-pressed="false">seit 2025</button>
       </div>
@@ -375,17 +380,6 @@
         <div class="sd-chead">
           <div><h3>levGTAA</h3><div class="sd-kind">Momentum · monatlich · 3x Nasdaq · 1x BTC · 3x US-Treasury 7-10y · 3x Gold</div></div>
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="levgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="levgtaa" hidden>Cash</span><span data-draw="badge" data-key="levgtaa" data-source="allocations"></span></span>
-        </div>
-        <div class="sd-block sd-auf">
-          <div class="sd-block-h"><span>Aufbau &amp; Parameter</span><span></span></div>
-          <dl class="sd-dl">
-            <dt>Idee</dt><dd>Momentum-Rotation: hält die zwei stärksten von vier gehebelten Bausteinen, solange sie im Aufwärtstrend sind.</dd>
-            <dt>Bausteine</dt><dd><span class="sd-dl-h">Signal (1x, USD) → gehandeltes Produkt</span><span class="sd-dl-i">Nasdaq 100 (^NDX) → 3x WisdomTree <span class="sd-isin">IE00BLRPRL42</span></span><span class="sd-dl-i">Bitcoin (BTC-USD) → 1x iShares Bitcoin ETP <span class="sd-isin">XS2940466316</span></span><span class="sd-dl-i">US-Treasury 7-10y (Signal TLT) → 3x WisdomTree <span class="sd-isin">IE00BKT09032</span></span><span class="sd-dl-i">Gold (GC=F) → 3x WisdomTree <span class="sd-isin">IE00B8HGT870</span></span></dd>
-            <dt>Auswahl</dt><dd>Zulässig, wenn Momentum &gt; 0 und SMA30 &gt; SMA<sub>L</sub>. Zwei Ranglisten nach Momentum: Ø der 1/3/6/9- bzw. der 3/6/12-Monatsrenditen.</dd>
-            <dt>Gewichtung</dt><dd>Platz 1 = 40 %, Platz 2 = 60 %; nur einer zulässig = 50 %; Rest Cash. Endquote = Mittel über L = 125–225 (101 Längen) und beide Ranglisten (202 Teilentscheidungen).</dd>
-            <dt>Risiko</dt><dd>Vol-Target 55 %: Quoten × Faktor; Faktor = Ø über 42/63/84 Tage von min(1; 55 % ÷ Vola des gehebelten Portfolios).</dd>
-            <dt>Zeitplan</dt><dd>Signal auf dem Schluss des letzten Handelstags im Monat, Handel am 1. Handelstag; dazwischen kein Handel.</dd>
-          </dl>
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot):</b></p>
@@ -430,21 +424,22 @@
           </div>
           <p class="sd-note" data-draw="val" data-source="strategies" data-field="note" data-where="key=levgtaa">—</p>
         </details>
+        <div class="sd-block sd-auf">
+          <div class="sd-block-h"><span>So funktioniert die Strategie (Aufbau &amp; Parameter)</span><span></span></div>
+          <dl class="sd-dl">
+            <dt>Idee</dt><dd>Momentum-Rotation: hält die zwei stärksten von vier gehebelten Bausteinen, solange sie im Aufwärtstrend sind.</dd>
+            <dt>Bausteine</dt><dd><span class="sd-dl-h">Signal (1x, USD) → gehandeltes Produkt</span><span class="sd-dl-i">Nasdaq 100 (^NDX) → 3x WisdomTree <span class="sd-isin">IE00BLRPRL42</span></span><span class="sd-dl-i">Bitcoin (BTC-USD) → 1x iShares Bitcoin ETP <span class="sd-isin">XS2940466316</span></span><span class="sd-dl-i">US-Treasury 7-10y (Signal TLT) → 3x WisdomTree <span class="sd-isin">IE00BKT09032</span></span><span class="sd-dl-i">Gold (GC=F) → 3x WisdomTree <span class="sd-isin">IE00B8HGT870</span></span></dd>
+            <dt>Auswahl</dt><dd>Zulässig, wenn Momentum &gt; 0 und SMA30 &gt; SMA<sub>L</sub>. Zwei Ranglisten nach Momentum: Ø der 1/3/6/9- bzw. der 3/6/12-Monatsrenditen.</dd>
+            <dt>Gewichtung</dt><dd>Platz 1 = 40 %, Platz 2 = 60 %; nur einer zulässig = 50 %; Rest Cash. Endquote = Mittel über L = 125–225 (101 Längen) und beide Ranglisten (202 Teilentscheidungen).</dd>
+            <dt>Risiko</dt><dd>Vol-Target 55 %: Quoten × Faktor; Faktor = Ø über 42/63/84 Tage von min(1; 55 % ÷ Vola des gehebelten Portfolios).</dd>
+            <dt>Zeitplan</dt><dd>Signal auf dem Schluss des letzten Handelstags im Monat, Handel am 1. Handelstag; dazwischen kein Handel.</dd>
+          </dl>
+        </div>
       </div>
       <div class="sd-card" id="levtipsregime">
         <div class="sd-chead">
           <div><h3>levTipsRegime</h3><div class="sd-kind">täglich · Cooldown 10 · Markt: 100 % 3x S&amp;P 500 · 3x IEF · Cash</div></div>
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="levtipsregime" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="levtipsregime" hidden>Cash</span><span data-draw="badge" data-key="levtipsregime" data-source="allocations"></span></span>
-        </div>
-        <div class="sd-block sd-auf">
-          <div class="sd-block-h"><span>Aufbau &amp; Parameter</span><span></span></div>
-          <dl class="sd-dl">
-            <dt>Idee</dt><dd>Regime-Schalter: Aktien nur, wenn Aktien- und Inflationsanleihen-Trend positiv sind; fallen die TIPS bei steigenden langen Anleihen, in 3x Anleihen; sonst Cash.</dd>
-            <dt>Signale</dt><dd><span class="sd-dl-h">USD, 1x, Abstand zur Linie</span><span class="sd-dl-i">S&amp;P 500 Total Return (^SP500TR) / SMA280</span><span class="sd-dl-i">US-TIPS (TIP) / SMA220</span><span class="sd-dl-i">US-Treasury 20y+ (TLT) / SMA200</span></dd>
-            <dt>Zustände</dt><dd><span class="sd-dl-h">genau einer, je 100 %</span><span class="sd-dl-i"><b>Markt</b>: S&amp;P und TIPS über der Linie → 3x S&amp;P 500 WisdomTree <span class="sd-isin">IE00B7Y34M31</span></span><span class="sd-dl-i"><b>3x IEF</b>: TIPS unter, TLT über der Linie → 3x US-Treasury 7-10y WisdomTree <span class="sd-isin">IE00BKT09032</span></span><span class="sd-dl-i"><b>Cash</b>: alle übrigen Fälle</span></dd>
-            <dt>Risiko</dt><dd>Cooldown: nach jedem Wechsel 10 Handelstage gesperrt (frühester Gegenwechsel am 11. Tag); kein Bitcoin im Markt.</dd>
-            <dt>Zeitplan</dt><dd>tägliche Entscheidung auf dem Vortagesschluss, Handel am nächsten Handelstag.</dd>
-          </dl>
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot):</b></p>
@@ -484,22 +479,21 @@
           </div>
           <p class="sd-note" data-draw="val" data-source="strategies" data-field="note" data-where="key=levtipsregime">—</p>
         </details>
+        <div class="sd-block sd-auf">
+          <div class="sd-block-h"><span>So funktioniert die Strategie (Aufbau &amp; Parameter)</span><span></span></div>
+          <dl class="sd-dl">
+            <dt>Idee</dt><dd>Regime-Schalter: Aktien nur, wenn Aktien- und Inflationsanleihen-Trend positiv sind; fallen die TIPS bei steigenden langen Anleihen, in 3x Anleihen; sonst Cash.</dd>
+            <dt>Signale</dt><dd><span class="sd-dl-h">USD, 1x, Abstand zur Linie</span><span class="sd-dl-i">S&amp;P 500 Total Return (^SP500TR) / SMA280</span><span class="sd-dl-i">US-TIPS (TIP) / SMA220</span><span class="sd-dl-i">US-Treasury 20y+ (TLT) / SMA200</span></dd>
+            <dt>Zustände</dt><dd><span class="sd-dl-h">genau einer, je 100 %</span><span class="sd-dl-i"><b>Markt</b>: S&amp;P und TIPS über der Linie → 3x S&amp;P 500 WisdomTree <span class="sd-isin">IE00B7Y34M31</span></span><span class="sd-dl-i"><b>3x IEF</b>: TIPS unter, TLT über der Linie → 3x US-Treasury 7-10y WisdomTree <span class="sd-isin">IE00BKT09032</span></span><span class="sd-dl-i"><b>Cash</b>: alle übrigen Fälle</span></dd>
+            <dt>Risiko</dt><dd>Cooldown: nach jedem Wechsel 10 Handelstage gesperrt (frühester Gegenwechsel am 11. Tag); kein Bitcoin im Markt.</dd>
+            <dt>Zeitplan</dt><dd>tägliche Entscheidung auf dem Vortagesschluss, Handel am nächsten Handelstag.</dd>
+          </dl>
+        </div>
       </div>
       <div class="sd-card" id="1xgtaa">
         <div class="sd-chead">
           <div><h3>1xGTAA</h3><div class="sd-kind">defensiv · ungehebelt · täglich · Cooldown 10</div></div>
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="1xgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="1xgtaa" hidden>Cash</span><span data-draw="badge" data-key="1xgtaa" data-source="allocations"></span></span>
-        </div>
-        <div class="sd-block sd-auf">
-          <div class="sd-block-h"><span>Aufbau &amp; Parameter</span><span></span></div>
-          <dl class="sd-dl">
-            <dt>Idee</dt><dd>Defensive, ungehebelte Rotation über sieben ETFs inklusive US-Geldmarkt.</dd>
-            <dt>Bausteine</dt><dd><span class="sd-dl-h">Signal (USD) → UCITS-ETF</span><span class="sd-dl-i">Nasdaq 100 (QQQ) → iShares <span class="sd-isin">IE00B53SZB19</span></span><span class="sd-dl-i">EM Small Caps (EEMS) → SPDR <span class="sd-isin">IE00B48X4842</span></span><span class="sd-dl-i">EMU Value (AW1T in USD) → Amundi <span class="sd-isin">LU1598690169</span></span><span class="sd-dl-i">US-Treasury 7-10y (IEF) → iShares <span class="sd-isin">IE00B1FZS798</span></span><span class="sd-dl-i">Gold (GLD) → Xetra-Gold <span class="sd-isin">DE000A0S9GB0</span></span><span class="sd-dl-i">Rohstoffe (DBC) → WisdomTree Enhanced Commodity <span class="sd-isin">IE00BYMLZY74</span></span><span class="sd-dl-i">US-Geldmarkt (BIL) → Xtrackers USD Overnight <span class="sd-isin">LU0321465469</span></span></dd>
-            <dt>Auswahl</dt><dd>Rangliste aller sieben nach Momentum = Summe der 1/3/6/12-Monatsrenditen; Trendfilter SMA8 &gt; SMA150.</dd>
-            <dt>Gewichtung</dt><dd>Platz 1 = 40 %, Platz 2 = 60 %. Ein Platz wird nur gefüllt, wenn Trend positiv und Momentum &gt; 0, sonst bleibt sein Anteil Cash (kein Nachrücken).</dd>
-            <dt>Risiko</dt><dd>ungehebelt · Cooldown 10 Handelstage nach jeder Umschichtung · kein zusätzliches Rebalancing (getestet: ohne Vorteil).</dd>
-            <dt>Zeitplan</dt><dd>tägliche Entscheidung auf dem Vortagesschluss, Handel am nächsten Handelstag.</dd>
-          </dl>
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot):</b></p>
@@ -539,22 +533,22 @@
           </div>
           <p class="sd-note" data-draw="val" data-source="strategies" data-field="note" data-where="key=1xgtaa">—</p>
         </details>
+        <div class="sd-block sd-auf">
+          <div class="sd-block-h"><span>So funktioniert die Strategie (Aufbau &amp; Parameter)</span><span></span></div>
+          <dl class="sd-dl">
+            <dt>Idee</dt><dd>Defensive, ungehebelte Rotation über sieben ETFs inklusive US-Geldmarkt.</dd>
+            <dt>Bausteine</dt><dd><span class="sd-dl-h">Signal (USD) → UCITS-ETF</span><span class="sd-dl-i">Nasdaq 100 (QQQ) → iShares <span class="sd-isin">IE00B53SZB19</span></span><span class="sd-dl-i">EM Small Caps (EEMS) → SPDR <span class="sd-isin">IE00B48X4842</span></span><span class="sd-dl-i">EMU Value (AW1T in USD) → Amundi <span class="sd-isin">LU1598690169</span></span><span class="sd-dl-i">US-Treasury 7-10y (IEF) → iShares <span class="sd-isin">IE00B1FZS798</span></span><span class="sd-dl-i">Gold (GLD) → Xetra-Gold <span class="sd-isin">DE000A0S9GB0</span></span><span class="sd-dl-i">Rohstoffe (DBC) → WisdomTree Enhanced Commodity <span class="sd-isin">IE00BYMLZY74</span></span><span class="sd-dl-i">US-Geldmarkt (BIL) → Xtrackers USD Overnight <span class="sd-isin">LU0321465469</span></span></dd>
+            <dt>Auswahl</dt><dd>Rangliste aller sieben nach Momentum = Summe der 1/3/6/12-Monatsrenditen; Trendfilter SMA8 &gt; SMA150.</dd>
+            <dt>Gewichtung</dt><dd>Platz 1 = 40 %, Platz 2 = 60 %. Ein Platz wird nur gefüllt, wenn Trend positiv und Momentum &gt; 0, sonst bleibt sein Anteil Cash (kein Nachrücken).</dd>
+            <dt>Risiko</dt><dd>ungehebelt · Cooldown 10 Handelstage nach jeder Umschichtung · kein zusätzliches Rebalancing (getestet: ohne Vorteil).</dd>
+            <dt>Zeitplan</dt><dd>tägliche Entscheidung auf dem Vortagesschluss, Handel am nächsten Handelstag.</dd>
+          </dl>
+        </div>
       </div>
       <div class="sd-card" id="mrreboundgtaa">
         <div class="sd-chead">
           <div><h3>MR-Rebound-GTAA</h3><div class="sd-kind">Mean-Reversion · monatlich · Duo QQQ/EM/TLT | QQQ/India/TLT · 3x Nasdaq/EM/India · 5x TLT</div></div>
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="mrreboundgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="mrreboundgtaa" hidden>Cash</span><span data-draw="badge" data-key="mrreboundgtaa" data-source="allocations"></span></span>
-        </div>
-        <div class="sd-block sd-auf">
-          <div class="sd-block-h"><span>Aufbau &amp; Parameter</span><span></span></div>
-          <dl class="sd-dl">
-            <dt>Idee</dt><dd>Mean-Reversion: kauft die zuletzt schwächsten Bausteine, sobald sie wieder drehen.</dd>
-            <dt>Bausteine</dt><dd><span class="sd-dl-h">Signal (1x) → gehandeltes Produkt</span><span class="sd-dl-i">Nasdaq 100 (^NDX) → 3x WisdomTree <span class="sd-isin">IE00BLRPRL42</span></span><span class="sd-dl-i">Emerging Markets (EEM) → 3x WisdomTree <span class="sd-isin">IE00BYTYHN28</span></span><span class="sd-dl-i">India (Sensex ^BSESN) → 3x Leverage Shares <span class="sd-isin">XS2595675302</span></span><span class="sd-dl-i">US-Treasury 20y+ (TLT) → 5x Leverage Shares <span class="sd-isin">XS2595672036</span></span></dd>
-            <dt>Auswahl</dt><dd>Zwei Körbe: A = Nasdaq · EM · TLT, B = Nasdaq · India · TLT. Je Korb die zwei Schwächsten nach SMA<sub>S</sub>/SMA<sub>L</sub> − 1; bestätigt, wenn Rebound &gt; 0 und Kurs über der Gate-SMA.</dd>
-            <dt>Gewichtung</dt><dd>Je Korb 50 %: beide bestätigt → 1/3 (schwächstes) + 2/3, nur eines → max(Slot, 50 %), sonst Cash. Mittel über 34.884 Varianten: S 75–125, L 175–250, Rebound 42/50/56 Tage, Gate SMA100/200/250.</dd>
-            <dt>Risiko</dt><dd>kein Vol-Target; Anleihe 5x, Rest 3x.</dd>
-            <dt>Zeitplan</dt><dd>Signal auf dem Schluss des letzten Handelstags im Monat, Handel am 1. Handelstag.</dd>
-          </dl>
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot):</b></p>
@@ -594,6 +588,17 @@
           </div>
           <p class="sd-note" data-draw="val" data-source="strategies" data-field="note" data-where="key=mrreboundgtaa">—</p>
         </details>
+        <div class="sd-block sd-auf">
+          <div class="sd-block-h"><span>So funktioniert die Strategie (Aufbau &amp; Parameter)</span><span></span></div>
+          <dl class="sd-dl">
+            <dt>Idee</dt><dd>Mean-Reversion: kauft die zuletzt schwächsten Bausteine, sobald sie wieder drehen.</dd>
+            <dt>Bausteine</dt><dd><span class="sd-dl-h">Signal (1x) → gehandeltes Produkt</span><span class="sd-dl-i">Nasdaq 100 (^NDX) → 3x WisdomTree <span class="sd-isin">IE00BLRPRL42</span></span><span class="sd-dl-i">Emerging Markets (EEM) → 3x WisdomTree <span class="sd-isin">IE00BYTYHN28</span></span><span class="sd-dl-i">India (Sensex ^BSESN) → 3x Leverage Shares <span class="sd-isin">XS2595675302</span></span><span class="sd-dl-i">US-Treasury 20y+ (TLT) → 5x Leverage Shares <span class="sd-isin">XS2595672036</span></span></dd>
+            <dt>Auswahl</dt><dd>Zwei Körbe: A = Nasdaq · EM · TLT, B = Nasdaq · India · TLT. Je Korb die zwei Schwächsten nach SMA<sub>S</sub>/SMA<sub>L</sub> − 1; bestätigt, wenn Rebound &gt; 0 und Kurs über der Gate-SMA.</dd>
+            <dt>Gewichtung</dt><dd>Je Korb 50 %: beide bestätigt → 1/3 (schwächstes) + 2/3, nur eines → max(Slot, 50 %), sonst Cash. Mittel über 34.884 Varianten: S 75–125, L 175–250, Rebound 42/50/56 Tage, Gate SMA100/200/250.</dd>
+            <dt>Risiko</dt><dd>kein Vol-Target; Anleihe 5x, Rest 3x.</dd>
+            <dt>Zeitplan</dt><dd>Signal auf dem Schluss des letzten Handelstags im Monat, Handel am 1. Handelstag.</dd>
+          </dl>
+        </div>
       </div>
     </div>
     <div class="sd-card" id="botbetrieb">
@@ -889,11 +894,12 @@
 
   dash.calc('tracking_cmp', {
     title: 'wikifolio vs. Bot-Soll',
-    description: 'Performance seit Erstellung: wikifolio (Performance seit Start laut wikifolio) gegen die Bot-Allokation mit echten Produkten ab dem Erstellungstag.',
+    description: 'Performance seit Erstellung: wikifolio (Performance seit Start laut wikifolio) gegen die Bot-Allokation mit echten Produkten ab dem Erstellungstag, nach wikifolio-Gebühren (0,95 % p. a., 5 % auf neue Hochs).',
     inputs: ['tracking', 'wikifolios'],
     fn: (tracking, wikifolios) => wikifolios.map((w) => {
       const t = tracking.filter((r) => r.key === w.key);
-      const bot = t.length ? t[t.length - 1].bot / 100 - 1 : null;
+      const last = t.length ? t[t.length - 1] : null;                   // nach wikifolio-Gebuehren, wenn vorhanden
+      const bot = last ? Number(last.bot_net != null ? last.bot_net : last.bot) / 100 - 1 : null;
       const wf = Number(w.perf_since_start);
       return {key: w.key, name: w.name, wf, bot, diff: bot == null ? null : wf - bot};
     }),
@@ -1518,6 +1524,19 @@
       .on('pointerleave', () => { tip.hidden = true; rule.attr('visibility', 'hidden'); });
   });
 
+  const cwRow = (el) => (rowsOf('cash_watch') || []).find((r) => r.key === el.dataset.key);
+  dash.draw('cwlevel', (el) => {
+    const r = cwRow(el); el.replaceChildren();
+    if (!r) { el.textContent = 'ab dem nächsten Lauf'; return; }
+    const dot = document.createElement('span'); dot.className = 'sd-dot';
+    dot.style.background = r.level === 'ok' ? dash.colors[5] : r.level === 'warn' ? 'var(--color-warn)' : 'var(--color-bad)';
+    el.append(dot, {ok: 'reicht', warn: 'bald leer – auffüllen', neg: 'negativ – sofort auffüllen', unknown: 'unbekannt'}[r.level] || r.level);
+  });
+  dash.draw('cwtext', (el) => {
+    const r = cwRow(el);
+    el.textContent = r ? `${r.detail}${r.basis && r.basis !== 'Bot steht in Cash' ? ` Basis: ${r.basis}. Genauer mit deinen Stückzahlen und dem Cash (Rechner → auf GitHub speichern).` : ''} ntfy-Push, sobald die Reserve für 2 Handelstage nicht mehr reicht.`
+      : 'Schätzt das Cash nach Gebühren und meldet sich per ntfy, bevor es leer wird (ab dem nächsten Datenlauf).';
+  });
   dash.draw('trackfrom', (el) => {
     const d = (rowsOf('wikifolio_history') || []).map((r) => String(r.date).slice(0, 10)).sort();
     el.textContent = d.length ? `seit ${deDate(d[0])}, bisher ${new Set(d).size} Tag${new Set(d).size === 1 ? '' : 'e'}` : 'noch keine Tage';
@@ -1534,7 +1553,7 @@
       const start = w && Number(w.price) > 0 ? Number(w.price) / (1 + Number(w.perf_since_start || 0)) : 100;   // auf 100 am Start normiert
       pts[k] = (w ? [{date: w.created, v: 100}] : []).concat(hist.filter((r) => r.key === k && Number(r.price) > 0).map((r) => ({date: String(r.date).slice(0, 10), v: Number(r.price) / start * 100})));
     });
-    const lines = Object.fromEntries(keys.map((k) => [k, tr.filter((r) => r.key === k).map((r) => ({date: r.date, v: Number(r.bot)}))]));
+    const lines = Object.fromEntries(keys.map((k) => [k, tr.filter((r) => r.key === k).map((r) => ({date: r.date, v: Number(r.bot_net != null ? r.bot_net : r.bot)}))]));
     const all = keys.flatMap((k) => lines[k].concat(pts[k]));
     const dates = [...new Set(all.map((p) => p.date))].sort();
     const W = Math.max(280, el.clientWidth || 600);
@@ -1754,7 +1773,7 @@
   };
   const reserveOf = (wf) => { const v = dash.params()['reserve_' + wf]; return ok(v) && v !== '' ? Math.min(0.05, Math.max(0, Number(v) / 100)) : reserveSuggest(wf).r; };
   const STAGE_TXT = {emission: 'Emission läuft: Cash darf nicht negativ werden, daher 95-%-Wert',
-                     preview: 'Vorschau-wikifolio: ein kleines Minus im Cash wird geduldet, daher 90-%-Wert',
+                     preview: 'Vorschau-wikifolio: die Gebühren zieht wikifolio schon jetzt simulativ ab, ein kleines Minus im Cash wird aber geduldet, daher 90-%-Wert',
                      invest: 'investierbar: ein Minus im Cash muss binnen 7 Tagen ausgeglichen werden, daher 90-%-Wert'};
   const RHYTHM_TXT = {levgtaa: 'Reicht bis zur nächsten Monatsumschichtung; dort füllt der Rechner das Cash automatisch wieder auf.',
                       levtipsregime: 'Signal täglich mit Cooldown, Wechsel sind selten: am ersten Handelstag jedes Monats den Rechner öffnen; fehlt Cash, zeigt er einen kleinen Verkauf.'};
