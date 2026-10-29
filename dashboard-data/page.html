@@ -599,7 +599,7 @@
     <div class="sd-card" id="botbetrieb">
       <h3>So laufen die Bots</h3>
       <dl class="sd-dl">
-        <dt>Läufe</dt><dd>GitHub Actions täglich 05:17 UTC (der US-Schluss vom Vortag liegt vor), Sicherheitsläufe 06:47, 08:47, 11:47, 15:17, 18:47 UTC: jeder rechnet nur, wenn an diesem Tag noch kein Lauf erfolgreich war. GitHub startet geplante Läufe manchmal deutlich später.</dd>
+        <dt>Läufe</dt><dd>GitHub Actions täglich 05:17 UTC (der US-Schluss vom Vortag liegt vor), Sicherheitsläufe 06:47, 08:47, 11:47, 15:17, 18:47 UTC: jeder rechnet nur, wenn an diesem Tag noch kein Lauf erfolgreich war. GitHub startet geplante Läufe oft Stunden später. Deshalb stößt jede Dashboard-Aktualisierung jeden Bot an, der an diesem Tag noch nicht gelaufen ist (Zeitgeber, 05:15–21:30 UTC); mit dem externen Anstoß alle 30 Minuten (cron-job.org) kommen die Signale pünktlich.</dd>
         <dt>Signal</dt><dd>immer auf 1x-Schlusskursen (Yahoo) der Signal-Ticker, nie auf den gehebelten Produkten; Handel am Handelstag nach dem Signal (NYSE-Kalender).</dd>
         <dt>Datenprüfung</dt><dd>letzter Kurs vom erwarteten Handelstag, Lücken, Tagessprünge &gt; 30 % (nicht bei Bitcoin), Mindestlänge der Reihen, abgeschnittene Yahoo-Antworten; sind Kurse veraltet, entscheidet der Bot nicht und versucht es im nächsten Lauf.</dd>
         <dt>Meldungen</dt><dd>Discord bei jedem Lauf. ntfy-Push: levTipsRegime und 1xGTAA nur bei echtem Wechsel, levGTAA und MR-Rebound an jedem Monatswechsel (auch „keine Änderung“); nur an US-Handelstagen, genau einmal (gespeicherter Zustand), schlägt ein Push fehl, wiederholt der nächste Lauf. Das Dashboard meldet zusätzlich, wenn ein Tagessignal kippt oder die Aktualisierung gestört ist.</dd>
@@ -1008,12 +1008,12 @@
       });
       t.append(hd, bd); tw.appendChild(t); el.appendChild(tw);
     } else p('Noch keine Statusdatei vorhanden – sie entsteht beim nächsten Lauf der Aktualisierung.');
-    if (s.late) p(`Die Action ist seit ${num(s.age, 1)} h nicht gelaufen. GitHub startet geplante Läufe manchmal Stunden später oder pausiert sie nach 60 Tagen ohne Commits (Secret PAT_PUSH verhindert das). Von Hand: GitHub → Actions → Dashboard-Daten aktualisieren → Run workflow.`, 'sd-warn');
+    if (s.late) p(`Die Action ist seit ${num(s.age, 1)} h nicht gelaufen. GitHub startet geplante Läufe oft Stunden später oder pausiert sie nach 60 Tagen ohne Commits (Secret PAT_PUSH verhindert das). Abhilfe: externer Anstoß über cron-job.org (README) · von Hand: GitHub → Actions → Dashboard-Daten aktualisieren → Run workflow.`, 'sd-warn');
     const cl = s.cl;
     if (s.live) p(`Im Browser: geladen ${cl.loadedAt ? hm(cl.loadedAt) : '–'}` + (cl.retried && cl.retried.length ? ` · nach Wiederholung: ${cl.retried.join(', ')}` : '')
       + (cl.cached && cl.cached.length ? ` · aus dem Zwischenspeicher (offline): ${cl.cached.length} Dateien` : '')
       + (cl.failed && cl.failed.length ? ` · nicht geladen: ${cl.failed.join(', ')} (die Seite lädt alle 10 Minuten neu)` : ''));
-    p('Rückfallebenen: 1) jede Anfrage bis zu 3 Versuche · 2) Bot-Dateien über Ersatzwege (GitHub-API, jsDelivr), Bot-Code als Tarball · '
+    p('Rückfallebenen: 0) Zeitgeber: jede Aktualisierung stößt Bots an, die heute noch nicht gelaufen sind · 1) jede Anfrage bis zu 3 Versuche · 2) Bot-Dateien über Ersatzwege (GitHub-API, jsDelivr), Bot-Code als Tarball · '
       + '3) fällt eine Quelle aus, bleibt nur ihr letzter gültiger Stand · 4) zweiter Durchgang nach 150 s · 5) Neustart des ganzen Laufs nach 5 min · '
       + '6) stündlicher Lauf · 7) ntfy-Push nach 3 gestörten Läufen in Folge · im Browser: 3 Ladeversuche je Datei, offline der gespeicherte Stand.');
   });
@@ -1043,7 +1043,7 @@
     const rows = rowsOf('wikifolios'), w = rows && rows.find((r) => r.key === el.dataset.key);
     if (!w) { el.textContent = '—'; return; }
     const n = [['test_days', 'test_days_req'], ['reservations', 'reservations_req'], ['capital_eur', 'capital_req_eur']].filter(([a, b]) => Number(w[a]) >= Number(w[b])).length;
-    el.textContent = `${n} von 3 Kriterien erfüllt` + (n === 3 && w.status !== 'Investierbar' ? ' – Emission ausstehend (wikifolio prüft; ggf. im wikifolio beantragen)' : '');
+    el.textContent = `${n} von 3 Kriterien erfüllt` + (n === 3 && w.status !== 'Investierbar' ? ' – Emission beantragt bzw. ausstehend (wikifolio prüft, dauert einige Wochen)' : '');
   });
 
   dash.draw('wfstatus', (el) => {

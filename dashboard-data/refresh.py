@@ -97,7 +97,8 @@ def get(url, tries=3, headers=None):
 
 def raw(repo, path, check=None):
     """Datei aus einem Bot-Repo (main): raw -> GitHub-API -> jsDelivr. Gibt (Text, Weg, Versuche) zurück."""
-    ways = [("raw.githubusercontent.com", f"https://raw.githubusercontent.com/{USER}/{repo}/main/{path}", None),
+    cb = int(NOW.timestamp())                           # gegen den 5-Minuten-Zwischenspeicher von raw.githubusercontent.com
+    ways = [("raw.githubusercontent.com", f"https://raw.githubusercontent.com/{USER}/{repo}/main/{path}?cb={cb}", None),
             ("GitHub-API (Ersatzweg)", f"https://api.github.com/repos/{USER}/{repo}/contents/{path}?ref=main",
              {"Accept": "application/vnd.github.raw"}),
             ("jsDelivr-Spiegel (Ersatzweg, bis 12 h verzögert)", f"https://cdn.jsdelivr.net/gh/{USER}/{repo}@main/{path}", None)]
@@ -465,6 +466,23 @@ def holdings():
         wjson("wikifolio_holdings.json", HOLDINGS_TEMPLATE)
 
 
+def kick_status():
+    """Ergebnis des Zeitgebers (kick_bots.py) in den Datenstatus übernehmen."""
+    f = os.environ.get("KICK_FILE")
+    if not f or not os.path.exists(f):
+        return
+    rows = json.load(open(f, encoding="utf-8"))
+    kicked = [r for r in rows if r.get("action") == "kicked"]
+    miss = [r for r in rows if r.get("action") == "missing_token"]
+    err = [r for r in rows if r.get("action") == "error"]
+    parts = [f"{r['name']}: {r['detail']}" for r in kicked + miss + err]
+    status = "warn" if (miss or err) else "ok"
+    detail = " · ".join(parts) if parts else "alle Bots heute schon gelaufen bzw. noch nicht fällig"
+    HEALTH["kick"] = {"id": "kick", "name": "Zeitgeber (Bots anstoßen)", "group": "Bots", "status": status, "detail": detail,
+                      "via": "GitHub-API workflow_dispatch", "tries": 1, "data_asof": NOW.date().isoformat(),
+                      "last_ok": NOW.isoformat(timespec="minutes"), "since": None}
+
+
 def performance(equity):
     try:
         issues, n = attempt(lambda: equity.run(WORK, OUT), 2, "Performance")
@@ -529,6 +547,7 @@ def main():
             performance(equity)
         return st
 
+    kick_status()
     st = run_all()
     passes = 1
     failed = {k for k, h in HEALTH.items() if h["status"] in BAD}
@@ -554,7 +573,7 @@ def main():
     except Exception as e:
         traceback.print_exc(); print("Push-Hinweise nicht geprüft:", reason(e))
 
-    order = [f"bot_{k}" for k in REPOS] + [f"daily_{m}" for _, m, _ in DAILY] + [f"wf_{k}" for k in WIKIFOLIOS] + ["perf"]
+    order = ["kick"] + [f"bot_{k}" for k in REPOS] + [f"daily_{m}" for _, m, _ in DAILY] + [f"wf_{k}" for k in WIKIFOLIOS] + ["perf"]
     health = sorted(HEALTH.values(), key=lambda h: order.index(h["id"]) if h["id"] in order else 99)
     worst = "error" if any(h["status"] == "error" for h in health) else "fallback" if any(h["status"] == "fallback" for h in health) \
         else "warn" if any(h["status"] == "warn" for h in health) else "retry_ok" if any(h["status"] == "retry_ok" for h in health) else "ok"
