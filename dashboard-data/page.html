@@ -89,6 +89,7 @@
   .sd-jump { display: flex; flex-wrap: wrap; gap: 6px; }
   .sd-jump button { font: inherit; font-size: var(--cds-font-size-caption); padding: 4px 10px; border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-panel); color: var(--color-fg); cursor: pointer; min-height: 32px; }
   .sd-stat-h { grid-column: 1 / -1; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-weight: 600; margin-top: 2px; }
+  .sd-marker { display: none; }
   .sd-narrow-only { display: none; font-weight: 400; color: var(--color-fg-muted); }
   @media (max-width: 520px) { .sd-narrow-only { display: inline; } }
   .sd-tl { display: flex; gap: 1px; height: 22px; border-radius: var(--cds-radius); overflow: hidden; }
@@ -238,7 +239,8 @@
         </div>
         <div class="sd-block">
           <div class="sd-block-h"><span>Kennzahlen (wikifolio.com)</span><span data-draw="emptylist" data-key="levgtaa" data-source="wikifolios"></span></div>
-          <div class="sd-stats" data-draw="hideempty" data-key="levgtaa" data-source="wikifolios">
+          <span class="sd-marker" data-draw="hideempty" data-key="levgtaa" data-source="wikifolios"></span>
+          <div class="sd-stats">
             <div class="sd-stat-h">Rendite &amp; Risiko</div>
             <div class="sd-stat"><span class="sd-label">Seit Jahresbeginn</span><span data-draw="val" data-source="wikifolios" data-field="perf_ytd" data-where="key=levgtaa" data-fmt="spctA">—</span></div>
             <div class="sd-stat"><span class="sd-label">Letzte 30 Tage</span><span data-draw="val" data-source="wikifolios" data-field="perf_1m" data-where="key=levgtaa" data-fmt="spctA">—</span></div>
@@ -299,7 +301,8 @@
         </div>
         <div class="sd-block">
           <div class="sd-block-h"><span>Kennzahlen (wikifolio.com)</span><span data-draw="emptylist" data-key="levtipsregime" data-source="wikifolios"></span></div>
-          <div class="sd-stats" data-draw="hideempty" data-key="levtipsregime" data-source="wikifolios">
+          <span class="sd-marker" data-draw="hideempty" data-key="levtipsregime" data-source="wikifolios"></span>
+          <div class="sd-stats">
             <div class="sd-stat-h">Rendite &amp; Risiko</div>
             <div class="sd-stat"><span class="sd-label">Seit Jahresbeginn</span><span data-draw="val" data-source="wikifolios" data-field="perf_ytd" data-where="key=levtipsregime" data-fmt="spctA">—</span></div>
             <div class="sd-stat"><span class="sd-label">Letzte 30 Tage</span><span data-draw="val" data-source="wikifolios" data-field="perf_1m" data-where="key=levtipsregime" data-fmt="spctA">—</span></div>
@@ -1155,11 +1158,11 @@
   const WF_FIELDS = {perf_ytd: 'Seit Jahresbeginn', perf_1m: 'Letzte 30 Tage', avg_pa: 'Ø pro Jahr', max_loss: 'Max. Verlust', vola: 'Volatilität',
     sharpe: 'Sharpe Ratio', ret_risk: 'Rendite/Risiko', trading_volume: 'Handelsvolumen', liquidation: 'Liquidationskennzahl', rank_place: 'Rangliste'};
   const wfRow = (k) => (rowsOf('wikifolios') || []).find((r) => r.key === k);
-  dash.draw('hideempty', (el) => {                     // Kennzahlen, die wikifolio noch nicht ausweist, ausblenden
-    const w = wfRow(el.dataset.key); if (!w) return;
+  dash.draw('hideempty', (el) => {                     // Kennzahlen, die wikifolio noch nicht ausweist, ausblenden (nur hidden setzen)
+    const w = wfRow(el.dataset.key), box = el.nextElementSibling; if (!w || !box) return;
     let head = null, shown = 0;
     const flush = () => { if (head) head.hidden = shown === 0; };
-    [...el.children].forEach((c) => {
+    [...box.children].forEach((c) => {
       if (c.classList.contains('sd-stat-h')) { flush(); head = c; shown = 0; return; }
       const f = c.querySelector('[data-source="wikifolios"][data-field]');
       const empty = f && f.dataset.field in WF_FIELDS && (w[f.dataset.field] == null || w[f.dataset.field] === '');
