@@ -1,1 +1,1 @@
-[{"built": "2026-10-29T00:08+01:00", "errors": "Performance: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`) and integer or boolean arrays are valid indices", "botAsOf": "2026-10-27"}]
+[{"built": "2026-10-29T09:19+01:00", "errors": "", "botAsOf": "2026-10-27"}]
