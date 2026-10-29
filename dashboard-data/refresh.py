@@ -544,6 +544,20 @@ def alert(health, streak, alerted):
     return alerted
 
 
+def us_closes():
+    """Letzter abgeschlossener und naechster NYSE-Handelstag (Bezug fuer „aktuell“ auf der Seite)."""
+    try:
+        import pandas as pd, pandas_market_calendars as mcal
+        now = pd.Timestamp.now(tz="UTC")
+        sch = mcal.get_calendar("XNYS").schedule(start_date=(now - pd.Timedelta(days=12)).date(), end_date=(now + pd.Timedelta(days=12)).date())
+        done = sch[sch["market_close"] <= now]
+        nxt = sch[sch["market_close"] > now]
+        return (done.index[-1].date().isoformat() if len(done) else None, nxt.index[0].date().isoformat() if len(nxt) else None)
+    except Exception as e:
+        print("Handelskalender nicht verfügbar:", e)
+        return None, None
+
+
 def main():
     import time
     os.makedirs(OUT, exist_ok=True); os.makedirs(WORK, exist_ok=True)
@@ -611,8 +625,10 @@ def main():
     man = {k: {"file": f, "title": t, "description": d} for k, (f, t, d) in MANIFEST.items()}
     missing = [k for k, m in man.items() if not os.path.exists(os.path.join(OUT, m["file"]))]
     wjson("manifest.json", {"datasets": man})
+    last_close, next_close = us_closes()
     wjson("build.json", [{"built": NOW.isoformat(timespec="minutes"), "errors": " · ".join(ERRORS),
-                          "botAsOf": (st or {}).get("levgtaa", {}).get("asOf")}])
+                          "botAsOf": (st or {}).get("levgtaa", {}).get("asOf"),
+                          "last_close": last_close, "next_close": next_close}])
     print(json.dumps({"built": NOW.isoformat(), "overall": worst, "passes": passes, "errors": ERRORS, "missing": missing},
                      ensure_ascii=False))
     if not any(h["status"] not in BAD for h in health):

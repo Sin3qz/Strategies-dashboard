@@ -228,3 +228,24 @@ war aber 2021–2026 schwächer (17,4 % vs. 21,8 %); 10 bleibt als Mitte des Pla
   15,8 % / Sharpe 1,21; fest 8/150 16,2 % / 1,24.
 - Fazit: 8/150 ist kein Zufallstreffer auf einer Spitze, sondern liegt in einem breiten, stabilen Bereich; eine
   „optimierte“ Auswahl bringt nichts. **Bleibt.**
+
+## Nachtrag 29.10.2026 (3): Aus welcher Position Cash holen?
+
+Frage: Beim Auffüllen des Cash (Gebühren) die Position verkaufen, die gegenüber der **gehaltenen** Allokation oder gegenüber
+dem **heute simulierten** Signal übergewichtet ist? Ziel: kein Verkauf, der beim nächsten Monatssignal zurückgekauft wird.
+
+levGTAA, Bot-Kern, 267 Monatsentscheidungen 2004–2026; Abstand = Umschlag zwischen Allokation und tatsächlicher Entscheidung:
+
+| Tage vor Monatssignal | Ø Abstand simuliert → Entscheidung | Ø Abstand gehalten → Entscheidung | stärkste Reduktion richtig vorhergesagt |
+|---|---|---|---|
+| 1 | 3,9 % | 16,3 % | 93 % |
+| 3 | 6,6 % | 16,3 % | 90 % |
+| 5 | 7,5 % | 16,3 % | 86 % |
+| 10 | 11,3 % | 16,3 % | 78 % |
+| 15 | 14,3 % | 16,3 % | 69 % |
+| 20 | 16,1 % | 16,3 % | 61 % |
+
+**Entscheidung (im Rechner, Ziel „Nur Cash auf Soll bringen“):** levGTAA in den letzten 10 Handelstagen vor dem
+Monatssignal Referenz = heute simuliertes Signal, sonst gehaltene Allokation. levTipsRegime (täglich, Cooldown): gehaltene
+Position, außer das Tagessignal weicht ab (Wechsel steht an). 1xGTAA (täglich, Cooldown 10, kein wikifolio): gleiche Regel
+wie levTipsRegime. Verkauft wird die Position, die gegenüber der Referenz am stärksten übergewichtet ist.
