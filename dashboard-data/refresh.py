@@ -566,7 +566,12 @@ def calendars():
             if d.date() not in de_days:
                 after = [x for x in sorted(de_days) if x > d.date()]
                 closed.append({"date": d.date().isoformat(), "next": after[0].isoformat() if after else None})
+        # Massstab fuer „aktuell“ wie in den Bots (common.expected_session_date): letzte Sitzung bis gestern (Berlin) –
+        # die Bots rechnen den Schluss eines Tages planmaessig am naechsten Morgen
+        yday = (now.tz_convert("Europe/Berlin") - pd.Timedelta(days=1)).date()
+        exp = [d.date() for d in sch.index if d.date() <= yday]
         return {"last_close": done.index[-1].date().isoformat() if len(done) else None,
+                "expected_close": exp[-1].isoformat() if exp else None,
                 "next_close": nxt.index[0].date().isoformat() if len(nxt) else None,
                 "nyse_sessions": " ".join(d.date().isoformat() for d in sch.index),
                 "de_closed": " ".join(f"{c['date']}>{c['next']}" for c in closed)}

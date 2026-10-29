@@ -1023,9 +1023,11 @@
   });
   const NAMES_S = {levgtaa: 'levGTAA', levtipsregime: 'levTips', mrreboundgtaa: 'MR-Rebound', '1xgtaa': '1xGTAA'};
   // Bezug fuer „aktuell“: letzter abgeschlossener NYSE-Handelstag laut Aktualisierung (Handelskalender), sonst neuester Bot-Stand
+  // Massstab fuer „aktuell“ wie bei den Bots: letzte NYSE-Sitzung bis gestern (die Bots rechnen morgens nach dem
+  // US-Schluss); abends nach Boersenschluss ist der Stand vom Vortag also noch planmaessig aktuell
   const refClose = () => {
     const b = (rowsOf('build') || [])[0] || {};
-    return b.last_close || (rowsOf('strategies') || []).map((r) => String(r.asOf || '')).sort().pop() || null;
+    return b.expected_close || b.last_close || (rowsOf('strategies') || []).map((r) => String(r.asOf || '')).sort().pop() || null;
   };
   // Handelstage zwischen zwei Daten: echte NYSE-Sitzungen aus build.json (Feiertage beachtet), sonst Mo–Fr
   const sessions = () => String(((rowsOf('build') || [])[0] || {}).nyse_sessions || '').split(' ').filter(Boolean);
@@ -1051,7 +1053,7 @@
   };
   window.sdFresh = {tdBehind, tdBetween, freshTxt, refClose, deClosed};
   dash.draw('lastclose', (el) => {
-    const ref = refClose(); const b = (rowsOf('build') || [])[0] || {};
+    const b = (rowsOf('build') || [])[0] || {}; const ref = b.last_close || refClose();
     el.textContent = ref ? deDate(ref) + (b.next_close ? ` (nächster ${deDate(b.next_close).slice(0, 6)})` : '') : '—';
   });
   dash.draw('heldwhen', (el) => {
