@@ -48,6 +48,7 @@ LABEL = {"levgtaa": "levGTAA", "levtips": "levTipsRegime", "levtips_old": "levTi
          "mix_a": "Mix A: 1/3 levTipsRegime + 2/3 levGTAA", "mix_b": "Mix B: je 1/3 levTipsRegime, 1xGTAA, levGTAA"}
 MIXES = {"mix_a": {"levtips": 1 / 3, "levgtaa": 2 / 3}, "mix_b": {"levtips": 1 / 3, "1xgtaa": 1 / 3, "levgtaa": 1 / 3}}   # gleichgewichtet (ab 29.10.2026)
 WF_START = "2026-10-01"   # Erstellung beider wikifolios (Index 100)
+WF_FEE_CERT, WF_FEE_PERF = 0.0095, 0.05   # wikifolio-Gebuehren beider wikifolios (Zertifikate- und Performancegebuehr)
 
 
 def load_prices(grid):
@@ -169,6 +170,7 @@ def stats(s):
     # Performancegebuehr bei jedem neuen Hoch, auch wenn der Kurs bis Monatsende wieder faellt)
     v = s.values
     hi = np.array([v[i + 1:i + 22].max() / v[i] - 1 for i in range(len(v) - 21)]) if len(v) > 42 else np.array([])
+    hi2 = np.array([v[i + 1:i + 3].max() / v[i] - 1 for i in range(len(v) - 2)]) if len(v) > 42 else np.array([])   # 2 Handelstage (Cash-Waechter)
     return {
         "start": s.index[0].date().isoformat(), "end": s.index[-1].date().isoformat(), "years": round(yrs, 2),
         "total": s.iloc[-1] / s.iloc[0] - 1,
@@ -180,6 +182,7 @@ def stats(s):
         "y1": s.iloc[-1] / a1.iloc[-1] - 1 if len(a1) else None,
         "best_month": mr.max(), "worst_month": mr.min(), "pos_months": float((mr > 0).mean()),
         "hi1m_q90": float(np.quantile(hi, 0.9)) if len(hi) else None, "hi1m_q95": float(np.quantile(hi, 0.95)) if len(hi) else None,
+        "hi2d_q95": float(np.quantile(hi2, 0.95)) if len(hi2) else None,
     }, mr
 
 
@@ -224,7 +227,16 @@ def run(work, out_dir, grid_start="2009-01-01"):
     for k, key in (("levgtaa", "levgtaa"), ("levtips", "levtipsregime")):
         s = series[k][series[k].index >= pd.Timestamp(WF_START)]
         if len(s):
-            track += [{"date": d.date().isoformat(), "key": key, "bot": round(float(v / s.iloc[0] * 100), 3)} for d, v in s.items()]
+            # zusaetzlich nach wikifolio-Gebuehren (zieht wikifolio auch vor der Emission schon simulativ ab):
+            # Zertifikategebuehr 0,95 % p. a. je Kalendertag, 5 % Performancegebuehr auf jedes neue Hoch ueber der HWM
+            net, hwm, prev = 100.0, 100.0, None
+            for d, v in s.items():
+                if prev is not None:
+                    net *= v / prev[1] * (1 - WF_FEE_CERT * (d - prev[0]).days / 365)
+                    if net > hwm:
+                        net -= WF_FEE_PERF * (net - hwm); hwm = net
+                prev = (d, v)
+                track.append({"date": d.date().isoformat(), "key": key, "bot": round(float(v / s.iloc[0] * 100), 3), "bot_net": round(net, 3)})
     # aktuelle Produktkurse (Rechner)
     px = []
     for k, (name, isin, t, ccy) in PRODUCTS.items():

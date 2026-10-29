@@ -12,6 +12,10 @@ on:
         description: "Alle vier Bots jetzt neu rechnen lassen (auch wenn sie heute schon gelaufen sind)"
         type: boolean
         default: false
+      ntfy_test:
+        description: "Test-Nachricht an dein ntfy-Topic senden"
+        type: boolean
+        default: false
   # Nach jedem Merge von Code-Änderungen sofort neu rechnen (Daten-Commits unter data/ lösen nichts aus -> keine Schleife)
   push:
     branches: [main]
@@ -56,7 +60,8 @@ jobs:
       - name: Daten neu berechnen
         env:
           KICK_FILE: ${{ runner.temp }}/kick.json
-          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}       # optional: Push bei gekipptem Tagessignal (gleiches Topic wie die Bots)
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}       # Push bei gekipptem Tagessignal und Cash-Wächter (gleiches Topic wie die Bots)
+          NTFY_TEST: ${{ inputs.ntfy_test && 'true' || 'false' }}
           NTFY_SERVER: ${{ secrets.NTFY_SERVER }}
           RETRY_WAIT: "150"                           # Rückfallebene: ausgefallene Quellen nach 150 s ein zweites Mal holen
         run: |

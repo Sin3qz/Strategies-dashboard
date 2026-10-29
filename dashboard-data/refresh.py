@@ -420,6 +420,7 @@ MANIFEST = {
     "prices": ("prices.json", "Produktkurse", "Letzter Kurs je gehandeltem Produkt in EUR (Yahoo; USD/Pence mit EURUSD/EURGBP umgerechnet)."),
     "holdings": ("wikifolio_holdings.json", "wikifolio-Positionen (deine Eingabe)", "Stückzahlen je Produkt in den wikifolios, von dir gepflegt (wikifolio zeigt Positionen nur angemeldet)."),
     "timeline": ("timeline.json", "Zeitbalken der Bots", "Gehaltene Position der letzten 120 Handelstage bzw. Monatsentscheidungen je Strategie (timeline aus status_*.json)."),
+    "cash_watch": ("cash_watch.json", "Cash-Wächter", "Geschätztes Cash je wikifolio nach Gebühren seit dem letzten Handel bzw. deiner Eingabe, Reserve für 2 Handelstage, Auffüll-Vorschlag (cashwatch.py)."),
     "health": ("health.json", "Datenstatus", "Status jeder Datenquelle des letzten Laufs: ok, mit Wiederholung geladen, Warnung, letzter Stand (Rückfallebene) oder Fehler, mit Grund, Weg und letztem Erfolg."),
     "build": ("build.json", "Letzte Aktualisierung", "Zeitpunkt des letzten Laufs der Aktualisierung und Quellen, die dabei nicht geladen werden konnten."),
     "wikifolios": ("wikifolios.json", "wikifolio-Kennzahlen",
@@ -481,6 +482,27 @@ def kick_status():
     HEALTH["kick"] = {"id": "kick", "name": "Zeitgeber (Bots anstoßen)", "group": "Bots", "status": status, "detail": detail,
                       "via": "GitHub-API workflow_dispatch", "tries": 1, "data_asof": NOW.date().isoformat(),
                       "last_ok": NOW.isoformat(timespec="minutes"), "since": None}
+
+
+def push_status(sent):
+    """Zeile „Push (ntfy)“ im Datenstatus: Topic gesetzt? letzte Sendung ok?"""
+    import send_ntfy as N
+    url, topic, err = N._target()
+    prev = PREV_HEALTH.get("push", {})
+    if not topic and not err:
+        st, det = "warn", "Secret NTFY_TOPIC fehlt im Repo Strategies-dashboard – Hinweise werden nicht gesendet"
+    elif err:
+        st, det = "warn", err
+    elif any(ok is False for _, ok in sent):
+        st, det = "warn", "Senden fehlgeschlagen: " + (N.LAST_ERROR or "unbekannter Fehler") + " (nächster Lauf wiederholt)"
+    elif sent:
+        st, det = "ok", "gesendet: " + ", ".join(t for t, _ in sent)
+    else:
+        st, det = "ok", "Topic gesetzt; nichts zu melden" + (f" (zuletzt: {prev.get('last_sent')})" if prev.get("last_sent") else "")
+    HEALTH["push"] = {"id": "push", "name": "Push (ntfy)", "group": "Hinweise", "status": st, "detail": det, "via": "ntfy.sh",
+                      "tries": 1, "data_asof": NOW.date().isoformat(), "last_ok": NOW.isoformat(timespec="minutes"), "since": None,
+                      "last_sent": (", ".join(t for t, ok in sent if ok) + NOW.strftime(" am %d.%m. %H:%M")) if any(ok for _, ok in sent)
+                      else prev.get("last_sent")}
 
 
 def performance(equity):
@@ -570,10 +592,11 @@ def main():
         sent = notify.run(OUT) or []
         for t, ok in sent:
             print("Push:", t, "->", ok)
+        push_status(sent)
     except Exception as e:
         traceback.print_exc(); print("Push-Hinweise nicht geprüft:", reason(e))
 
-    order = ["kick"] + [f"bot_{k}" for k in REPOS] + [f"daily_{m}" for _, m, _ in DAILY] + [f"wf_{k}" for k in WIKIFOLIOS] + ["perf"]
+    order = ["kick"] + [f"bot_{k}" for k in REPOS] + [f"daily_{m}" for _, m, _ in DAILY] + [f"wf_{k}" for k in WIKIFOLIOS] + ["perf", "push"]
     health = sorted(HEALTH.values(), key=lambda h: order.index(h["id"]) if h["id"] in order else 99)
     worst = "error" if any(h["status"] == "error" for h in health) else "fallback" if any(h["status"] == "fallback" for h in health) \
         else "warn" if any(h["status"] == "warn" for h in health) else "retry_ok" if any(h["status"] == "retry_ok" for h in health) else "ok"

@@ -201,3 +201,30 @@ Regel im Rechner: Puffer = 0,08 % Monatsgebühr + 5 % × (höchster Stand in 21 
 (levGTAA 26,7 % / 20,6 %, levTipsRegime 17,7 % / 14,3 %). Bei levTipsRegime (täglich mit Cooldown, Wechsel selten) ist der
 monatliche Cash-Check nötig: ohne ihn läuft das Cash in 15–21 % der Zeiträume leer. Der Puffer kostet im Mittel
 0,1–0,3 Pp Rendite im Jahr.
+
+## Nachtrag 29.10.2026 (2): 1xGTAA täglich vs. monatlich (Kosten) und Overfitting-Test SMA8/150
+
+**Kosten und Umschlag** (2009-07 bis 2026-10, SMA8/150, 1/3/6/12, 40/60; Umschlag = umgeschichteter Anteil pro Jahr):
+
+| Variante | Trades p. a. | Umschlag p. a. | Kosten p. a. bei 0,1 % | CAGR brutto | 0,1 % | 0,2 % | 0,3 % | 0,5 % | MaxDD | Sharpe |
+|---|---|---|---|---|---|---|---|---|---|---|
+| täglich, Cooldown 10 (aktuell) | 16,9 | 13,7× | 1,37 % | 16,6 % | 15,1 % | 13,6 % | 12,2 % | 9,3 % | −17,1 % | 1,12 |
+| täglich, Cooldown 5 | 24,2 | 19,4× | 1,94 % | 16,6 % | 14,5 % | 12,5 % | 10,5 % | 6,6 % | −15,3 % | 1,08 |
+| täglich, Cooldown 15 | 13,0 | 10,8× | 1,08 % | 17,0 % | 15,8 % | 14,7 % | 13,5 % | 11,2 % | −13,0 % | 1,16 |
+| monatlich (Monatsletzter) | 12,7 | 7,4× | 0,74 % | 14,2 % | 13,4 % | 12,7 % | 11,9 % | 10,3 % | −20,5 % | 0,99 |
+| monatlich (1. Handelstag) | 12,5 | 7,2× | 0,72 % | 13,5 % | 12,7 % | 12,0 % | 11,2 % | 9,7 % | −25,7 % | 0,93 |
+
+Täglich mit Cooldown kostet knapp doppelt so viel, bringt brutto aber 2,4 Pp mehr. Der Vorsprung hält bis etwa
+0,35 % Kosten je umgeschichtetem Euro (ETF-Spreads im wikifolio typischerweise 0,05–0,2 %). Cooldown 15 läge vorn,
+war aber 2021–2026 schwächer (17,4 % vs. 21,8 %); 10 bleibt als Mitte des Plateaus 5–15.
+
+**Overfitting SMA8/150:**
+- CSCV (Bailey/López de Prado): 56 SMA-Paare (S 1–30 × L 100–250), 16 Zeitblöcke, alle 12.870 Aufteilungen in
+  8 in-sample / 8 out-of-sample. **PBO 28 %** (Anteil, in dem das in-sample beste Paar out-of-sample unter dem Median liegt;
+  50 % hieße: Auswahl wertlos). Sharpe des in-sample Besten fällt von 1,16 auf 1,09 (normaler Auswahl-Abschlag).
+- **SMA8/150 liegt out-of-sample in 96 % der Aufteilungen über dem Median** (Median-Perzentil 88 %); über alles Rang 6
+  von 56 (Sharpe 1,12; bestes Paar 10/175 mit 1,14; Median 1,06).
+- Walk-forward: jedes Jahr das in den 5 Vorjahren beste Paar nehmen (ohne Blick in die Zukunft) ergibt 2015–2026 CAGR
+  15,8 % / Sharpe 1,21; fest 8/150 16,2 % / 1,24.
+- Fazit: 8/150 ist kein Zufallstreffer auf einer Spitze, sondern liegt in einem breiten, stabilen Bereich; eine
+  „optimierte“ Auswahl bringt nichts. **Bleibt.**
