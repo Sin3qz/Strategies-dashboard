@@ -20,5 +20,13 @@
   "date": "2026-10-28"
  },
  "wf_levgtaa": "Vorschau",
- "wf_levtipsregime": "Vorschau"
+ "wf_levtipsregime": "Vorschau",
+ "cash_levgtaa": {
+  "level": "ok",
+  "date": "2026-10-29"
+ },
+ "cash_levtipsregime": {
+  "level": "ok",
+  "date": "2026-10-29"
+ }
 }
