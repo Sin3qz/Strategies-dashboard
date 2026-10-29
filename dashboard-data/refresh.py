@@ -420,6 +420,7 @@ MANIFEST = {
     "prices": ("prices.json", "Produktkurse", "Letzter Kurs je gehandeltem Produkt in EUR (Yahoo; USD/Pence mit EURUSD/EURGBP umgerechnet)."),
     "holdings": ("wikifolio_holdings.json", "wikifolio-Positionen (deine Eingabe)", "Stückzahlen je Produkt in den wikifolios, von dir gepflegt (wikifolio zeigt Positionen nur angemeldet)."),
     "timeline": ("timeline.json", "Zeitbalken der Bots", "Gehaltene Position der letzten 120 Handelstage bzw. Monatsentscheidungen je Strategie (timeline aus status_*.json)."),
+    "holdings_log": ("holdings_log.csv", "Gespeicherte Positionen (Verlauf)", "Jede Speicherung aus dem Rechner: Zeitpunkt, Stand, wikifolio, Produkt, Stück, Kurs und Wert in EUR (save_holdings.py)."),
     "cash_watch": ("cash_watch.json", "Cash-Wächter", "Geschätztes Cash je wikifolio nach Gebühren seit dem letzten Handel bzw. deiner Eingabe, Reserve für 2 Handelstage, Auffüll-Vorschlag (cashwatch.py)."),
     "health": ("health.json", "Datenstatus", "Status jeder Datenquelle des letzten Laufs: ok, mit Wiederholung geladen, Warnung, letzter Stand (Rückfallebene) oder Fehler, mit Grund, Weg und letztem Erfolg."),
     "build": ("build.json", "Letzte Aktualisierung", "Zeitpunkt des letzten Laufs der Aktualisierung und Quellen, die dabei nicht geladen werden konnten."),
@@ -456,8 +457,8 @@ def step(name, fn):
 
 
 HOLDINGS_TEMPLATE = [   # wird nur angelegt, wenn die Datei fehlt; deine Eintraege ueberschreibt die Aktualisierung nie
-    {"wikifolio": "levgtaa", "product": p, "stueck": 0, "kurs_eur": None, "stand": None} for p in ("NDX3", "BTC1", "UST3", "GOLD3")
-] + [{"wikifolio": "levtipsregime", "product": p, "stueck": 0, "kurs_eur": None, "stand": None} for p in ("SPX3", "BTC1", "UST3")
+    {"wikifolio": "levgtaa", "product": p, "stueck": 0, "kurs_eur": None, "stand": None} for p in ("NDX3", "BTC1", "UST3", "GOLD3", "MM")
+] + [{"wikifolio": "levtipsregime", "product": p, "stueck": 0, "kurs_eur": None, "stand": None} for p in ("SPX3", "BTC1", "UST3", "MM")
 ] + [{"wikifolio": w, "product": "CASH", "stueck": 0, "kurs_eur": 1, "stand": None} for w in ("levgtaa", "levtipsregime")]
 
 

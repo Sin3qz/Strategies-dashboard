@@ -57,12 +57,21 @@ das mit einem externen Anstoß der Aktualisierung:
 curl -X POST -H "Authorization: Bearer DEIN_TOKEN" -H "Accept: application/vnd.github+json" -H "Content-Type: application/json" -d '{"ref":"main"}' https://api.github.com/repos/Sin3qz/Strategies-dashboard/actions/workflows/refresh-dashboard.yml/dispatches
 ```
 
+## Positionen dauerhaft speichern
+Im Tab **Rechner** Stückzahlen und Cash (auch negativ) eintragen → **„Auf GitHub speichern“**. Der Knopf startet den
+Workflow `save-holdings.yml` (Token: Fine-grained, nur Strategies-dashboard, **Actions: Read and write** – dasselbe wie bei
+cron-job.org; es bleibt nur im Browser). Der Workflow prüft die Eingabe, schreibt `data/wikifolio_holdings.json`, hängt den
+Stand an `data/holdings_log.csv` an (Verlauf im Rechner) und rechnet das Dashboard neu. Nach jedem Handel bzw. zum
+Monatswechsel speichern; der Cash-Wächter rechnet nur mit gespeicherten Ständen nach dem letzten Bot-Handel.
+Cash-Baustein: Geldmarkt-ETF Xtrackers II EUR Overnight Rate Swap 1C (XEON, LU0290358497); der Rechner legt den
+Bot-Cash-Anteil (abzüglich Gebühren-Puffer) dort an (Schalter „Bot-Cash im Geldmarkt-ETF halten“).
+
 ## Cash-Wächter und Push (ntfy)
 Secret **`NTFY_TOPIC`** im Repo Strategies-dashboard (gleiches Topic wie bei den Bots). Das Dashboard meldet:
 gekipptes Tagessignal, wikifolio investierbar, **Cash-Puffer fast leer** (Reserve für die nächsten 2 Handelstage reicht nicht
-mehr) bzw. **negativ**. Der Cash-Wächter (`dashboard-data/cashwatch.py`) schätzt das wikifolio-Cash aus deiner Eingabe im
-Rechner (auf GitHub gespeichert) oder – ohne Eingabe – aus dem Rechner-Vorschlag beim letzten Bot-Handel, minus
-Zertifikategebühr je Tag und Performancegebühr bei jedem neuen Hoch (zieht wikifolio auch vor der Emission schon simulativ ab).
+mehr) bzw. **negativ**. Der Cash-Wächter (`dashboard-data/cashwatch.py`) rechnet ab deinem gespeicherten Cash (ohne Eingabe: „unbekannt“, keine
+Annahmen) die Zertifikategebühr je Tag und die Performancegebühr bei jedem neuen Hoch ab (zieht wikifolio auch vor der
+Emission schon simulativ ab). Geldmarkt-ETF zählt als Anlage, nicht als Cash.
 Test: *Run workflow* mit Haken **„Test-Nachricht an dein ntfy-Topic senden“**; der Datenstatus zeigt die Zeile „Push (ntfy)“.
 
 ## Alle Signale jetzt neu rechnen (von Hand)

@@ -2,22 +2,24 @@
 
 wikifolio entnimmt beide Gebuehren dem Cash, auch vor der Emission schon simulativ: Zertifikategebuehr 0,95 % p. a.
 (je Kalendertag) und 5 % Performancegebuehr auf jedes neue Hoch ueber der High-Watermark. Ein negatives Cash muss bei
-investierbaren wikifolios binnen 7 Tagen ausgeglichen werden; waehrend der Emission darf es nicht negativ werden.
+investierbaren wikifolios binnen 7 Tagen ausgeglichen werden; im Emissionsprozess darf es nicht negativ sein.
 
-Startpunkt der Schaetzung (je wikifolio):
-  - deine Eingabe (data/wikifolio_holdings.json, Stand-Datum nach dem letzten Bot-Handel): Cash und Stueckzahlen
-  - sonst: letzter Bot-Handel, Cash = Bot-Cash bzw. der Puffer-Vorschlag des Rechners an diesem Tag
-Davon gehen die Gebuehren seit diesem Tag ab (Kurs und HWM aus der eigenen Aufzeichnung wikifolio_history.csv).
-Warnung, wenn das Cash die Gebuehren der naechsten 2 Handelstage (bis 4 Kalendertage Zertifikategebuehr + Performance-
-gebuehr bei einem starken 2-Tage-Anstieg, 95-%-Wert der Strategie) nicht mehr sicher deckt; Alarm, wenn es negativ ist.
-Ergebnis in data/cash_watch.json (Anzeige auf der Seite wikifolios), Meldungen ueber notify_state.json entprellt.
+Grundlage ist NUR deine Eingabe (Rechner -> „Auf GitHub speichern“, data/wikifolio_holdings.json): Cash in EUR und
+Stueckzahlen am Stand-Datum. Ohne Eingabe nach dem letzten Bot-Handel meldet der Waechter „unbekannt“ (keine Annahmen).
+Geldmarkt-ETF (MM) zaehlt als Anlage, nicht als Cash. Wert des wikifolios = Summe deiner Positionen, sonst Index x 1.000
+(wikifolio startet mit 100.000 EUR bei Index 100).
+Von deinem Cash gehen ab: Zertifikategebuehr je Kalendertag (auf den Tageswert) und die Performancegebuehr jeder
+HWM-Erhoehung seit dem Stand-Datum (eigene Aufzeichnung wikifolio_history.csv).
+Warnung, wenn das Cash die Gebuehren der naechsten 2 Handelstage nicht mehr sicher deckt: bis 4 Kalendertage
+Zertifikategebuehr + Performancegebuehr bei einem starken 2-Tage-Anstieg (95-%-Wert; anteilig nach Risiko-Anteil, der
+Geldmarkt-Anteil steigt kaum). Alarm, wenn das Cash negativ ist. Ergebnis in data/cash_watch.json.
 """
 import csv, datetime as dt, json, math, os
 
 URL = "https://sin3qz.github.io/Strategies-dashboard/#rechner"
 STRAT = {"levgtaa": "levgtaa", "levtipsregime": "levtips"}
 NAME = {"levgtaa": "LevGTAA", "levtipsregime": "LevTipsRegime"}
-PRODUCT_KEYS = {"levgtaa": ("NDX3", "BTC1", "UST3", "GOLD3"), "levtipsregime": ("SPX3", "BTC1", "UST3")}
+MM_HI1M, MM_HI2D = 0.003, 0.0005        # Geldmarkt-ETF: hoechster Stand binnen 21 bzw. 2 Handelstagen (grosszuegig)
 
 
 def _load(path, default):
@@ -48,10 +50,11 @@ def stage(w):
     return "invest" if w.get("status") == "Investierbar" else "emission" if crit_met(w) == 3 else "preview"
 
 
-def reserve(w, ps, gap):
-    """Gleiche Regel wie der Rechner (page.html reserveSuggest)."""
+def reserve(w, ps, gap, risky=1.0):
+    """Gleiche Regel wie der Rechner (page.html reserveSuggest); risky = Anteil in Risiko-Bausteinen (Rest Geldmarkt)."""
     st = stage(w)
-    strong = ps.get("hi1m_q95" if st == "emission" else "hi1m_q90") or 0.2
+    q = ps.get("hi1m_q95" if st == "emission" else "hi1m_q90") or 0.2
+    strong = risky * q + (1 - risky) * MM_HI1M
     need = 1 / (1 + gap) - 1 if gap < 0 else 0.0
     fee, perf = float(w.get("fee_cert") or 0.0095) / 12, float(w.get("fee_perf") or 0.05)
     return min(0.01, max(0.0, math.ceil((fee + perf * max(0.0, strong - need)) * 2000) / 2000 + 0.0005))
@@ -60,86 +63,78 @@ def reserve(w, ps, gap):
 def estimate(key, w, hist, strat, alloc, ps, holds, px, today):
     fee_c, fee_p = float(w.get("fee_cert") or 0.0095), float(w.get("fee_perf") or 0.05)
     p_now, hwm_now = float(w["price"]), float(w["high_watermark"])
-    created = _d(w.get("created"))
-    start_px = p_now / (1 + float(w.get("perf_since_start") or 0))
     rows = sorted((r for r in hist if r["key"] == key and r.get("price")), key=lambda r: r["date"])
-    bot_cash = max(0.0, 1 - sum(float(a["weight"] or 0) for a in alloc if a["strategy"] == key and a["asset"] != "CASH"))
     out = {"key": key, "name": NAME[key], "stage": stage(w), "date": today.isoformat()}
-    if bot_cash > 0.98:
-        return {**out, "level": "ok", "cash": 1.0, "basis": "Bot steht in Cash",
-                "detail": "Das wikifolio steht laut Bot komplett in Cash – die Gebühren sind gedeckt."}
 
-    # letzter Bot-Handel (Puffer wird beim Handel gesetzt)
     s = next((x for x in strat if x["key"] == key), {})
+    created = _d(w.get("created"))
     trade = _d(s.get("tradeDate")) or (_next_bd(_d(s["since"])) if s.get("since") else None) or created
-    trade = max(trade, created) if created else trade
+    trade = max(trade, created) if (trade and created) else trade
 
-    # Startpunkt: deine Eingabe, wenn sie nach dem letzten Handel liegt
     h = [x for x in holds if x.get("wikifolio") == key]
-    h_date = max((_d(x.get("stand")) for x in h if x.get("stand")), default=None)
-    price_of = {x["key"]: float(x["price_eur"]) for x in px}
-    val = sum(float(x.get("stueck") or 0) * float(x.get("kurs_eur") or price_of.get(x["product"], 0)) for x in h if x["product"] != "CASH")
-    cash_eur = sum(float(x.get("stueck") or 0) for x in h if x["product"] == "CASH")
+    cash_row = next((x for x in h if x.get("product") == "CASH" and x.get("stand")), None)
+    h_date = _d(cash_row["stand"]) if cash_row else None
+    if not cash_row or (trade and h_date < trade):
+        why = ("noch keine Eingabe" if not cash_row else
+               f"deine Eingabe vom {h_date:%d.%m.%Y} liegt vor dem letzten Bot-Handel ({trade:%d.%m.%Y})")
+        return {**out, "level": "unknown", "basis": why,
+                "detail": f"Cash unbekannt ({why}). Im Rechner Stückzahlen und Cash eintragen und „Auf GitHub speichern“ "
+                          "– dann rechnet der Wächter jeden Tag die Gebühren ab und meldet sich rechtzeitig."}
 
-    def px_at(d):                                       # wikifolio-Kurs am Tag d (eigene Aufzeichnung, sonst Startkurs/heute)
+    price_of = {x["key"]: float(x["price_eur"]) for x in px}
+    val = {x["product"]: float(x.get("stueck") or 0) * float(x.get("kurs_eur") or price_of.get(x["product"], 0) or 0)
+           for x in h if x["product"] != "CASH"}
+    cash_eur = float(cash_row.get("stueck") or 0)
+
+    def px_at(d):                                       # wikifolio-Kurs am Tag d (eigene Aufzeichnung)
         before = [r for r in rows if r["date"] <= d.isoformat()]
-        if before:
-            return float(before[-1]["price"])
-        return start_px if created and d <= created + dt.timedelta(days=3) else (float(rows[0]["price"]) if rows else p_now)
+        return float(before[-1]["price"]) if before else (float(rows[0]["price"]) if rows else p_now)
 
     def hwm_at(d):
         before = [r for r in rows if r["date"] <= d.isoformat() and r.get("high_watermark")]
-        if before:
-            return float(before[-1]["high_watermark"])
-        if created and d <= created + dt.timedelta(days=3):
-            return start_px                             # Start: HWM = Startkurs
-        return float(rows[0]["high_watermark"]) if rows and rows[0].get("high_watermark") else hwm_now
+        return float(before[-1]["high_watermark"]) if before else hwm_now
 
-    if h_date and h_date >= trade and val + cash_eur > 0:
-        d0, c0 = h_date, cash_eur / (val + cash_eur)
-        basis = f"deine Eingabe vom {d0:%d.%m.%Y} ({cash_eur:,.0f} € Cash)".replace(",", ".")
-        total_eur = (val + cash_eur) * p_now / px_at(d0)
-    else:
-        d0 = trade
-        gap0 = min(0.0, px_at(d0) / hwm_at(d0) - 1)
-        c0 = max(bot_cash, reserve(w, ps, gap0))
-        basis = (f"Annahme: beim letzten Handel ({d0:%d.%m.%Y}) lag der Rechner-Vorschlag im Cash"
-                 + (f" ({c0 * 100:.2f} %)".replace(".", ",")))
-        total_eur = None
-
-    # Gebuehren seit d0 in Indexpunkten (Cash in Indexpunkten = Anteil x Kurs)
-    c = c0 * px_at(d0)
-    d = d0
+    p0 = px_at(h_date)
+    pos = sum(val.values())
+    total0 = pos + cash_eur if pos > 0 else p0 * 1000          # ohne Stueckzahlen: Index x 1.000
+    units = total0 / p0                                         # Zertifikate-Einheiten (Wert = Einheiten x Index)
+    bot_risky = min(1.0, sum(float(a.get("weight") or 0) for a in alloc if a["strategy"] == key and a["asset"] != "CASH"))
+    risky = 1 - (val.get("MM", 0) / pos) if pos > 0 else bot_risky     # ohne Stueckzahlen: Risiko-Anteil laut Bot
+    c = cash_eur
+    d = h_date
     while d < today:
         d += dt.timedelta(days=1)
-        c -= fee_c / 365 * px_at(d)
-    h0 = hwm_at(d0)
-    c -= fee_p * max(0.0, hwm_now - h0)                 # jede HWM-Erhoehung = bezahlte Performancegebuehr
-    cash = c / p_now
+        c -= fee_c / 365 * px_at(d) * units
+    c -= fee_p * max(0.0, hwm_now - hwm_at(h_date)) * units    # jede HWM-Erhoehung = bezahlte Performancegebuehr
+    total = p_now * units
+    cash = c / total
 
     gap = min(0.0, p_now / hwm_now - 1)
     need = 1 / (1 + gap) - 1 if gap < 0 else 0.0
-    q2 = ps.get("hi2d_q95") or 0.08
+    q2 = risky * (ps.get("hi2d_q95") or 0.08) + (1 - risky) * MM_HI2D
     need2 = 4 * fee_c / 365 + fee_p * max(0.0, q2 - need)
     burn = fee_c / 365
     days = (cash / burn) if cash > 0 else 0
-    target = reserve(w, ps, gap)
+    target = reserve(w, ps, gap, risky)
     top = max(0.0, target - cash)
     level = "neg" if cash < 0 else "warn" if cash < need2 else "ok"
-    eur = (lambda x: f" (≈ {x * total_eur:,.0f} €)".replace(",", ".")) if total_eur else (lambda x: "")
+    e = lambda x: f"{x * total:,.0f} €".replace(",", ".").replace("-", "−")
     pc = lambda x: f"{x * 100:.2f} %".replace(".", ",").replace("-", "−")
     if level == "ok":
-        detail = (f"Cash geschätzt {pc(cash)}{eur(cash)}, reicht für die Zertifikategebühr noch etwa {days:.0f} Tage; "
+        detail = (f"Cash geschätzt {e(cash)} ({pc(cash)}), reicht für die Zertifikategebühr noch etwa {days:.0f} Tage; "
                   f"Reserve für die nächsten 2 Handelstage {pc(need2)}.")
     else:
-        detail = (("Cash geschätzt NEGATIV: " if level == "neg" else "Cash-Puffer fast leer: ")
-                  + f"{pc(cash)}{eur(cash)}, nötig für die nächsten 2 Handelstage bis {pc(need2)}. "
-                  + f"Auf {pc(target)} auffüllen, also etwa {pc(top)}{eur(top)} verkaufen (Rechner zeigt die Order)."
-                  + (" Emission läuft: das Cash darf nicht negativ werden." if out["stage"] == "emission" else
+        detail = (("Cash NEGATIV: " if level == "neg" else "Cash-Puffer fast leer: ")
+                  + f"geschätzt {e(cash)} ({pc(cash)}), nötig für die nächsten 2 Handelstage bis {pc(need2)}. "
+                  + f"Auf {pc(target)} auffüllen: etwa {e(top)} verkaufen (Rechner zeigt die Order)."
+                  + (" Emission läuft: das Cash darf im Emissionsprozess nicht negativ sein – heute ausgleichen."
+                     if out["stage"] == "emission" else
                      " Negatives Cash muss binnen 7 Tagen ausgeglichen werden." if out["stage"] == "invest" else ""))
-    return {**out, "level": level, "cash": round(cash, 6), "cash_eur": round(cash * total_eur, 2) if total_eur else None,
+    return {**out, "level": level, "cash": round(cash, 6), "cash_eur": round(c, 2), "total_eur": round(total, 2),
             "need2": round(need2, 6), "days": round(days, 1), "target": target, "topup": round(top, 6),
-            "topup_eur": round(top * total_eur, 2) if total_eur else None, "since": d0.isoformat(), "basis": basis, "detail": detail}
+            "topup_eur": round(top * total, 2), "since": h_date.isoformat(),
+            "basis": f"deine Eingabe vom {h_date:%d.%m.%Y}: {cash_eur:,.2f} € Cash".replace(",", "X").replace(".", ",").replace("X", "."),
+            "detail": detail}
 
 
 def run(out_dir, state, send=None, today=None):

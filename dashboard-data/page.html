@@ -129,6 +129,8 @@
   .sd-field { display: grid; gap: 4px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
   .sd input, .sd select, .sd textarea { font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 5px 8px; }
   .sd-field select { min-width: 11rem; }
+  .sd-field.sd-check { display: flex; align-items: center; gap: 6px; min-height: 36px; color: var(--color-fg); font-size: var(--cds-font-size-body); }
+  .sd-field.sd-check input { width: 18px; height: 18px; margin: 0; }
   .sd-btn { font: inherit; font-size: var(--cds-font-size-caption); background: var(--color-bg); color: var(--color-fg); border: 1px solid var(--color-border-line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
   .sd-calc { width: 100%; min-width: 46rem; }
   .sd-calc td { vertical-align: middle; }
@@ -681,7 +683,7 @@
   <section id="rechner" data-page="rechner" hidden>
     <div class="sd-card" id="umschicht">
       <h3>Umschichtungs-Rechner für deine wikifolios</h3>
-      <p class="sd-note">So geht's: in wikifolio unter „Portfolio“ die Stückzahl je Position und den Cash-Betrag ablesen und hier eintragen. Die Kurse sind mit dem letzten Börsenkurs in EUR vorbelegt; trag den Kurs aus deiner wikifolio-Ansicht ein, wenn du es genau willst. Bitcoin ist mit dem Stückkurs des iShares Bitcoin ETP (XS2940466316, Xetra) vorbelegt; hältst du ein anderes Bitcoin-ETP, trag dessen Kurs je Stück ein. Daraus rechnet die Tabelle Ist-Allokation, Ziel und Order in Stück. Das Ziel lässt einen Cash-Puffer für die wikifolio-Gebühren frei (Vorschlag automatisch).</p>
+      <p class="sd-note">So geht's: in wikifolio unter „Portfolio“ die Stückzahl je Position und den Cash-Betrag ablesen und hier eintragen. Die Kurse sind mit dem letzten Börsenkurs in EUR vorbelegt; trag den Kurs aus deiner wikifolio-Ansicht ein, wenn du es genau willst. Bitcoin ist mit dem Stückkurs des iShares Bitcoin ETP (XS2940466316, Xetra) vorbelegt, der Geldmarkt-ETF mit dem Xtrackers II EUR Overnight Rate Swap 1C (XEON, LU0290358497); hältst du andere Produkte, trag deren Kurs je Stück ein. Cash darf negativ sein (Minus eintragen). Daraus rechnet die Tabelle Ist-Allokation, Ziel und Order in Stück. Das Ziel lässt einen Cash-Puffer für die wikifolio-Gebühren frei (Vorschlag automatisch); den Bot-Cash-Anteil (z. B. levTipsRegime im Zustand Cash) legt es in den Geldmarkt-ETF.</p>
       <div class="sd-fields">
         <label class="sd-field">wikifolio
           <select class="sd-in-wf"><option value="levgtaa">LevGTAA (Bot levGTAA)</option><option value="levtipsregime">LevTipsRegime (Bot levTipsRegime)</option></select>
@@ -690,6 +692,7 @@
           <select class="sd-in-target"><option value="held">Bot-Position jetzt (Soll)</option><option value="today">Tagessignal heute (simuliert)</option></select>
         </label>
         <label class="sd-field">Cash-Puffer für Gebühren (%)<input class="sd-in-reserve" type="number" min="0" max="5" step="0.05" inputmode="decimal" placeholder="Vorschlag"></label>
+        <label class="sd-field sd-check"><input class="sd-in-mm" type="checkbox" checked> Bot-Cash im Geldmarkt-ETF halten</label>
       </div>
       <p class="sd-note">Gebühren-Puffer: <span data-draw="reservehint" data-source="wikifolios monthly_returns perf_stats">—</span> Leer lassen = Vorschlag verwenden.</p>
       <div class="sd-tw"><div data-draw="wfcalc" data-source="holdings prices allocations alloc_cash daily_levgtaa daily_levtips wikifolios monthly_returns perf_stats"></div></div>
@@ -698,10 +701,21 @@
         <div class="sd-orders" data-draw="orders" data-source="holdings prices"></div>
       </div>
       <div class="sd-block">
-        <div class="sd-block-h"><span>Auf allen Geräten anzeigen (optional)</span><span></span></div>
-        <p class="sd-note">Deine Eingaben bleiben auf diesem Gerät gespeichert. Damit der Tab wikifolios die Ist-Allokation auf allen Geräten zeigt: „Text kopieren“ → „Datei auf GitHub öffnen“ → alles ersetzen → „Commit changes“.</p>
-        <div class="sd-fields"><button class="sd-btn sd-copy" type="button"><span class="sd-copy-a">Text kopieren</span><span class="sd-copy-b" hidden>Kopiert ✓</span></button><a class="sd-btn" href="https://github.com/Sin3qz/Strategies-dashboard/edit/main/data/wikifolio_holdings.json" target="_blank" rel="noopener">Datei auf GitHub öffnen</a><button class="sd-btn sd-reset" type="button">Eingaben dieses Geräts löschen</button></div>
-        <textarea class="sd-json" readonly aria-label="Positionen als Text" data-draw="holdjson" data-source="holdings"></textarea>
+        <div class="sd-block-h"><span>Dauerhaft speichern (für Cash-Wächter und alle Geräte)</span><span data-draw="savedinfo" data-source="holdings">—</span></div>
+        <p class="sd-note">Nach jedem Handel (spätestens zum Monatswechsel) Stückzahlen und Cash beider wikifolios eintragen und <b>„Auf GitHub speichern“</b>. Das Dashboard merkt sich jeden Stand (Verlauf unten), der Cash-Wächter rechnet ab dann täglich die Gebühren ab. Token: dasselbe wie bei cron-job.org (Fine-grained, nur Strategies-dashboard, Actions: Read and write); es bleibt nur in diesem Browser.</p>
+        <div class="sd-fields">
+          <label class="sd-field">GitHub-Token (einmalig)<input class="sd-in-token" type="password" autocomplete="off" placeholder="github_pat_…"></label>
+          <button class="sd-btn sd-save" type="button">Auf GitHub speichern</button>
+          <button class="sd-btn sd-reset" type="button">Eingaben dieses Geräts verwerfen</button>
+        </div>
+        <p class="sd-note" data-save-msg aria-live="polite"></p>
+        <details class="sd-more">
+          <summary>Gespeicherte Stände (Verlauf)</summary>
+          <div class="sd-tw"><table class="sd-calc"><thead><tr><th>gespeichert</th><th>wikifolio</th><th class="n">Cash €</th><th class="n">Positionen €</th><th class="n">Cash-Anteil</th></tr></thead><tbody data-draw="holdlog" data-source="holdings_log"></tbody></table></div>
+          <p class="sd-note">Ohne Token: „Text kopieren“ → <a href="https://github.com/Sin3qz/Strategies-dashboard/edit/main/data/wikifolio_holdings.json" target="_blank" rel="noopener">Datei auf GitHub öffnen</a> → alles ersetzen → „Commit changes“.</p>
+          <div class="sd-fields"><button class="sd-btn sd-copy" type="button"><span class="sd-copy-a">Text kopieren</span><span class="sd-copy-b" hidden>Kopiert ✓</span></button></div>
+          <textarea class="sd-json" readonly aria-label="Positionen als Text" data-draw="holdjson" data-source="holdings"></textarea>
+        </details>
       </div>
     </div>
   </section>
@@ -712,11 +726,11 @@
   // Eine Farbe je Asset auf der ganzen Seite (Index in dash.colors): Aktien blau, Bitcoin orange, Anleihen türkis, Gold gelb
   const ASSET_COLOR = {NASDAQ100: 0, SP500: 0, BTC: 1, UST_IEF: 2, BONDS_7_10: 2, TLT_LONG: 2, GOLD: 3,
     EM: 4, EM_SMALLCAP: 4, COMMODITIES: 5, INDIA: 6, EMU_VALUE: 6, CASH_USD: 7,
-    NDX3: 0, SPX3: 0, BTC1: 1, UST3: 2, GOLD3: 3};
+    NDX3: 0, SPX3: 0, BTC1: 1, UST3: 2, GOLD3: 3, MM: 7};
   const NAMES = {NASDAQ100: 'Nasdaq 100', SP500: 'S&P 500', BTC: 'Bitcoin', UST_IEF: 'UST 7-10y', TLT_LONG: 'UST 20y+', GOLD: 'Gold',
     EM: 'Emerging Markets', INDIA: 'India', EM_SMALLCAP: 'EM Small Caps', EMU_VALUE: 'EMU Value', BONDS_7_10: 'UST 7-10y',
     COMMODITIES: 'Rohstoffe', CASH_USD: 'Geldmarkt', CASH: 'Cash', cash: 'Cash',
-    NDX3: '3x Nasdaq 100', SPX3: '3x S&P 500', BTC1: '1x Bitcoin (iShares Bitcoin ETP)', UST3: '3x UST 7-10y', GOLD3: '3x Gold'};
+    NDX3: '3x Nasdaq 100', SPX3: '3x S&P 500', BTC1: '1x Bitcoin (iShares Bitcoin ETP)', UST3: '3x UST 7-10y', GOLD3: '3x Gold', MM: 'Geldmarkt-ETF (EUR)'};
   const LEV = {levgtaa: {NASDAQ100: 3, BTC: 1, UST_IEF: 3, GOLD: 3}, mrreboundgtaa: {NASDAQ100: 3, EM: 3, INDIA: 3, TLT_LONG: 5},
     '1xgtaa': {}, levtipsregime: {SP500: 3, BTC: 1, UST_IEF: 3}};
   const colorOf = (a) => (a === 'CASH' || a === 'cash') ? 'var(--cds-chart-muted)' : dash.colors[(ASSET_COLOR[a] ?? 7) % dash.colors.length];
@@ -1529,12 +1543,12 @@
     const r = cwRow(el); el.replaceChildren();
     if (!r) { el.textContent = 'ab dem nächsten Lauf'; return; }
     const dot = document.createElement('span'); dot.className = 'sd-dot';
-    dot.style.background = r.level === 'ok' ? dash.colors[5] : r.level === 'warn' ? 'var(--color-warn)' : 'var(--color-bad)';
-    el.append(dot, {ok: 'reicht', warn: 'bald leer – auffüllen', neg: 'negativ – sofort auffüllen', unknown: 'unbekannt'}[r.level] || r.level);
+    dot.style.background = r.level === 'ok' ? dash.colors[5] : r.level === 'warn' ? 'var(--color-warn)' : r.level === 'neg' ? 'var(--color-bad)' : 'var(--color-fg-muted)';
+    el.append(dot, {ok: 'reicht', warn: 'bald leer – auffüllen', neg: 'negativ – auffüllen', unknown: 'unbekannt – bitte eintragen'}[r.level] || r.level);
   });
   dash.draw('cwtext', (el) => {
     const r = cwRow(el);
-    el.textContent = r ? `${r.detail}${r.basis && r.basis !== 'Bot steht in Cash' ? ` Basis: ${r.basis}. Genauer mit deinen Stückzahlen und dem Cash (Rechner → auf GitHub speichern).` : ''} ntfy-Push, sobald die Reserve für 2 Handelstage nicht mehr reicht.`
+    el.textContent = r ? `${r.detail}${r.level !== 'unknown' ? ` Basis: ${r.basis}. ntfy-Push, sobald die Reserve für 2 Handelstage nicht mehr reicht.` : ''}`
       : 'Schätzt das Cash nach Gebühren und meldet sich per ntfy, bevor es leer wird (ab dem nächsten Datenlauf).';
   });
   dash.draw('trackfrom', (el) => {
@@ -1678,17 +1692,18 @@
 (() => {
   // ---------- wikifolio-Rechner (Stückzahlen, Ist, Ziel, Order) ----------
   const {pct, num, ok, NAMES, rowsOf, chipEl, spct} = window.sdFmt;
-  const PRODUCTS = {levgtaa: ['NDX3', 'BTC1', 'UST3', 'GOLD3'], levtipsregime: ['SPX3', 'BTC1', 'UST3']};
+  const PRODUCTS = {levgtaa: ['NDX3', 'BTC1', 'UST3', 'GOLD3', 'MM'], levtipsregime: ['SPX3', 'BTC1', 'UST3', 'MM']};
   const ASSET = {levgtaa: {NDX3: 'NASDAQ100', BTC1: 'BTC', UST3: 'UST_IEF', GOLD3: 'GOLD'}, levtipsregime: {SPX3: 'SP500', BTC1: 'BTC', UST3: 'UST_IEF'}};
   const store = {
     get() { try { return JSON.parse(localStorage.getItem('sd-holdings') || 'null'); } catch (e) { return null; } },
     set(v) { try { localStorage.setItem('sd-holdings', JSON.stringify(v)); } catch (e) {} },
     clear() { try { localStorage.removeItem('sd-holdings'); } catch (e) {} },
   };
-  // Positionen: lokal gespeicherte Eingaben, sonst die Datei data/wikifolio_holdings.json
+  // Positionen: die neuere von lokaler Eingabe (dieses Geräts) und gespeicherter Datei data/wikifolio_holdings.json
+  const repoSaved = () => (rowsOf('holdings') || []).map((r) => String(r.saved_at || r.stand || '')).sort().pop() || '';
   const holdings = () => {
     const local = store.get();
-    if (local && local.rows) return local.rows;
+    if (local && local.rows && (!local.savedAt || local.savedAt >= repoSaved())) return local.rows;
     return (rowsOf('holdings') || []).map((r) => ({...r}));
   };
   const cell = (rows, wf, p) => rows.find((r) => r.wikifolio === wf && r.product === p);
@@ -1755,6 +1770,8 @@
   // zur HWM) + 0,05 %, auf 0,05 % aufgerundet, hoechstens 1 %. Hoechster Stand: 95-%-Wert, solange die Emission laeuft
   // (Cash darf dann nicht negativ werden), sonst 90-%-Wert. Backtest 2014-2026 (dashboard-data, studien/STUDIE.md).
   const STRAT_KEY = {levgtaa: 'levgtaa', levtipsregime: 'levtips'};
+  const MM_HI1M = 0.003;                                            // Geldmarkt-ETF: hoechster Stand binnen 21 Handelstagen
+  const useMM = (wf) => dash.params()['mm_' + wf] !== false && dash.params()['mm_' + wf] !== 'false';
   const reserveSuggest = (wf) => {
     const w = (rowsOf('wikifolios') || []).find((x) => x.key === wf) || {};
     const ps = (rowsOf('perf_stats') || []).find((x) => x.key === STRAT_KEY[wf]) || {};
@@ -1765,22 +1782,27 @@
       const mr = (rowsOf('monthly_returns') || []).filter((r) => r.key === STRAT_KEY[wf]).map((r) => Number(r.ret)).sort((a, b) => a - b);
       strong = mr.length ? mr[Math.floor(qv * (mr.length - 1))] : 0.2;
     }
+    // nur der Risiko-Anteil laut Bot steigt stark; der Rest liegt im Geldmarkt-ETF (kaum Anstieg) oder als Cash (gar keiner)
+    const risky = Math.min(1, Object.values(targetOf(wf, 'held')).reduce((s2, v) => s2 + v, 0));
+    const qStrategy = strong;
+    strong = risky * qStrategy + (useMM(wf) ? (1 - risky) * MM_HI1M : 0);
     const gap = Number(w.high_watermark) > 0 && Number(w.price) > 0 ? Math.min(0, Number(w.price) / Number(w.high_watermark) - 1) : 0;   // <= 0
     const need = gap < 0 ? 1 / (1 + gap) - 1 : 0;                    // noetiger Anstieg bis zur HWM
     const fee = Number(w.fee_cert || 0.0095) / 12, perf = Number(w.fee_perf || 0.05);
     const r = Math.min(0.01, Math.max(0, Math.ceil((fee + perf * Math.max(0, strong - need)) * 2000) / 2000 + 0.0005));
-    return {r, strong, gap, need, fee, perf, stage, qv};
+    return {r, strong, gap, need, fee, perf, stage, qv, risky, qStrategy};
   };
   const reserveOf = (wf) => { const v = dash.params()['reserve_' + wf]; return ok(v) && v !== '' ? Math.min(0.05, Math.max(0, Number(v) / 100)) : reserveSuggest(wf).r; };
   const STAGE_TXT = {emission: 'Emission läuft: Cash darf nicht negativ werden, daher 95-%-Wert',
                      preview: 'Vorschau-wikifolio: die Gebühren zieht wikifolio schon jetzt simulativ ab, ein kleines Minus im Cash wird aber geduldet, daher 90-%-Wert',
                      invest: 'investierbar: ein Minus im Cash muss binnen 7 Tagen ausgeglichen werden, daher 90-%-Wert'};
   const RHYTHM_TXT = {levgtaa: 'Reicht bis zur nächsten Monatsumschichtung; dort füllt der Rechner das Cash automatisch wieder auf.',
-                      levtipsregime: 'Signal täglich mit Cooldown, Wechsel sind selten: am ersten Handelstag jedes Monats den Rechner öffnen; fehlt Cash, zeigt er einen kleinen Verkauf.'};
+                      levtipsregime: 'Signal täglich mit Cooldown, Wechsel sind selten: der Cash-Wächter meldet sich per ntfy 2 Handelstage, bevor das Cash nicht mehr reicht (dafür Cash hier eintragen und auf GitHub speichern).'};
   dash.draw('reservehint', (el) => {
     const wf = dash.params().wf === 'levtipsregime' ? 'levtipsregime' : 'levgtaa', s = reserveSuggest(wf);
     const hw = s.gap < -0.0005 ? `wikifolio steht ${pct(-s.gap, 1)} unter der HWM, bis dorthin fehlen ${pct(s.need, 1)}` : 'wikifolio steht an der HWM';
-    el.textContent = `Vorschlag ${pct(s.r, 2)} = Zertifikategebühr ${pct(s.fee, 2)} je Monat + ${pct(s.perf, 0)} Performancegebühr auf den Teil eines starken Monats über der HWM (höchster Stand binnen 21 Handelstagen ${spct(s.strong, 1)}, ${STAGE_TXT[s.stage]}; ${hw}) + 0,05 % Reserve, höchstens 1 %. ${RHYTHM_TXT[wf]} Aktiv: ${pct(reserveOf(wf), 2)}.`;
+    const mix = s.risky < 0.995 ? ` (Bot ${pct(s.risky, 0)} in Risiko-Bausteinen mit ${spct(s.qStrategy, 1)}, Rest ${useMM(wf) ? 'Geldmarkt-ETF' : 'Cash'})` : '';
+    el.textContent = `Vorschlag ${pct(s.r, 2)} = Zertifikategebühr ${pct(s.fee, 2)} je Monat + ${pct(s.perf, 0)} Performancegebühr auf den Teil eines starken Monats über der HWM (höchster Stand binnen 21 Handelstagen ${spct(s.strong, 1)}${mix}, ${STAGE_TXT[s.stage]}; ${hw}) + 0,05 % Reserve, höchstens 1 %. ${RHYTHM_TXT[wf]} Aktiv: ${pct(reserveOf(wf), 2)}.`;
   });
   window.sdReserve = reserveOf;
 
@@ -1791,6 +1813,9 @@
     const reserve = reserveOf(wf), inv = Object.values(tgt0).reduce((s2, v) => s2 + v, 0);
     const scale = inv > 0 ? Math.min(1, (1 - reserve) / inv) : 1;          // Bot-Cash reicht schon -> nichts kuerzen
     const tgt = Object.fromEntries(Object.entries(tgt0).map(([k, v]) => [k, v * scale]));
+    // Bot-Cash (ausser dem Gebuehren-Puffer) in den Geldmarkt-ETF; unter 2 % lohnt die Order nicht
+    const mmShare = 1 - reserve - Object.values(tgt).reduce((s2, v) => s2 + v, 0);
+    if (useMM(wf) && mmShare >= 0.02) tgt.MM = mmShare;
     const total = ist.total;
     const lines = PRODUCTS[wf].map((pr) => {
       const r = cell(rows, wf, pr) || {stueck: 0}, px = priceOf(pr, r), q = Number(r.stueck) || 0;
@@ -1807,6 +1832,14 @@
       const buy = lines.filter((l) => l.diffQ > 0).sort((a, b) => b.diffQ * b.px - a.diffQ * a.px)[0];
       if (!buy) break; buy.diffQ -= 1;
     }
+    // Gebuehren-Puffer muss gedeckt sein: notfalls ein Stueck mehr verkaufen (zuerst Kaeufe kuerzen, dann groesste Position)
+    guard = 0;
+    while (total > 0 && cashAfter() < total * reserve - 0.005 && guard++ < 10000) {
+      const buy = lines.filter((l) => l.diffQ > 0).sort((a, b) => b.diffQ * b.px - a.diffQ * a.px)[0];
+      if (buy) { buy.diffQ -= 1; continue; }
+      const sell = lines.filter((l) => l.px && l.q + (l.diffQ || 0) >= 1).sort((a, b) => (b.q + b.diffQ) * b.px - (a.q + a.diffQ) * a.px)[0];
+      if (!sell) break; sell.diffQ = (sell.diffQ || 0) - 1;
+    }
     calcState = {wf, lines, total, cash0, cashAfter: cashAfter(), tgtCash: 1 - Object.values(tgt).reduce((s, v) => s + v, 0), missing: ist.missing, reserve};
     return calcState;
   };
@@ -1816,7 +1849,7 @@
     mut(rows);
     const today = new Date().toISOString().slice(0, 10);
     rows.forEach((r) => { r.stand = today; });
-    store.set({rows});
+    store.set({rows, savedAt: new Date().toISOString().slice(0, 16)});
     dash.setParams({holdings_rev: Date.now()});
   };
 
@@ -1841,9 +1874,9 @@
       const sub = document.createElement('span'); sub.className = 'sd-prod';
       sub.textContent = p === 'CASH' ? 'Betrag in € eintragen' : (pr ? `${pr.name} · ${pr.isin} · Ref. ${pr.ticker} ${window.sdFmt.deDate(pr.date)}` : '');
       td0.appendChild(sub);
-      const q = document.createElement('input'); q.type = 'number'; q.min = '0'; q.step = p === 'CASH' ? '0.01' : 'any'; q.inputMode = 'decimal';
+      const q = document.createElement('input'); q.type = 'number'; if (p !== 'CASH') q.min = '0'; q.step = p === 'CASH' ? '0.01' : 'any'; q.inputMode = p === 'CASH' ? 'text' : 'decimal';
       q.value = r.stueck || ''; q.placeholder = '0'; q.setAttribute('aria-label', `${NAMES[p] || p} Stück`);
-      q.addEventListener('input', () => { save((rs) => { let c = cell(rs, wf, p); if (!c) rs.push(c = {wikifolio: wf, product: p, kurs_eur: null}); c.stueck = Number(q.value) || 0; }); updateOut(el); });
+      q.addEventListener('input', () => { const v = Number(String(q.value).replace(',', '.')); save((rs) => { let c = cell(rs, wf, p); if (!c) rs.push(c = {wikifolio: wf, product: p, kurs_eur: null}); c.stueck = Number.isFinite(v) ? v : 0; }); updateOut(el); });
       const tdq = tr.insertCell(); tdq.className = 'n'; tdq.appendChild(q);
       const tdk = tr.insertCell(); tdk.className = 'n';
       if (p !== 'CASH') {
@@ -1895,7 +1928,7 @@
     orders.sort((a, b) => a.diffQ - b.diffQ).forEach((l) => {
       const d = document.createElement('div');
       const b = document.createElement('b'); b.textContent = l.diffQ > 0 ? `Kaufen ${num(l.diffQ, 0)}` : `Verkaufen ${num(-l.diffQ, 0)}`; b.className = l.diffQ > 0 ? 'sd-pos' : 'sd-neg';
-      d.append(b, `${NAMES[l.pr]} à ${num(l.px, 2)} € ≈ ${num(Math.abs(l.diffQ * l.px), 0)} €`);
+      d.append(b, ` Stück ${NAMES[l.pr]} à ${num(l.px, 2)} € ≈ ${num(Math.abs(l.diffQ * l.px), 0)} €`);
       el.appendChild(d);
     });
     const d = document.createElement('div'); d.className = 'sd-note';
@@ -1913,6 +1946,53 @@
     flip(true); setTimeout(() => flip(false), 2500);
   }));
   document.querySelectorAll('.sd-reset').forEach((b) => b.addEventListener('click', () => { store.clear(); dash.setParams({holdings_rev: Date.now()}); }));
+
+  // Dauerhaft speichern: startet den Workflow save-holdings.yml (Token nur mit „Actions: Read and write“, bleibt im Browser)
+  const TOKEN_KEY = 'sd-gh-token';
+  const tokIn = document.querySelectorAll('.sd-in-token');
+  tokIn.forEach((i) => { try { i.value = localStorage.getItem(TOKEN_KEY) || ''; } catch (e) {} });
+  const msg = (t, bad) => document.querySelectorAll('[data-save-msg]').forEach((p) => { p.textContent = t; p.classList.toggle('sd-warn', !!bad); });
+  document.querySelectorAll('.sd-save').forEach((b) => b.addEventListener('click', async () => {
+    const tok = ([...tokIn].map((i) => i.value.trim()).find(Boolean) || '');
+    if (!tok) { msg('Bitte zuerst das GitHub-Token eintragen (dasselbe wie bei cron-job.org).', true); return; }
+    try { localStorage.setItem(TOKEN_KEY, tok); } catch (e) {}
+    const today = new Date().toISOString().slice(0, 10);
+    const rows = holdings().map((r) => ({wikifolio: r.wikifolio, product: r.product, stueck: Number(r.stueck) || 0,
+      kurs_eur: ok(r.kurs_eur) && Number(r.kurs_eur) > 0 ? Number(r.kurs_eur) : null, stand: r.stand || today}));
+    if (!rows.length) { msg('Noch nichts eingetragen.', true); return; }
+    b.disabled = true; msg('Speichere …');
+    try {
+      const r = await fetch('https://api.github.com/repos/Sin3qz/Strategies-dashboard/actions/workflows/save-holdings.yml/dispatches', {
+        method: 'POST', headers: {Authorization: `Bearer ${tok}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json'},
+        body: JSON.stringify({ref: 'main', inputs: {holdings: JSON.stringify(rows)}})});
+      if (r.status === 204) msg(`Gespeichert (${new Date().toLocaleTimeString('de-DE', {hour: '2-digit', minute: '2-digit'})} Uhr). In etwa 2–4 Minuten steht der Stand im Verlauf, der Cash-Wächter rechnet dann mit deinen Zahlen.`);
+      else msg(`GitHub antwortet ${r.status}: ${r.status === 401 ? 'Token falsch oder abgelaufen' : r.status === 403 ? 'Token ohne „Actions: Read and write“' : r.status === 404 ? 'Token ohne Zugriff auf Strategies-dashboard (oder Workflow noch nicht gemergt)' : 'unerwartete Antwort'}.`, true);
+    } catch (e) { msg('Keine Verbindung zu GitHub (offline oder blockiert). Die Eingaben bleiben auf diesem Gerät.', true); }
+    b.disabled = false;
+  }));
+  dash.draw('savedinfo', (el) => {
+    const t = repoSaved(), local = store.get();
+    el.textContent = (t ? `auf GitHub: ${window.sdFmt.deDate(t)}${t.length > 10 ? ' ' + t.slice(11, 16) + ' Uhr' : ''}` : 'auf GitHub: noch nichts')
+      + (local && local.savedAt && local.savedAt > t ? ' · dieses Gerät hat neuere Eingaben' : '');
+  });
+  dash.draw('holdlog', (tb) => {
+    tb.replaceChildren();
+    const rows = rowsOf('holdings_log') || [];
+    const g = {};
+    rows.forEach((r) => {
+      const k = r.saved_at + '|' + r.wikifolio; const x = g[k] || (g[k] = {t: r.saved_at, wf: r.wikifolio, cash: 0, pos: 0});
+      const v = Number(r.wert_eur) || 0; if (r.product === 'CASH') x.cash += v; else x.pos += v;
+    });
+    const list = Object.values(g).sort((a, b) => (a.t < b.t ? 1 : -1)).slice(0, 24);
+    if (!list.length) { const tr = tb.insertRow(); const td = tr.insertCell(); td.colSpan = 5; td.className = 'sd-note'; td.textContent = 'Noch keine Speicherung.'; return; }
+    list.forEach((x) => {
+      const tr = tb.insertRow(), tot = x.cash + x.pos;
+      [window.sdFmt.deDate(x.t) + ' ' + String(x.t).slice(11, 16), x.wf === 'levgtaa' ? 'LevGTAA' : 'LevTipsRegime',
+       num(x.cash, 2), x.pos ? num(x.pos, 0) : '–', x.pos ? pct(x.cash / tot, 2) : '–'].forEach((v, i) => {
+        const td = tr.insertCell(); td.textContent = v; if (i > 1) td.className = 'n'; if (i === 2 && x.cash < 0) td.classList.add('sd-neg');
+      });
+    });
+  });
 })();
 </script>
 
@@ -1939,6 +2019,8 @@
   res.forEach((i) => i.addEventListener('input', () => { if (i.value === '' || i.validity.valid) dash.setParams({['reserve_' + curWf()]: i.value === '' ? null : Number(i.value)}); }));
   wfSel.forEach((s) => s.addEventListener('change', () => dash.setParams({wf: s.value})));
   tgtSel.forEach((s) => s.addEventListener('change', () => dash.setParams({wf_target: s.value})));
+  const mmBox = document.querySelectorAll('.sd-in-mm');
+  mmBox.forEach((c) => c.addEventListener('change', () => dash.setParams({['mm_' + curWf()]: c.checked})));
 
   dash.onData(() => {
     const p = dash.params();
@@ -1947,6 +2029,7 @@
     wfSel.forEach((s) => { s.value = p.wf === 'levtipsregime' ? 'levtipsregime' : 'levgtaa'; });
     tgtSel.forEach((s) => { s.value = p.wf_target === 'today' ? 'today' : 'held'; });
     res.forEach((i) => { if (i !== document.activeElement) { const v = p['reserve_' + curWf()]; i.value = v == null ? '' : v; } });
+    mmBox.forEach((c) => { const v = p['mm_' + curWf()]; c.checked = v !== false && v !== 'false'; });
   });
 })();
 </script>
