@@ -106,9 +106,11 @@
   .sd-prods:empty { display: none; }
   .sd-pq { display: inline-block; min-width: 3.2em; font-weight: 600; color: var(--color-fg); font-variant-numeric: tabular-nums; }
   .sd-ex-box > div { display: grid; gap: var(--cds-gap-xs); }
-  .sd-ex-box .sd-seg { justify-self: start; flex-wrap: wrap; }
+  .sd-ex-box .sd-seg { justify-self: start; display: grid; grid-template-columns: 1fr 1fr; max-width: 100%; }
+  .sd-ex-box .sd-seg button { white-space: normal; text-align: center; line-height: 1.3; padding: 6px 10px; }
   .sd-ex { font-size: var(--cds-font-size-caption); min-width: 30rem; }
   .sd-ex td, .sd-ex th { padding: 3px 6px; white-space: nowrap; }
+  .sd-ex td:first-child, .sd-ex th:first-child { position: sticky; left: 0; z-index: 1; background: var(--color-panel, var(--color-bg)); }   /* Baustein bleibt beim seitlichen Scrollen stehen */
   .sd-ex-h { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: var(--cds-gap-xs) 0 0; }
   .sd-ex-h b { color: var(--color-fg); }
   .sd-ex-why { margin: 0; padding-left: 1.1em; font-size: var(--cds-font-size-caption); display: grid; gap: 2px; }
@@ -394,7 +396,7 @@
   <!-- ===================== Signale ===================== -->
   <section id="signale" data-page="signale" hidden>
     <div class="sd-controls">
-      <p class="sd-sub">Je Strategie oben das aktuelle Bot-Signal (gehalten) und das heute simulierte Signal, darunter für jeden US-Handelstag die Position, die die Bot-Regel auf dem Schlusskurs dieses Tages ergäbe (gehandelt am nächsten Handelstag); ganz unten, wie die Strategie aufgebaut ist. levGTAA und MR-Rebound: jeder Tag wie ein Monatsletzter. 1xGTAA und levTipsRegime: ohne 10-Tage-Cooldown. Gerechnet mit dem Code der Bot-Repos; letzter Schluss <span data-draw="val" data-source="levgtaa_today" data-field="date" data-row="0" data-fmt="date">—</span>.</p>
+      <p class="sd-sub">Je Strategie oben das aktuelle Bot-Signal (gehalten) und das heute simulierte Signal, jeweils mit Produkt und ISIN; darunter für jeden US-Handelstag die Position, die die Bot-Regel auf dem Schlusskurs dieses Tages ergäbe (gehandelt am nächsten Handelstag), und unter „So kommt das Signal zustande“ jeder Rechenschritt mit allen Werten; ganz unten, wie die Strategie aufgebaut ist. levGTAA und MR-Rebound: jeder Tag wie ein Monatsletzter. 1xGTAA und levTipsRegime: ohne 10-Tage-Cooldown. Gerechnet mit dem Code der Bot-Repos; letzter Schluss <span data-draw="val" data-source="levgtaa_today" data-field="date" data-row="0" data-fmt="date">—</span>.</p>
       <div class="sd-seg" role="group" aria-label="Zeitraum">
         <button data-range="3m" aria-pressed="false">3 M</button><button data-range="6m" aria-pressed="false">6 M</button><button data-range="1y" aria-pressed="true">1 J</button><button data-range="all" aria-pressed="false">seit 2025</button>
       </div>
@@ -1370,8 +1372,8 @@
   const ex1x = (x, box, e, mode) => {
     const P = x.params, rows = x.rows;
     step(box, 1, 'Kennzahlen je Baustein', `Schluss ${deDate(x.date)}, Kurse in USD (EMU Value aus Xetra in USD umgerechnet). Momentum = Summe der ${P.lookbacks.join('/')}-Monatsrenditen; Trend erfüllt, wenn SMA${P.S} > SMA${P.L}.`);
-    box.appendChild(exTable(['Rang', 'Baustein (Signal)', ...P.lookbacks.map((m) => `${m} M`), 'Momentum (Summe)', `SMA${P.S}/SMA${P.L} − 1`, 'Trend', 'Quote'],
-      rows.map((r) => [r.pos || '–', `${NM(r.asset)} (${r.ticker})`, ...P.lookbacks.map((m) => sv(r.r[String(m)])), {...sv(r.mom, 2), b: true}, sv(r.trend, 2), yn(r.trend_ok), wq(r.w)]), 2));
+    box.appendChild(exTable(['Rang · Baustein (Signal)', ...P.lookbacks.map((m) => `${m} M`), 'Momentum (Summe)', `SMA${P.S}/SMA${P.L} − 1`, 'Trend', 'Quote'],
+      rows.map((r) => [`${r.pos ? r.pos + '. ' : ''}${NM(r.asset)} (${r.ticker})`, ...P.lookbacks.map((m) => sv(r.r[String(m)])), {...sv(r.mom, 2), b: true}, sv(r.trend, 2), yn(r.trend_ok), wq(r.w)])));
     step(box, 2, 'Plätze', `Alle Bausteine nach Momentum sortiert. Platz 1 = ${pct(P.weights[0], 0)}, Platz 2 = ${pct(P.weights[1], 0)} – ein Platz wird nur gefüllt, wenn sein Baustein Momentum > 0 UND Trend hat; sonst bleibt er Cash/Geldmarkt (kein Nachrücken).`);
     const lines = rows.slice(0, P.N).map((r, k) => {
       const okm = r.mom > 0, okt = r.trend_ok;
@@ -1389,8 +1391,8 @@
   const exTips = (x, box, e, mode) => {
     const r = Object.fromEntries(x.rows.map((q) => [q.ticker, q])), S = x.rows[0], T = x.rows[1], L = x.rows[2];
     step(box, 1, 'Abstände zur SMA', `Schluss ${deDate(x.date)}, Kurse in USD.`);
-    box.appendChild(exTable(['Signal', 'Kurs', 'SMA', 'Abstand', ''],
-      x.rows.map((q) => [`${q.name} (${q.ticker})`, num(q.close, 2), `SMA${q.sma} = ${num(q.sma_val, 2)}`, {...sv(q.dist, 2), b: true}, yn(q.dist > 0, 'über', 'unter')])));
+    box.appendChild(exTable(['Signal', 'Abstand', '', 'Kurs', 'SMA'],
+      x.rows.map((q) => [`${q.name} (${q.ticker})`, {...sv(q.dist, 2), b: true}, yn(q.dist > 0, 'über', 'unter'), num(q.close, 2), `SMA${q.sma} = ${num(q.sma_val, 2)}`])));
     const m = S.dist > 0 && T.dist > 0, i = !m && L && T.dist < 0 && L.dist > 0;
     step(box, 2, 'Regel');
     why(box, [
