@@ -54,9 +54,23 @@
   body { margin: 0; background: var(--color-bg); color: var(--color-fg); font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); line-height: 1.45; }
   #dash-root { max-width: 1240px; margin: 0 auto; padding: 20px 16px 32px; }
   @media (min-width: 900px) { #dash-root { padding: 28px 28px 40px; } }
-  .sd-shell-bar { display: flex; gap: 6px; margin-top: 10px; }
-  .sd-shell-bar button { font: inherit; font-size: .75rem; background: var(--color-panel); color: var(--color-fg); border: 1px solid var(--color-border-line);
-    border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+  .sd-shell-top { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .sd-shell-top h1 { margin: 0 !important; }
+  .sd-shell-bar { display: flex; gap: 6px; flex: none; }
+  .sd-shell-bar button { font: inherit; font-size: .75rem; line-height: 1; background: var(--color-panel); color: var(--color-fg); border: 1px solid var(--color-border-line);
+    border-radius: 999px; padding: 7px 12px; min-height: 32px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .sd-shell-bar button:hover { border-color: var(--color-fg-muted); }
+  .sd-shell-bar button:disabled { opacity: .6; cursor: progress; }
+  .sd-shell-bar .ic { font-size: .9rem; }
+  .sd-shell-bar button.busy .ic { display: inline-block; animation: sd-spin 1s linear infinite; }
+  @keyframes sd-spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .sd-shell-bar button.busy .ic { animation: none; } }
+  @media (max-width: 520px) {                                   /* Handy: runde Icon-Knöpfe neben dem Titel */
+    .sd-shell-top { flex-wrap: nowrap; }
+    .sd-shell-bar button { width: 36px; height: 36px; padding: 0; justify-content: center; }
+    .sd-shell-bar .ic { font-size: 1rem; }
+    .sd-shell-bar .tx { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  }
   .sd-foot { max-width: 1240px; margin: 0 auto; padding: 0 16px 56px; color: var(--color-fg-muted); font-size: .75rem; }
   .sd-foot a { color: inherit; }
   @media (min-width: 900px) { .sd-foot { padding: 0 28px 56px; } }
@@ -834,8 +848,8 @@
   Daten: Status-Dateien der Bot-Repos auf GitHub, Tagessimulation mit deren Code auf Yahoo-Schlusskursen, Kennzahlen von wikifolio.com.
   Eine GitHub Action im Repo <a href="https://github.com/Sin3qz/Strategies-dashboard">Strategies-dashboard</a> berechnet alles mehrmals täglich neu; die Seite lädt die Daten alle 10 Minuten nach.
   Hebel-ETPs: Pfad- und Emittentenrisiko. Keine Anlageberatung. <a href="classic.html">Alte Ansicht</a>
-  <div class="sd-shell-bar"><button id="sd-reload" title="Daten neu laden">↻ Daten neu laden</button><button id="sd-theme" title="Hell/Dunkel umschalten">Hell / Dunkel</button></div>
 </div>
+<div class="sd-shell-bar" id="sd-shell-bar"><button id="sd-reload" type="button" title="Daten neu laden" aria-label="Daten neu laden"><span class="ic" aria-hidden="true">↻</span><span class="tx">Daten neu laden</span></button><button id="sd-theme" type="button" title="Hell/Dunkel umschalten" aria-label="Hell/Dunkel umschalten"><span class="ic" aria-hidden="true">☾</span><span class="tx">Dunkel</span></button></div>
 
 <script>
 /* Kleine Laufzeit mit derselben Schnittstelle wie das Claude-Dashboard (dash.data, dash.calc, dash.draw, Filter). */
@@ -947,15 +961,34 @@
     window.addEventListener('online', () => load());
     let w = window.innerWidth;
     window.addEventListener('resize', () => { if (Math.abs(window.innerWidth - w) > 4) { w = window.innerWidth; schedule(); } });
-    document.getElementById('sd-reload').addEventListener('click', load);
-    document.getElementById('sd-theme').addEventListener('click', () => {
-      const root = document.documentElement;
-      const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-      root.dataset.theme = dark ? 'light' : 'dark';
-      try { localStorage.setItem('sd-theme', root.dataset.theme); } catch (e) {}
-      schedule();
+    // Bedienleiste oben rechts neben den Titel
+    const bar = document.getElementById('sd-shell-bar'), h1 = document.querySelector('.sd-head h1');
+    if (bar && h1) { const row = document.createElement('div'); row.className = 'sd-shell-top'; h1.before(row); row.append(h1, bar); }
+    const rb = document.getElementById('sd-reload');
+    rb.addEventListener('click', async () => {
+      if (rb.disabled) return;
+      const ic = rb.querySelector('.ic'), tx = rb.querySelector('.tx');
+      rb.disabled = true; rb.classList.add('busy'); tx.textContent = 'lädt …'; rb.setAttribute('aria-label', 'Daten werden geladen');
+      try { await load(); } finally {
+        rb.classList.remove('busy'); rb.disabled = false;
+        const c = window.sdClient, ok = c && !c.failed.length;
+        ic.textContent = ok ? '✓' : '!'; tx.textContent = ok ? 'aktualisiert' : 'nicht alles geladen';
+        rb.setAttribute('aria-label', tx.textContent);
+        setTimeout(() => { ic.textContent = '↻'; tx.textContent = 'Daten neu laden'; rb.setAttribute('aria-label', 'Daten neu laden'); }, 2500);
+      }
     });
-    try { const t = localStorage.getItem('sd-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+    const tb = document.getElementById('sd-theme'), root = document.documentElement;
+    const isDark = () => (root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches);
+    const label = () => { const d = isDark(); tb.querySelector('.ic').textContent = d ? '☀' : '☾'; tb.querySelector('.tx').textContent = d ? 'Hell' : 'Dunkel';
+      tb.title = d ? 'Auf hell umschalten' : 'Auf dunkel umschalten'; tb.setAttribute('aria-label', tb.title); };
+    tb.addEventListener('click', () => {
+      root.dataset.theme = isDark() ? 'light' : 'dark';
+      try { localStorage.setItem('sd-theme', root.dataset.theme); } catch (e) {}
+      label(); schedule();
+    });
+    try { const t = localStorage.getItem('sd-theme'); if (t) root.dataset.theme = t; } catch (e) {}
+    label();
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', label);
   };
 })();
 </script>
