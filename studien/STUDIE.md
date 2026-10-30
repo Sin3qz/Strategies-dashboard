@@ -249,3 +249,49 @@ levGTAA, Bot-Kern, 267 Monatsentscheidungen 2004–2026; Abstand = Umschlag zwis
 Monatssignal Referenz = heute simuliertes Signal, sonst gehaltene Allokation. levTipsRegime (täglich, Cooldown): gehaltene
 Position, außer das Tagessignal weicht ab (Wechsel steht an). 1xGTAA (täglich, Cooldown 10, kein wikifolio): gleiche Regel
 wie levTipsRegime. Verkauft wird die Position, die gegenüber der Referenz am stärksten übergewichtet ist.
+
+## Nachtrag 30.10.2026: levGTAA – Teilpositionen mit 1x statt 3x + Cash („Hebel-Optimierung“)?
+
+Frage: Hält levGTAA nur einen Teil in 3x-Produkten und den Rest in Cash/Geldmarkt, ließe sich dasselbe Exposure mit mehr
+1x-ETF und weniger Cash darstellen (z. B. 33 % 3x + 67 % Cash ≈ 100 % 1x). Lohnt sich das – auch nach Turnover, Zinsen
+auf das Cash und Pfadabhängigkeit der täglich gehebelten Produkte?
+
+Methode: gleiche Monatsentscheidungen wie der Bot (Quoten nach Vol-Target, 278 Monate 09/2003–10/2026), Handel am
+1. Handelstag zum Schluss, tägliche Rechnung je Produkt (Bitcoin bleibt 1x).
+- 3x-Produkt täglich: 3 × Index − 2 × Fed Funds − Kosten (die Pfadabhängigkeit des täglichen Resets ist damit voll drin);
+  1x-UCITS-ETF mit TER (NDX 0,30 %, UST 7-10y 0,07 %, Gold-ETC 0,12 %), im Monat gehalten (läuft mit den Kursen).
+- Cash/Geldmarkt mit Zinsen: USD Fed Funds − 0,10 %; EUR echte XEON-Renditen (vor 2008 EZB-Einlagensatz − 0,10 %).
+- Kosten der 3x-Produkte in drei Stufen: nur TER (QQQ3 0,75 %), TER + 0,5 % auf den 2x-Kredit, TER + 1,25 % auf den
+  2x-Kredit (= 3,25 % p. a.; so viel verlor QQQ3 2012–2026 tatsächlich gegenüber 3 × Index − 2 × Fed Funds, also etwa
+  0,01 % pro Tag zusätzlich zur TER). Die Yahoo-Reihe von 3TYL ist fehlerhaft (Sprünge, 178 Tage ohne Kurs) und wurde
+  nicht zur Kalibrierung genutzt.
+- Spreads je gehandeltem Euro: 3x 0,10 %, 1x 0,05 %, Bitcoin 0,10 %; zusätzlich ×3 als Härtetest.
+- Varianten: Bot (3x + Cash); Mix (so viel 1x wie das Kapital ohne Bitcoin zulässt, Rest 3x, kein Cash nötig);
+  „ganz oder gar nicht“ (nur wenn alles in 1x passt).
+
+Ergebnis (Mix − Bot, CAGR p. a.):
+
+| | 3x-Kosten nur TER | TER + 0,5 % | TER + 1,25 % (≈ QQQ3 real) |
+|---|---|---|---|
+| USD 2003–2026 | +0,04 % | +0,09 % | +0,17 % |
+| EUR 2004–2026 | +0,68 % | +0,73 % | +0,81 % |
+| EUR ohne Wechselkurseffekt | | +0,21 % | |
+| USD, Spreads ×3 | −0,17 % | | ±0,00 % |
+
+- Der Mix greift in 102 von 278 Monaten (37 %), ganz 1x nur in 6; im Schnitt werden nur 11 % des 3x-Exposures in 1x
+  umgelegt, weil levGTAA meist voll investiert ist (Ø Exposure der 3x-Bausteine 2,2). Turnover steigt von 260 % auf
+  313 % p. a. (Wechsel zwischen 1x- und 3x-Produkt von Monat zu Monat).
+- Reiner Pfadeffekt (ohne alle Kosten, Cash = Finanzierung): +0,14 % p. a. für den Mix.
+- Zinsen auf Cash: Das 3x-Produkt zahlt intern Zinsen auf 2 × das eingesetzte Kapital; das Cash daneben verdient
+  ungefähr dieselben Zinsen. Deshalb bringen „mehr Cash-Zinsen beim 3x“ bzw. „weniger Cash beim 1x“ netto fast nichts –
+  übrig bleiben nur die Kostendifferenz der Produkte und der Pfadeffekt.
+- Der größere Vorsprung in EUR stammt fast ganz aus dem Wechselkurs (mehr USD-Vermögen im Mix) und konzentriert sich auf
+  Krisenjahre mit starkem Dollar (2008 +5,1, 2009 +3,8, 2022 +2,4, 2018 +1,6 Prozentpunkte); 2020 und 2025 kostete er.
+  Das ist Währungsrisiko, kein verlässlicher Vorteil. MaxDD und Vola praktisch gleich (−46,3 % vs. −46,6 %).
+- Teilzeiträume (USD, 3x-Kosten real): 2004–2014 +0,20 %, 2015–2026 +0,24 %, 2009–2021 +0,17 %, 2022–2026 +0,24 % p. a.
+
+**Entscheidung: bleibt bei 3x + Cash/Geldmarkt.** Der strukturelle Vorteil des Mix liegt bei 0,1–0,2 % p. a. (bei
+einer CAGR um 35 %), verschwindet schon bei höheren Spreads und kostet 20 % mehr Umschlag, doppelte Orders (1x und 3x je
+Baustein, monatlich wechselnd) und mehr USD-Währungsrisiko. Der einzige größere Effekt (EUR) ist Wechselkurs-Glück in
+Krisen, nicht Hebel-Optimierung. „Ganz oder gar nicht“ betrifft nur 6 Monate und bringt +0,02–0,05 % – ebenfalls nicht
+lohnend.
