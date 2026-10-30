@@ -270,8 +270,13 @@ DAILY = (("levgtaa-signalbot", "levgtaa", "levGTAA"), ("mrreboundgtaa-signalbot"
          ("1xgtaa-signalbot", "1xgtaa", "1xGTAA"), ("levtipsregime-signalbot", "levtips", "levTipsRegime"))
 
 
+EX_KEY = {"levgtaa": "levgtaa", "mrrebound": "mrreboundgtaa", "1xgtaa": "1xgtaa", "levtips": "levtipsregime"}
+
+
 def daily(only=None):
     script = os.path.join(HERE, "daily_signals.py")
+    prev = {r.get("key"): r for r in load_prev("explain.json", []) if isinstance(r, dict)}
+    explain = dict(prev)                                   # Herleitung je Strategie; bei Fehler bleibt die letzte
     for repo, mode, name in DAILY:
         sid = f"daily_{mode}"
         if only is not None and sid not in only:
@@ -291,6 +296,11 @@ def daily(only=None):
             last, n = attempt(run, 2, f"Tagessignal {mode}")
             shutil.copyfile(tmp, os.path.join(OUT, f"daily_{mode}.csv"))
             shutil.copyfile(tmp[:-4] + "_decisions.csv", os.path.join(WORK, f"decisions_{mode}.csv"))
+            try:
+                with open(tmp[:-4] + "_explain.json", encoding="utf-8") as f:
+                    explain[EX_KEY[mode]] = {"key": EX_KEY[mode], **json.load(f)}
+            except Exception as e:
+                print("Herleitung", mode, "fehlt:", e)
             mark(sid, f"Tagessignal {name}", "Tagessignal (Yahoo + Bot-Code)", "ok" if n == 1 and via in ("git", "lokal") else "retry_ok",
                  "" if n == 1 else f"gerechnet im {n}. Versuch", f"Bot-Code per {via}", n, last)
         except Exception as e:
@@ -302,6 +312,8 @@ def daily(only=None):
                     last = (list(csv.DictReader(fh)) or [{}])[-1].get("date")
             mark(sid, f"Tagessignal {name}", "Tagessignal (Yahoo + Bot-Code)", "fallback" if last else "error",
                  f"{reason(e)} → letzter gültiger Verlauf bleibt", "", getattr(e, "tries", 2), last)
+
+    wjson("explain.json", [explain[k] for k in ("levgtaa", "levtipsregime", "1xgtaa", "mrreboundgtaa") if k in explain])
 
 
 def tlt_row():
@@ -439,6 +451,8 @@ MANIFEST = {
                         "Für jeden US-Handelstag seit 02.01.2025 die MR-Rebound-Zielquoten, als wäre der Tag ein Monatsletzter; gerechnet mit dip_core.py aus mrreboundgtaa-signalbot auf Yahoo-Schlusskursen."),
     "daily_1xgtaa": ("daily_1xgtaa.csv", "1xGTAA Tagessignal (simuliert)",
                      "Für jeden US-Handelstag seit 02.01.2025 die 1xGTAA-Zielquote ohne Cooldown, dazu die gehaltene Allokation und der Cooldown; gerechnet mit gtaa_botcore.py aus 1xgtaa-signalbot."),
+    "explain": ("explain.json", "Herleitung der Signale",
+                "Je Strategie alle Zwischenwerte (Renditen, Momentum, Trend, Ranglisten, Plätze, Vol-Target bzw. Abstände und Regeln) für das heute simulierte Signal und die Entscheidung der gehaltenen Position; gerechnet mit dem Code der Bot-Repos."),
     "daily_levtips": ("daily_levtips.csv", "levTipsRegime Tagessignal (simuliert)",
                       "Für jeden US-Handelstag seit 02.01.2025 Markt (1) oder Cash (0) ohne Cooldown, die gehaltene Position und die Abstände von S&P 500 TR zur SMA280 und TIPS zur SMA220; gerechnet mit levspybits.py aus levtipsregime-signalbot."),
 }

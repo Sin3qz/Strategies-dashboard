@@ -83,7 +83,7 @@
   .sd-hpanel { display: grid; gap: var(--cds-gap-xs); margin-top: var(--cds-gap-sm); padding: var(--cds-pad-md, 12px); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-panel); }
   .sd-hpanel .sd-note, .sd-hpanel .sd-warn { margin: 0; }
   .sd-h-ok { color: var(--color-ok); } .sd-h-warn { color: var(--color-warn); } .sd-h-bad { color: var(--color-bad); font-weight: 600; }
-  .sd-sync.r8 > .sd-card { grid-row: span 8; }
+  .sd-sync.r9 > .sd-card { grid-row: span 9; }
   .sd-card { scroll-margin-top: 72px; }
   .sd-dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px var(--cds-gap-sm); margin: 0; font-size: var(--cds-font-size-caption); }
   .sd-dl dt { color: var(--color-fg-muted); font-weight: 600; }
@@ -104,6 +104,14 @@
   .sd-tl:empty { display: none; }
   .sd-prods { display: grid; gap: 2px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
   .sd-prods:empty { display: none; }
+  .sd-pq { display: inline-block; min-width: 3.2em; font-weight: 600; color: var(--color-fg); font-variant-numeric: tabular-nums; }
+  .sd-ex-box > div { display: grid; gap: var(--cds-gap-xs); }
+  .sd-ex-box .sd-seg { justify-self: start; flex-wrap: wrap; }
+  .sd-ex { font-size: var(--cds-font-size-caption); min-width: 30rem; }
+  .sd-ex td, .sd-ex th { padding: 3px 6px; white-space: nowrap; }
+  .sd-ex-h { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: var(--cds-gap-xs) 0 0; }
+  .sd-ex-h b { color: var(--color-fg); }
+  .sd-ex-why { margin: 0; padding-left: 1.1em; font-size: var(--cds-font-size-caption); display: grid; gap: 2px; }
   .sd-prods b { font-weight: 600; color: var(--color-fg); }
   .sd-isin { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; user-select: all; }
   .sd-chips:empty { display: none; }
@@ -392,11 +400,11 @@
       </div>
     </div>
     <div class="sd-jump" role="group" aria-label="Zu Strategie springen"><button data-jump="levgtaa">levGTAA</button><button data-jump="levtipsregime">levTipsRegime</button><button data-jump="1xgtaa">1xGTAA</button><button data-jump="mrreboundgtaa">MR-Rebound</button><button data-jump="wechsel">Signalwechsel</button></div>
-    <div class="sd-grid2 sd-sync r8">
+    <div class="sd-grid2 sd-sync r9">
       <div class="sd-card" id="levgtaa">
         <div class="sd-chead">
           <div><h3>levGTAA</h3><div class="sd-kind">Momentum · monatlich · 3x Nasdaq · 1x BTC · 3x US-Treasury 7-10y · 3x Gold</div></div>
-          <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="levgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="levgtaa" hidden>Cash</span><span data-draw="badge" data-key="levgtaa" data-source="allocations"></span></span>
+          <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="levgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="levgtaa" hidden>Cash/Geldmarkt</span><span data-draw="badge" data-key="levgtaa" data-source="allocations"></span></span>
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot)</b> · <span data-draw="heldwhen" data-key="levgtaa" data-source="strategies build">—</span></p>
@@ -414,6 +422,10 @@
           <div class="sd-chart" data-draw="stack" data-source="daily_levgtaa" data-series="NASDAQ100 BTC UST_IEF GOLD"></div>
           <div class="sd-legend" data-draw="legend" data-source="daily_levgtaa" data-series="NASDAQ100 BTC UST_IEF GOLD"></div>
         </div>
+        <details class="sd-more sd-ex-box" open>
+          <summary>So kommt das Signal zustande (alle Werte, &gt; 0 grün, &lt; 0 rot)</summary>
+          <div data-draw="explain" data-key="levgtaa" data-source="explain"></div>
+        </details>
         <div class="sd-slot">
           <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="levgtaa" data-source="strategies build">—</span></div>
           <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="levgtaa" data-source="strategies build">—</span></span></div>
@@ -455,8 +467,8 @@
       </div>
       <div class="sd-card" id="levtipsregime">
         <div class="sd-chead">
-          <div><h3>levTipsRegime</h3><div class="sd-kind">täglich · Cooldown 10 · Markt: 100 % 3x S&amp;P 500 · 3x IEF · Cash</div></div>
-          <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="levtipsregime" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="levtipsregime" hidden>Cash</span><span data-draw="badge" data-key="levtipsregime" data-source="allocations"></span></span>
+          <div><h3>levTipsRegime</h3><div class="sd-kind">täglich · Cooldown 10 · Markt: 100 % 3x S&amp;P 500 · 3x IEF · Cash/Geldmarkt</div></div>
+          <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="levtipsregime" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="levtipsregime" hidden>Cash/Geldmarkt</span><span data-draw="badge" data-key="levtipsregime" data-source="allocations"></span></span>
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot)</b> · <span data-draw="heldwhen" data-key="levtipsregime" data-source="strategies build">—</span></p>
@@ -474,6 +486,10 @@
           <div class="sd-chart" data-draw="tips" data-source="daily_levtips"></div>
           <div class="sd-legend"><span><span class="sd-sw" data-draw="sw" data-i="0"></span>S&amp;P 500 TR / SMA280</span><span><span class="sd-sw" data-draw="sw" data-i="1"></span>TIPS / SMA220</span><span><span class="sd-sw" data-draw="sw" data-i="2"></span>TLT / SMA200</span><span><span class="sd-sw" data-draw="sw" data-i="5"></span>Markt-Signal</span><span><span class="sd-sw" data-draw="sw" data-i="2"></span>3x-IEF-Signal (hinterlegt)</span></div>
         </div>
+        <details class="sd-more sd-ex-box" open>
+          <summary>So kommt das Signal zustande (alle Werte, &gt; 0 grün, &lt; 0 rot)</summary>
+          <div data-draw="explain" data-key="levtipsregime" data-source="explain"></div>
+        </details>
         <div class="sd-slot">
           <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="levtipsregime" data-source="strategies build">—</span></div>
           <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=levtipsregime" data-fmt="date">—</span> · <span data-draw="fresh" data-key="levtipsregime" data-source="strategies build">—</span></span></div>
@@ -510,7 +526,7 @@
       <div class="sd-card" id="1xgtaa">
         <div class="sd-chead">
           <div><h3>1xGTAA</h3><div class="sd-kind">defensiv · ungehebelt · täglich · Cooldown 10</div></div>
-          <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="1xgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="1xgtaa" hidden>Cash</span><span data-draw="badge" data-key="1xgtaa" data-source="allocations"></span></span>
+          <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="1xgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="1xgtaa" hidden>Cash/Geldmarkt</span><span data-draw="badge" data-key="1xgtaa" data-source="allocations"></span></span>
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot)</b> · <span data-draw="heldwhen" data-key="1xgtaa" data-source="strategies build">—</span></p>
@@ -528,6 +544,10 @@
           <div class="sd-chart" data-draw="stack" data-source="daily_1xgtaa" data-series="NASDAQ100 EM_SMALLCAP EMU_VALUE BONDS_7_10 GOLD COMMODITIES CASH_USD"></div>
           <div class="sd-legend" data-draw="legend" data-source="daily_1xgtaa" data-series="NASDAQ100 EM_SMALLCAP EMU_VALUE BONDS_7_10 GOLD COMMODITIES CASH_USD"></div>
         </div>
+        <details class="sd-more sd-ex-box" open>
+          <summary>So kommt das Signal zustande (alle Werte, &gt; 0 grün, &lt; 0 rot)</summary>
+          <div data-draw="explain" data-key="1xgtaa" data-source="explain"></div>
+        </details>
         <div class="sd-slot">
           <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="1xgtaa" data-source="strategies build">—</span></div>
           <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=1xgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="1xgtaa" data-source="strategies build">—</span></span></div>
@@ -565,7 +585,7 @@
       <div class="sd-card" id="mrreboundgtaa">
         <div class="sd-chead">
           <div><h3>MR-Rebound-GTAA</h3><div class="sd-kind">Mean-Reversion · monatlich · Duo QQQ/EM/TLT | QQQ/India/TLT · 3x Nasdaq/EM/India · 5x TLT</div></div>
-          <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="mrreboundgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="mrreboundgtaa" hidden>Cash</span><span data-draw="badge" data-key="mrreboundgtaa" data-source="allocations"></span></span>
+          <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="mrreboundgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="mrreboundgtaa" hidden>Cash/Geldmarkt</span><span data-draw="badge" data-key="mrreboundgtaa" data-source="allocations"></span></span>
         </div>
         <div class="sd-slot">
           <p class="sd-note"><b>Gehalten (Bot)</b> · <span data-draw="heldwhen" data-key="mrreboundgtaa" data-source="strategies build">—</span></p>
@@ -583,6 +603,10 @@
           <div class="sd-chart" data-draw="stack" data-source="daily_mrrebound" data-series="NASDAQ100 EM INDIA TLT_LONG"></div>
           <div class="sd-legend" data-draw="legend" data-source="daily_mrrebound" data-series="NASDAQ100 EM INDIA TLT_LONG"></div>
         </div>
+        <details class="sd-more sd-ex-box" open>
+          <summary>So kommt das Signal zustande (alle Werte, &gt; 0 grün, &lt; 0 rot)</summary>
+          <div data-draw="explain" data-key="mrreboundgtaa" data-source="explain"></div>
+        </details>
         <div class="sd-slot">
           <div class="sd-line"><span>Rebalancing</span><span data-draw="reb" data-key="mrreboundgtaa" data-source="strategies build">—</span></div>
           <div class="sd-line"><span>Kursstand</span><span><span data-draw="val" data-source="strategies" data-field="asOf" data-where="key=mrreboundgtaa" data-fmt="date">—</span> · <span data-draw="fresh" data-key="mrreboundgtaa" data-source="strategies build">—</span></span></div>
@@ -749,7 +773,7 @@
     NDX3: 0, SPX3: 0, BTC1: 1, BTCW: 1, UST3: 2, GOLD3: 3, MM: 7};
   const NAMES = {NASDAQ100: 'Nasdaq 100', SP500: 'S&P 500', BTC: 'Bitcoin', UST_IEF: 'UST 7-10y', TLT_LONG: 'UST 20y+', GOLD: 'Gold',
     EM: 'Emerging Markets', INDIA: 'India', EM_SMALLCAP: 'EM Small Caps', EMU_VALUE: 'EMU Value', BONDS_7_10: 'UST 7-10y',
-    COMMODITIES: 'Rohstoffe', CASH_USD: 'Geldmarkt', CASH: 'Cash', cash: 'Cash',
+    COMMODITIES: 'Rohstoffe', CASH_USD: 'USD-Geldmarkt', CASH: 'Cash/Geldmarkt', cash: 'Cash/Geldmarkt',
     NDX3: '3x Nasdaq 100', SPX3: '3x S&P 500', BTC1: '1x Bitcoin (iShares Bitcoin ETP)', BTCW: '1x Bitcoin (WisdomTree Physical)', UST3: '3x UST 7-10y', GOLD3: '3x Gold', MM: 'Geldmarkt-ETF (EUR)'};
   const LEV = {levgtaa: {NASDAQ100: 3, BTC: 1, UST_IEF: 3, GOLD: 3}, mrreboundgtaa: {NASDAQ100: 3, EM: 3, INDIA: 3, TLT_LONG: 5},
     '1xgtaa': {}, levtipsregime: {SP500: 3, BTC: 1, UST_IEF: 3}};
@@ -818,19 +842,19 @@
     inputs: ['strategies', 'allocations', 'daily_levgtaa', 'daily_mrrebound', 'daily_1xgtaa', 'daily_levtips'],
     fn: (strategies, allocations, daily_levgtaa, daily_mrrebound, daily_1xgtaa, daily_levtips) => {
       const names = {NASDAQ100: 'Nasdaq', BTC: 'Bitcoin', UST_IEF: 'UST 7-10y', TLT_LONG: 'UST 20y+', GOLD: 'Gold', EM: 'EM', INDIA: 'India',
-        EM_SMALLCAP: 'EM Small', EMU_VALUE: 'EMU Value', BONDS_7_10: 'UST 7-10y', COMMODITIES: 'Rohstoffe', CASH_USD: 'Geldmarkt', SP500: 'S&P 500'};
+        EM_SMALLCAP: 'EM Small', EMU_VALUE: 'EMU Value', BONDS_7_10: 'UST 7-10y', COMMODITIES: 'Rohstoffe', CASH_USD: 'USD-Geldmarkt', SP500: 'S&P 500'};
       const label = {levgtaa: 'levGTAA', mrreboundgtaa: 'MR-Rebound-GTAA', '1xgtaa': '1xGTAA', levtipsregime: 'levTipsRegime'};
       const skip = ['date', 'cash', 'vt_factor', 'platz1', 'held', 'cooldown'];
       const p = (w) => (Math.round(w * 1000) / 10).toLocaleString('de-DE') + ' %';
       const text = (w) => {
         const parts = Object.entries(w).filter(([, x]) => x > 0.0005).sort((a, b) => b[1] - a[1]).map(([a, x]) => `${p(x)} ${names[a] || a}`);
         const cash = 1 - Object.values(w).reduce((s, x) => s + x, 0);
-        if (cash > 0.0005) parts.push(`${p(cash)} Cash`);
-        return parts.join(' · ') || '100 % Cash';
+        if (cash > 0.0005) parts.push(`${p(cash)} Cash/Geldmarkt`);
+        return parts.join(' · ') || '100 % Cash/Geldmarkt';
       };
       const statusOf = (s) => s.changeType ? s.changeType + ' – heute handeln' : (s.pendingTrade || s.pendingDecision) ? 'Wechsel ausstehend' : 'kein Handel';
       const daily = {levgtaa: daily_levgtaa, mrreboundgtaa: daily_mrrebound, '1xgtaa': daily_1xgtaa};
-      const tipsText = {MARKET: '100 % 3x S&P 500', IEF: '100 % 3x UST 7-10y (IEF)', CASH: '100 % Cash'};
+      const tipsText = {MARKET: '100 % 3x S&P 500', IEF: '100 % 3x UST 7-10y (IEF)', CASH: '100 % Cash/Geldmarkt'};
       return ['levgtaa', 'mrreboundgtaa', '1xgtaa', 'levtipsregime'].map((k) => {
         const s = strategies.find((r) => r.key === k) || {};
         const held = {};
@@ -857,7 +881,7 @@
     inputs: ['daily_levgtaa', 'daily_mrrebound', 'daily_1xgtaa', 'daily_levtips'],
     fn: (daily_levgtaa, daily_mrrebound, daily_1xgtaa, daily_levtips) => {
       const names = {NASDAQ100: 'Nasdaq', BTC: 'Bitcoin', UST_IEF: 'UST 7-10y', TLT_LONG: 'UST 20y+', GOLD: 'Gold', EM: 'EM', INDIA: 'India',
-        EM_SMALLCAP: 'EM Small', EMU_VALUE: 'EMU Value', BONDS_7_10: 'UST 7-10y', COMMODITIES: 'Rohstoffe', CASH_USD: 'Geldmarkt'};
+        EM_SMALLCAP: 'EM Small', EMU_VALUE: 'EMU Value', BONDS_7_10: 'UST 7-10y', COMMODITIES: 'Rohstoffe', CASH_USD: 'USD-Geldmarkt'};
       const skip = ['date', 'cash', 'vt_factor', 'platz1', 'held', 'cooldown'];
       const p = (w) => (Math.round(w * 1000) / 10).toLocaleString('de-DE') + ' %';
       const out = [];
@@ -866,13 +890,13 @@
         rows.forEach((r) => {
           const w = Object.keys(r).filter((c) => !skip.includes(c)).map((c) => [c, Number(r[c]) || 0]).filter(([, x]) => x > 0.0005).sort((a, b) => b[1] - a[1]);
           const set = w.map(([a]) => a).sort().join('|') || 'CASH';
-          const txt = w.map(([a, x]) => `${p(x)} ${names[a] || a}`).join(' · ') || '100 % Cash';
+          const txt = w.map(([a, x]) => `${p(x)} ${names[a] || a}`).join(' · ') || '100 % Cash/Geldmarkt';
           if (prevSet != null && set !== prevSet) out.push({date: r.date, strategy: label, from: prevText, to: txt});
           prevSet = set; prevText = txt;
         });
       };
       scan(daily_levgtaa, 'levGTAA'); scan(daily_mrrebound, 'MR-Rebound-GTAA'); scan(daily_1xgtaa, '1xGTAA');
-      const tt = {MARKET: 'Markt', IEF: '3x IEF', CASH: 'Cash'};
+      const tt = {MARKET: 'Markt', IEF: '3x IEF', CASH: 'Cash/Geldmarkt'};
       let prev = null;
       daily_levtips.forEach((r) => {
         const m = tt[r.state || (Number(r.market) === 1 ? 'MARKET' : 'CASH')];
@@ -1172,7 +1196,7 @@
     }
     inv.forEach((a) =>
       el.appendChild(chipEl(a.asset, ` ${a.leverage}x ${NAMES[a.asset] || a.display}`, a.weight == null ? null : pct(a.weight, d))));   // gleiche Namen wie beim Tagessignal
-    if (cash != null && cash > (d ? 0.0005 : 0.005)) el.appendChild(chipEl('CASH', ' Cash', pct(cash, d)));
+    if (cash != null && cash > (d ? 0.0005 : 0.005)) el.appendChild(chipEl('CASH', ' Cash/Geldmarkt', pct(cash, d)));
   };
   dash.draw('chips', drawChips);
   // Ziel im wikifolio wie im Rechner: Bot-Quoten so weit gekuerzt, dass der Gebuehren-Puffer frei bleibt; Bot-Cash
@@ -1195,7 +1219,7 @@
     const r = rows[rows.length - 1], lev = LEV[el.dataset.strat] || {}, dec = el.dataset.strat === '1xgtaa' ? 0 : 1;
     el.dataset.series.split(' ').forEach((s) => { const w = Number(r[s]); if (w > 0.0005) el.appendChild(chipEl(s, ` ${lev[s] || 1}x ${NAMES[s] || s}`, pct(w, dec))); });
     const cash = Number(r.cash);
-    if (cash > 0.0005) el.appendChild(chipEl('CASH', ' Cash', pct(cash, dec)));
+    if (cash > 0.0005) el.appendChild(chipEl('CASH', ' Cash/Geldmarkt', pct(cash, dec)));
   });
 
   // Produktvorschlag je Baustein (wie in den Bot-Repos; Bitcoin: günstiges physisches ETP, vor dem Kauf in wikifolio prüfen)
@@ -1212,37 +1236,211 @@
       CASH_USD: ['Xtrackers II USD Overnight Rate Swap UCITS ETF 1C', 'LU0321465469']},
   };
   const DAILY_SRC = {levgtaa: 'daily_levgtaa', mrreboundgtaa: 'daily_mrrebound', '1xgtaa': 'daily_1xgtaa'};
+  // Cash/Geldmarkt: Empfehlung je Strategie (gehebelte Strategien und wikifolios in EUR; 1xGTAA wie sein eigener
+  // Geldmarkt-Baustein in USD)
+  const MM_EUR = ['Xtrackers II EUR Overnight Rate Swap UCITS ETF 1C (Geldmarkt-ETF, EUR)', 'LU0290358497'];
+  const MM_USD = ['Xtrackers II USD Overnight Rate Swap UCITS ETF 1C (Geldmarkt-ETF, USD)', 'LU0321465469'];
+  const CASH_PROD = {levgtaa: MM_EUR, levtipsregime: MM_EUR, mrreboundgtaa: MM_EUR, '1xgtaa': MM_USD};
+  const prodLine = (el, share, label, name, isin) => {
+    const d = document.createElement('div');
+    if (share != null) { const q = document.createElement('span'); q.className = 'sd-pq'; q.textContent = pct(share, Math.round(share * 1000) % 10 ? 1 : 0); d.append(q, ' '); }
+    if (label) d.append(label + ' → ');
+    const b = document.createElement('b'); b.textContent = name;
+    const i = document.createElement('span'); i.className = 'sd-isin'; i.textContent = isin;
+    d.append(b, ' · ', i);
+    el.appendChild(d);
+  };
   const drawProds = (el) => {
     const key = el.dataset.key, mode = el.dataset.mode;
     el.replaceChildren();
     if (mode === 'held' && wfWait(el, drawProds)) return;
-    let assets = [];
+    if (el.dataset.wf) {                                       // wikifolio: Produkte des Soll (Bot-Cash im Geldmarkt-ETF)
+      const al = (rowsOf('allocations') || []).filter((a) => a.strategy === key && a.asset !== 'CASH');
+      let assets = al.filter((a) => a.weight == null || Number(a.weight) > 0.0005).map((a) => a.asset);
+      const o = wfTarget(key, al);
+      if (!assets.length || (o && o.mm > 0)) assets = assets.concat('MM_WF');
+      const MMP = ['Xtrackers II EUR Overnight Rate Swap UCITS ETF 1C (Geldmarkt-ETF im wikifolio)', 'LU0290358497'];
+      assets.filter((a) => a === 'MM_WF' || (PROD[key] && PROD[key][a])).forEach((a) => prodLine(el, null, '', ...(a === 'MM_WF' ? MMP : PROD[key][a])));
+      return;
+    }
+    // Signale: jede Position mit Quote, Produkt und ISIN, auch Cash/Geldmarkt
+    let w = null;
     if (mode === 'held') {
-      assets = (rowsOf('allocations') || []).filter((a) => a.strategy === key && a.asset !== 'CASH' && (a.weight == null || Number(a.weight) > 0.0005)).map((a) => a.asset);
+      const al = rowsOf('allocations');
+      if (al) { w = {}; al.filter((a) => a.strategy === key).forEach((a) => { w[a.asset] = a.weight == null ? (a.asset === 'SP500' ? 1 : 0) : Number(a.weight); }); }
     } else if (key === 'levtipsregime') {
       const t = rowsOf('levtips_today'), st = t && t[0] && t[0].state;
-      assets = st === 'MARKET' ? ['SP500'] : st === 'IEF' ? ['UST_IEF'] : [];
+      if (st) w = st === 'MARKET' ? {SP500: 1} : st === 'IEF' ? {UST_IEF: 1} : {CASH: 1};
     } else {
       const d = rowsOf(DAILY_SRC[key]), r = d && d[d.length - 1];
-      if (r) assets = Object.keys(PROD[key]).filter((a) => Number(r[a]) > 0.0005);
+      if (r) { w = {}; Object.keys(PROD[key]).forEach((a) => { w[a] = Number(r[a]) || 0; }); w.CASH = Number(r.cash) || 0; }
     }
-    // wikifolios: Bot-Cash liegt im Geldmarkt-ETF (Rechner), daher bei reinem Cash dieses Produkt nennen
-    if (!assets.length && (key === 'levtipsregime' || key === 'levgtaa')) assets = ['MM_WF'];
-    else if (el.dataset.wf && mode === 'held') {
-      const o = wfTarget(key, (rowsOf('allocations') || []).filter((a) => a.strategy === key && a.asset !== 'CASH'));
-      if (o && o.mm > 0) assets = assets.concat('MM_WF');
-    }
-    const MMP = ['Xtrackers II EUR Overnight Rate Swap UCITS ETF 1C (Geldmarkt-ETF im wikifolio)', 'LU0290358497'];
-    assets.filter((a) => a === 'MM_WF' || (PROD[key] && PROD[key][a])).forEach((a) => {
-      const [name, isin] = a === 'MM_WF' ? MMP : PROD[key][a];
-      const d = document.createElement('div');
-      const b = document.createElement('b'); b.textContent = name;
-      const i = document.createElement('span'); i.className = 'sd-isin'; i.textContent = isin;
-      d.append(b, ' · ', i);
-      el.appendChild(d);
-    });
+    if (!w) return;
+    const inv = Object.keys(w).filter((a) => a !== 'CASH' && w[a] > 0.0005 && PROD[key] && PROD[key][a]).sort((a, b) => w[b] - w[a]);
+    inv.forEach((a) => prodLine(el, w[a], '', ...PROD[key][a]));
+    const cash = 'CASH' in w ? w.CASH : 1 - inv.reduce((s2, a) => s2 + w[a], 0);
+    if (cash > 0.0005) prodLine(el, cash, 'Cash/Geldmarkt', ...CASH_PROD[key]);
   };
   dash.draw('prods', drawProds);
+
+  // ---------- So kommt das Signal zustande: Herleitung mit allen Zwischenwerten (explain.json, gerechnet mit dem
+  // Code der Bot-Repos auf denselben Schlusskursen wie das Tagessignal) ----------
+  const exMode = {};                                           // je Strategie: 'today' (simuliert) | 'held' (gehalten)
+  const hx = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+  const sv = (v, d = 1) => ({t: spct(v, d), s: v});            // vorzeichenbehaftet und farbig (> 0 grün, < 0 rot)
+  const yn = (b, yes = '✓ ja', no = '✗ nein') => ({t: b ? yes : no, s: b ? 1 : -1});
+  const wq = (v) => ({t: v > 0.0005 ? pct(v, Math.round(v * 1000) % 10 ? 1 : 0) : '–', b: v > 0.0005});
+  const exTable = (head, rows, numFrom = 1) => {
+    const box = hx('div', 'sd-tw'), t = hx('table', 'sd-ex'), th = hx('thead'), tr = hx('tr');
+    head.forEach((x, k) => tr.appendChild(hx('th', k >= numFrom ? 'n' : '', x)));
+    th.appendChild(tr); t.appendChild(th);
+    const tb = hx('tbody');
+    rows.forEach((r) => {
+      const rr = hx('tr'); if (r.cls) rr.className = r.cls;
+      (r.cells || r).forEach((c, k) => {
+        const o = c != null && typeof c === 'object' ? c : {t: c};
+        const td = hx('td', k >= numFrom ? 'n' : '', o.t == null ? '–' : String(o.t));
+        if (o.s != null) signClass(td, o.s); if (o.b) td.style.fontWeight = '600';
+        rr.appendChild(td);
+      });
+      tb.appendChild(rr);
+    });
+    t.appendChild(tb); box.appendChild(t); return box;
+  };
+  const step = (box, n, title, text) => { const p = hx('p', 'sd-ex-h'); p.append(hx('b', '', `${n}. ${title}`)); if (text) p.append(' ', text); box.appendChild(p); };
+  const why = (box, lines) => { const u = hx('ul', 'sd-ex-why'); lines.filter(Boolean).forEach((l) => u.appendChild(hx('li', '', l))); box.appendChild(u); };
+  const resultChips = (box, strat, w, cash) => {
+    const c = hx('div', 'sd-chips'), lev = LEV[strat] || {};
+    Object.keys(w).filter((a) => w[a] > 0.0005).sort((a, b) => w[b] - w[a])
+      .forEach((a) => c.appendChild(chipEl(a, ` ${lev[a] || 1}x ${NAMES[a] || a}`, pct(w[a], Math.round(w[a] * 1000) % 10 ? 1 : 0))));
+    if (cash > 0.0005) c.appendChild(chipEl('CASH', ' Cash/Geldmarkt', pct(cash, Math.round(cash * 1000) % 10 ? 1 : 0)));
+    box.appendChild(c);
+  };
+  const NM = (a) => NAMES[a] || a;
+
+  // levGTAA: zwei Ranglisten x 101 SMA-Längen, Mittel, dann Vol-Target
+  const exLev = (x, box) => {
+    const P = x.params, nL = P.n_long, A = x.assets, by = Object.fromEntries(A.map((a) => [a.asset, a]));
+    const momOf = (k, a) => (x.rankings[k].rows.find((r) => r.asset === a) || {}).mom;
+    step(box, 1, 'Kennzahlen je Baustein', `Signal auf 1x-Kursen in USD, Schluss ${deDate(x.date)}. 1 Monat = 21 Handelstage. Momentum = Durchschnitt der Monatsrenditen; Trend = SMA${P.sma_short} über SMA L, geprüft für jede Länge L = ${P.sma_long[0]}–${P.sma_long[1]} (${nL} Längen).`);
+    box.appendChild(exTable(['Baustein (Signal)', '1 M', '3 M', '6 M', '9 M', '12 M', 'Momentum Ø 1/3/6/9', 'Momentum Ø 3/6/12', `SMA${P.sma_short} > SMA L`, `Ø SMA${P.sma_short}/SMA L − 1`],
+      A.map((a) => [`${NM(a.asset)} (${a.ticker})`, sv(a.r['1']), sv(a.r['3']), sv(a.r['6']), sv(a.r['9']), sv(a.r['12']),
+        {...sv(momOf(0, a.asset), 2), b: true}, {...sv(momOf(1, a.asset), 2), b: true},
+        {t: `bei ${Math.round(a.cross_share * nL)} von ${nL}`, s: a.cross_share >= 0.999 ? 1 : a.cross_share <= 0 ? -1 : null}, sv(a.trend)])));
+    const total = {};
+    x.rankings.forEach((r, k) => {
+      const el = r.rows.filter((q) => q.el > 0).sort((a, b) => b.mom - a.mom);
+      step(box, `2${'ab'[k]}`, `Rangliste „Momentum ${r.months.join('/')}“`, 'Zulässig, wenn Momentum > 0 UND Trend erfüllt. Unter den zulässigen: Platz 1 (höchstes Momentum) = 40 %, Platz 2 = 60 %; nur einer zulässig = 50 %; Rest Cash/Geldmarkt.');
+      box.appendChild(exTable(['Baustein', 'Momentum', 'Momentum > 0', 'Trend erfüllt', 'zulässig', 'Platz', 'Quote'],
+        r.rows.map((q) => { const a = by[q.asset], pos = el.indexOf(q);
+          return [NM(q.asset), sv(q.mom, 2), yn(q.mom > 0), {t: `${Math.round(a.cross_share * nL)}/${nL}`, s: a.cross_share >= 0.999 ? 1 : a.cross_share <= 0 ? -1 : null},
+            q.el >= 0.999 ? yn(true) : q.el <= 0 ? yn(false) : {t: `teilweise (${Math.round(q.el * nL)}/${nL} L)`},
+            pos >= 0 && pos < 2 ? `Platz ${pos + 1}` : '–', wq(q.w)]; })));
+      const lines = [];
+      r.rows.filter((q) => q.el < 0.999).forEach((q) => {
+        const a = by[q.asset], g = [];
+        if (!(q.mom > 0)) g.push(`Momentum ${spct(q.mom, 2)} ≤ 0`);
+        if (a.cross_share < 0.999) g.push(a.cross_share <= 0 ? `SMA${P.sma_short} unter allen SMA L` : `Trend nur bei ${Math.round(a.cross_share * nL)} von ${nL} Längen`);
+        lines.push(`${NM(q.asset)} ${q.el <= 0 ? 'nicht zulässig' : 'nur teilweise zulässig'}: ${g.join(', ')}.`);
+      });
+      if (el.length >= 2) lines.push(`→ ${NM(el[0].asset)} Platz 1 (höchstes Momentum ${spct(el[0].mom, 2)}) = 40 %, ${NM(el[1].asset)} Platz 2 (${spct(el[1].mom, 2)}) = 60 %.`);
+      else if (el.length === 1) lines.push(`→ Nur ${NM(el[0].asset)} zulässig: 50 %, die anderen 50 % Cash/Geldmarkt.`);
+      else lines.push('→ Kein Baustein zulässig: 100 % Cash/Geldmarkt.');
+      const lead = el[0] && by[el[0].asset];
+      if (lead && r.months.includes(1) && lead.r['1'] < 0)
+        lines.push(`${NM(lead.asset)} steht trotz ${spct(lead.r['1'], 1)} im letzten Monat auf Platz 1: Es zählt der Durchschnitt über ${r.months.join('/')} Monate, und die längeren Zeiträume (${r.months.filter((m) => m > 1).map((m) => `${m} M ${spct(lead.r[String(m)], 1)}`).join(', ')}) überwiegen.`);
+      if (r.rows.some((q) => q.el > 0 && q.el < 0.999)) lines.push('Teilweise zulässige Bausteine zählen nur bei den SMA-Längen, bei denen der Trend erfüllt ist; die Quote ist der Durchschnitt über alle Längen.');
+      why(box, lines);
+      r.rows.forEach((q) => { total[q.asset] = (total[q.asset] || 0) + q.w / x.rankings.length; });
+    });
+    step(box, 3, 'Mittel beider Ranglisten', '(Rangliste a + Rangliste b) ÷ 2');
+    box.appendChild(exTable(['Baustein', ...x.rankings.map((r) => `Momentum ${r.months.join('/')}`), 'Mittel'],
+      A.map((a) => [NM(a.asset), ...x.rankings.map((r) => wq((r.rows.find((q) => q.asset === a.asset) || {}).w || 0)), wq(a.w_pre)])));
+    const v = x.vt;
+    step(box, 4, `Vol-Target ${pct(v.target, 0)}`, `Vola des gehebelten Portfolios mit diesen Quoten über ${v.windows.join('/')} Handelstage; Faktor je Fenster = min(1; ${pct(v.target, 0)} ÷ Vola), davon der Durchschnitt.`);
+    box.appendChild(exTable(['Fenster', 'Vola (annualisiert)', 'Faktor'], v.windows.map((n, k) => [`${n} Tage`, pct(v.vols[k], 1), num(v.factors[k], 2)])
+      .concat([{cells: ['Ø Faktor', '', {t: num(v.factor, 2), b: true}]}])));
+    step(box, 5, 'Ergebnis', `Quote = Mittel × Faktor ${num(v.factor, 2)}; Rest Cash/Geldmarkt.`);
+    box.appendChild(exTable(['Baustein', 'Mittel', '× Faktor', 'Zielquote'],
+      A.map((a) => [`${LEV.levgtaa[a.asset] || 1}x ${NM(a.asset)}`, wq(a.w_pre), num(v.factor, 2), wq(a.w)]).concat([{cells: ['Cash/Geldmarkt', '', '', wq(x.cash)]}])));
+    resultChips(box, 'levgtaa', Object.fromEntries(A.map((a) => [a.asset, a.w])), x.cash);
+  };
+
+  // 1xGTAA: Top 2 nach Momentum als feste Plätze (40/60), Platz nur gefüllt bei Momentum > 0 und Trend
+  const ex1x = (x, box, e, mode) => {
+    const P = x.params, rows = x.rows;
+    step(box, 1, 'Kennzahlen je Baustein', `Schluss ${deDate(x.date)}, Kurse in USD (EMU Value aus Xetra in USD umgerechnet). Momentum = Summe der ${P.lookbacks.join('/')}-Monatsrenditen; Trend erfüllt, wenn SMA${P.S} > SMA${P.L}.`);
+    box.appendChild(exTable(['Rang', 'Baustein (Signal)', ...P.lookbacks.map((m) => `${m} M`), 'Momentum (Summe)', `SMA${P.S}/SMA${P.L} − 1`, 'Trend', 'Quote'],
+      rows.map((r) => [r.pos || '–', `${NM(r.asset)} (${r.ticker})`, ...P.lookbacks.map((m) => sv(r.r[String(m)])), {...sv(r.mom, 2), b: true}, sv(r.trend, 2), yn(r.trend_ok), wq(r.w)]), 2));
+    step(box, 2, 'Plätze', `Alle Bausteine nach Momentum sortiert. Platz 1 = ${pct(P.weights[0], 0)}, Platz 2 = ${pct(P.weights[1], 0)} – ein Platz wird nur gefüllt, wenn sein Baustein Momentum > 0 UND Trend hat; sonst bleibt er Cash/Geldmarkt (kein Nachrücken).`);
+    const lines = rows.slice(0, P.N).map((r, k) => {
+      const okm = r.mom > 0, okt = r.trend_ok;
+      return `Platz ${k + 1} (${pct(P.weights[k], 0)}): ${NM(r.asset)} – Momentum ${spct(r.mom, 2)} ${okm ? '> 0 ✓' : '≤ 0 ✗'}, Trend ${spct(r.trend, 2)} ${okt ? '✓' : '✗'} → ${okm && okt ? `${pct(P.weights[k], 0)} ${NM(r.asset)}` : `${pct(P.weights[k], 0)} Cash/Geldmarkt`}.`;
+    });
+    const lead = rows[0];
+    if (lead && lead.r['1'] < 0) lines.push(`${NM(lead.asset)} steht trotz ${spct(lead.r['1'], 1)} im letzten Monat vorn, weil die Summe über ${P.lookbacks.join('/')} Monate zählt.`);
+    if (mode === 'today') lines.push(`Simuliert ohne Cooldown. Der Bot handelt nur, wenn die Sperre frei ist (aktuell ${e.cooldown_now ? `noch ${e.cooldown_now} Handelstage gesperrt` : 'frei'}).`);
+    else lines.push(`Entschieden auf dem Schluss vom ${deDate(x.date)}; danach ${P.cooldown} Handelstage Sperre. Aktuell ${e.cooldown_now ? `noch ${e.cooldown_now} Handelstage gesperrt` : 'frei – der Bot wechselt, sobald das Tagessignal abweicht'}.`);
+    why(box, lines);
+    resultChips(box, '1xgtaa', Object.fromEntries(rows.map((r) => [r.asset, r.w])), x.cash);
+  };
+
+  // levTipsRegime: drei Abstände, Regel, Cooldown
+  const exTips = (x, box, e, mode) => {
+    const r = Object.fromEntries(x.rows.map((q) => [q.ticker, q])), S = x.rows[0], T = x.rows[1], L = x.rows[2];
+    step(box, 1, 'Abstände zur SMA', `Schluss ${deDate(x.date)}, Kurse in USD.`);
+    box.appendChild(exTable(['Signal', 'Kurs', 'SMA', 'Abstand', ''],
+      x.rows.map((q) => [`${q.name} (${q.ticker})`, num(q.close, 2), `SMA${q.sma} = ${num(q.sma_val, 2)}`, {...sv(q.dist, 2), b: true}, yn(q.dist > 0, 'über', 'unter')])));
+    const m = S.dist > 0 && T.dist > 0, i = !m && L && T.dist < 0 && L.dist > 0;
+    step(box, 2, 'Regel');
+    why(box, [
+      `MARKT (100 % 3x S&P 500), wenn S&P 500 TR > SMA${S.sma} (${spct(S.dist, 2)} ${S.dist > 0 ? '✓' : '✗'}) UND TIPS > SMA${T.sma} (${spct(T.dist, 2)} ${T.dist > 0 ? '✓' : '✗'}) → ${m ? 'erfüllt' : 'nicht erfüllt'}.`,
+      L && `3x IEF, wenn TIPS < SMA${T.sma} (${spct(T.dist, 2)} ${T.dist < 0 ? '✓' : '✗'}) UND TLT > SMA${L.sma} (${spct(L.dist, 2)} ${L.dist > 0 ? '✓' : '✗'}) → ${i ? 'erfüllt' : 'nicht erfüllt'}.`,
+      `Sonst Cash/Geldmarkt. → Signal: ${{MARKET: 'MARKT (100 % 3x S&P 500)', IEF: '3x IEF (100 %)', CASH: '100 % Cash/Geldmarkt'}[x.state]}.`,
+      mode === 'today' ? `Simuliert ohne Cooldown; gehalten wird ${{MARKET: 'Markt', IEF: '3x IEF', CASH: 'Cash/Geldmarkt'}[x.held]}${e.cooldown_now ? `, noch ${e.cooldown_now} Handelstage Sperre` : ', Sperre frei'}.`
+        : `Gewechselt auf dem Schluss vom ${deDate(x.date)}; nach jedem Wechsel ${x.params.cooldown} Handelstage Sperre (aktuell ${e.cooldown_now ? `noch ${e.cooldown_now}` : 'frei'}).`,
+    ]);
+    const w = x.state === 'MARKET' ? {SP500: 1} : x.state === 'IEF' ? {UST_IEF: 1} : {};
+    resultChips(box, 'levtipsregime', w, x.state === 'CASH' ? 1 : 0);
+  };
+
+  // MR-Rebound: zwei Körbe, Flop 2 nach SMA-Rangwert, Bestätigung durch Rebound und Gate
+  const exMr = (x, box) => {
+    const P = x.params, nRG = P.R.length * P.G.length;
+    step(box, 1, 'Regel', `Zwei Körbe je 50 %. Je Korb und Variante (Kurz-SMA S ${P.S[0]}–${P.S[1]}, Lang-SMA L ${P.L[0]}–${P.L[1]}, Rebound R = ${P.R.join('/')} Tage, Gate SMA ${P.G.join('/')}; ${P.n.toLocaleString('de-DE')} Varianten): die zwei schwächsten nach SMA S/SMA L − 1 (Flop 2), bestätigt, wenn Rebound > 0 UND Kurs > SMA G. Beide bestätigt: schwächstes ${pct(P.tilt[0], 0)}, zweitschwächstes ${pct(P.tilt[1], 0)}; nur eines: max(Slot; 50 %); sonst Cash/Geldmarkt. Quote = Mittel über alle Varianten. Schluss ${deDate(x.date)}.`);
+    x.baskets.forEach((b, k) => {
+      step(box, `${k + 2}`, `Korb ${b.label}`);
+      const conf = (q) => P.R.filter((R) => q.rebound[R] > 0).length * P.G.filter((G) => q.gate[G] > 0).length;
+      box.appendChild(exTable(['Baustein', 'Rangwert Ø', 'schwächstes', '2.-schwächstes', ...P.R.map((R) => `Rebound ${R} T`), ...P.G.map((G) => `Kurs/SMA${G} − 1`), 'bestätigt', 'Quote im Korb'],
+        b.rows.map((q) => [`${NM(q.asset)} (${q.ticker})`, sv(q.rank, 2), pct(q.weak1, 0), pct(q.weak2, 0), ...P.R.map((R) => sv(q.rebound[R])), ...P.G.map((G) => sv(q.gate[G])),
+          {t: `${conf(q)} von ${nRG}`, s: conf(q) === nRG ? 1 : conf(q) === 0 ? -1 : null}, wq(q.w)])));
+      const flop = b.rows.filter((q) => q.weak1 + q.weak2 > 0).sort((a, c) => (c.weak1 + c.weak2) - (a.weak1 + a.weak2));
+      why(box, [
+        `Flop 2 (Anteil der SMA-Paare): ${flop.map((q) => `${NM(q.asset)} ${pct(q.weak1 + q.weak2, 0)}`).join(', ')}.`,
+        ...flop.map((q) => `${NM(q.asset)}: bestätigt in ${conf(q)} von ${nRG} Kombinationen (Rebound ${P.R.map((R) => spct(q.rebound[R], 1)).join(' / ')}; Kurs vs. SMA ${P.G.map((G) => spct(q.gate[G], 1)).join(' / ')}) → ${pct(q.w, 1)} im Korb.`),
+        b.rows.every((q) => !(q.w > 0.0005)) ? '→ Nichts bestätigt: Korb in Cash/Geldmarkt.' : '',
+      ]);
+    });
+    step(box, x.baskets.length + 2, 'Ergebnis', 'Gesamt = ½ Korb A + ½ Korb B; Rest Cash/Geldmarkt.');
+    resultChips(box, 'mrreboundgtaa', x.w, x.cash);
+  };
+
+  const EX_FN = {levgtaa: exLev, '1xgtaa': ex1x, levtipsregime: exTips, mrreboundgtaa: exMr};
+  const drawExplain = (el) => {
+    const key = el.dataset.key, all = rowsOf('explain'), e = all && all.find((r) => r.key === key);
+    el.replaceChildren();
+    if (!e || !e.today) { el.textContent = 'Herleitung folgt mit dem nächsten Lauf der Aktualisierung.'; return; }
+    const mode = exMode[key] === 'held' && e.held ? 'held' : 'today', x = e[mode];
+    const seg = hx('div', 'sd-seg'); seg.setAttribute('role', 'group'); seg.setAttribute('aria-label', 'Welches Signal');
+    [['today', `Heute simuliert · Schluss ${deDate(e.today.date)}`], ['held', e.held ? `Gehalten · Entscheidung ${deDate(e.held.date)}` : 'Gehalten']].forEach(([m, t]) => {
+      const b = hx('button', '', t); b.type = 'button'; b.setAttribute('aria-pressed', String(m === mode)); b.disabled = m === 'held' && !e.held;
+      b.addEventListener('click', () => { exMode[key] = m; drawExplain(el); });
+      seg.appendChild(b);
+    });
+    el.appendChild(seg);
+    try { EX_FN[key](x, el, e, mode); } catch (err) { console.error('explain', key, err); el.appendChild(hx('p', 'sd-note', 'Herleitung konnte nicht gezeichnet werden.')); }
+  };
+  dash.draw('explain', drawExplain);
 
   // Zeitbalken der gehaltenen Position (aus timeline der Bot-Status-Dateien)
   const tlKey = (lead) => (lead === 'MARKET' ? 'SP500' : lead || 'CASH');
@@ -1315,7 +1513,7 @@
     const st = rows[0].state;
     if (st === 'MARKET') el.appendChild(chipEl('SP500', ' 3x S&P 500', '100 %'));
     else if (st === 'IEF') el.appendChild(chipEl('UST_IEF', ' 3x US-Treasury 7-10y (IEF)', '100 %'));
-    else el.appendChild(chipEl('CASH', ' Cash', '100 %'));
+    else el.appendChild(chipEl('CASH', ' Cash/Geldmarkt', '100 %'));
   });
 
   dash.draw('change', (el) => {
@@ -1627,7 +1825,7 @@
     xTicks(g, x, rows.map((r) => r.date), 52, false);
     const tip = tipBox(el);
     const rule = g.append('line').attr('stroke', 'var(--color-fg)').attr('stroke-width', 1).attr('visibility', 'hidden');
-    const name = {MARKET: 'Markt', IEF: '3x IEF', CASH: 'Cash'};
+    const name = {MARKET: 'Markt', IEF: '3x IEF', CASH: 'Cash/Geldmarkt'};
     svg.append('rect').attr('x', M.l).attr('y', M.t).attr('width', W - M.r - yw - M.l).attr('height', H - M.b - M.t).attr('fill', 'transparent')
       .on('pointermove', (ev) => {
         const [px] = d3.pointer(ev);
