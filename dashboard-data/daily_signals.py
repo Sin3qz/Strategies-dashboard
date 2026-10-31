@@ -34,34 +34,47 @@ def last_change(states):
     return 0
 
 if mode == "levgtaa":
-    from strategies import runner as R, momentum_core as MC
+    from strategies import runner as R, momentum_core as MC, common as U
     from strategies.constants import RANKINGS, SMA_LONG, SMA_SHORT, TILT, VT_TARGET, VT_WINDOWS
-    grid, P, RET, stale, warns, fr = R.prepare(R.load_data())
+    raw = R.load_data()
+    grid, P, RET, stale, warns, fr = R.prepare(raw)
     rows = np.where(P.index >= pd.Timestamp(START))[0]
-    W, det = MC.decision_weights(P, rows, RANKINGS, SMA_LONG, SMA_SHORT, TILT)
-    sc = MC.vt_scale(RET.values, rows, W, VT_TARGET, VT_WINDOWS)
+    NEW = hasattr(R, "btc_override")                    # Bot mit Bitcoin-Regel (juengster Tagesschluss vor dem Handel)
+    btc = R.btc_series(raw) if NEW else None
+    if NEW:
+        _, W, sc, WF_d, det, binfo = R.compute(P, RET, btc=btc, rows=rows)
+    else:
+        W, det = MC.decision_weights(P, rows, RANKINGS, SMA_LONG, SMA_SHORT, TILT)
+        sc = MC.vt_scale(RET.values, rows, W, VT_TARGET, VT_WINDOWS); binfo = [None] * len(rows)
     df = pd.DataFrame(W * sc[:, None], columns=R.AL).round(4)
     df.insert(0, "date", [iso(d) for d in P.index[rows]])
     df["cash"] = (1 - df[R.AL].sum(axis=1)).clip(lower=0).round(4)
     df["vt_factor"] = np.round(sc, 4)
     df["platz1"] = [R.AL[int(np.argmax(r))] if r.max() > 0 else "CASH" for r in det["P1"]]
-    mrows, _, _, WF, _ = R.compute(P, RET)                                 # echte Monatsentscheidungen
+    # Bitcoin-Kursdatum je Zeile (juengster abgeschlossener Tagesschluss vor dem Handelstag) und ob endgueltig
+    df["btc_date"] = [b["date"].isoformat() if b else "" for b in binfo]
+    df["btc_final"] = [int(b["final"]) if b else 1 for b in binfo]
+    res = R.compute(P, RET, btc=btc) if NEW else R.compute(P, RET)        # echte Monatsentscheidungen
+    mrows, WF = res[0], res[3]
     dec = pd.DataFrame(WF, columns=R.AL).round(4)
     dec.insert(0, "date", [iso(d) for d in P.index[mrows]])
     dec["rebalance"] = "monthly"
 
     def ex_levgtaa(i):
-        Wd, dd = MC.decision_weights(P, [i], RANKINGS, SMA_LONG, SMA_SHORT, TILT)
+        Pi, inf = R.btc_override(P, i, btc) if NEW else (P, None)   # Bitcoin: juengster Tagesschluss vor dem Handel
+        Wd, dd = MC.decision_weights(Pi, [i], RANKINGS, SMA_LONG, SMA_SHORT, TILT)
         w = Wd[0]
         vols = MC.port_vols(RET.values, i, w, VT_WINDOWS)
         fac = [min(1.0, VT_TARGET / v) if v > 0 else 1.0 for v in vols]
         f = float(np.mean(fac)) if w.sum() > 0 and i >= max(VT_WINDOWS) else 1.0
-        smaK = P.rolling(SMA_SHORT).mean().iloc[i]
-        cross = np.array([(smaK / P.rolling(L).mean().iloc[i] - 1).values for L in SMA_LONG])   # (L x Assets)
+        smaK = Pi.rolling(SMA_SHORT).mean().iloc[i]
+        cross = np.array([(smaK / Pi.rolling(L).mean().iloc[i] - 1).values for L in SMA_LONG])   # (L x Assets)
+        trade = P.index[i + 1].date() if i + 1 < len(P) else U.next_session_after(P.index[i].date())
         assets = []
         for k, a in enumerate(R.AL):
-            s = P[a]
-            assets.append({"asset": a, "ticker": R.ASSETS[a]["signal"], "close": num(s.iloc[i], 4),
+            s = Pi[a]
+            cd = inf["date"] if (a == "BTC" and inf) else P.index[i].date()
+            assets.append({"asset": a, "ticker": R.ASSETS[a]["signal"], "close": num(s.iloc[i], 4), "close_date": cd.isoformat(),
                            "r": {str(m): ret_m(s, i, m) for m in (1, 3, 6, 9, 12)},
                            "sma30": num(smaK[a], 4), "cross_share": num(np.mean(np.nan_to_num(cross[:, k], nan=-1) > 0), 4),
                            "trend": num(np.nanmean(cross[:, k])), "trend_min": num(np.nanmin(cross[:, k])), "trend_max": num(np.nanmax(cross[:, k])),
@@ -74,7 +87,8 @@ if mode == "levgtaa":
             ranks.append({"name": name, "months": list(months), "rows": [
                 {"asset": R.AL[k], "mom": num(mo[k]), "pos": pos + 1, "el": num(pr["EL"][0][k], 4),
                  "p1": num(pr["P1"][0][k], 4), "w": num(pr["W"][0][k], 4)} for pos, k in enumerate(order)]})
-        return {"date": iso(P.index[i]), "assets": assets, "rankings": ranks,
+        return {"date": iso(P.index[i]), "trade": trade.isoformat(), "btc_final": bool(inf["final"]) if inf else True,
+                "btc_target": (pd.Timestamp(trade) - pd.Timedelta(days=1)).date().isoformat(), "assets": assets, "rankings": ranks,
                 "vt": {"target": VT_TARGET, "windows": list(VT_WINDOWS), "vols": [num(v, 4) for v in vols],
                        "factors": [num(x, 4) for x in fac], "factor": num(f, 4)},
                 "params": {"sma_short": SMA_SHORT, "sma_long": [SMA_LONG[0], SMA_LONG[-1]], "n_long": len(SMA_LONG),

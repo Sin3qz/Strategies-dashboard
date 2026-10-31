@@ -426,7 +426,7 @@
             <dt>Auswahl</dt><dd>Zulässig, wenn Momentum &gt; 0 und SMA30 &gt; SMA<sub>L</sub>. Zwei Ranglisten nach Momentum: Ø der 1/3/6/9- bzw. der 3/6/12-Monatsrenditen.</dd>
             <dt>Gewichtung</dt><dd>Platz 1 = 40 %, Platz 2 = 60 %; nur einer zulässig = 50 %; Rest Cash. Endquote = Mittel über L = 125–225 (101 Längen) und beide Ranglisten (202 Teilentscheidungen).</dd>
             <dt>Risiko</dt><dd>Vol-Target 55 %: Quoten × Faktor; Faktor = Ø über 42/63/84 Tage von min(1; 55 % ÷ Vola des gehebelten Portfolios).</dd>
-            <dt>Zeitplan</dt><dd>Signal auf dem Schluss des letzten Handelstags im Monat, Handel am 1. Handelstag; dazwischen kein Handel.</dd>
+            <dt>Zeitplan</dt><dd>Signal auf dem Schluss des letzten US-Handelstags im Monat (Nasdaq, US-Treasury, Gold); Bitcoin handelt auch am Wochenende und zählt mit dem jüngsten abgeschlossenen Tagesschluss (UTC) vor dem Handelstag – z. B. Sonntag bei Handel am Montag. Bis dahin ist das Signal vorläufig; endgültig ab 01:00 Uhr (Winterzeit) am Handelstag. Handel am 1. US-Handelstag des Monats; dazwischen kein Handel. SMA und Momentum laufen auf US-Handelstagen; ersetzt wird nur der Bitcoin-Wert am Entscheidungstag.</dd>
           </dl>
         </div>
       </div>
@@ -578,7 +578,7 @@
       <h3>So laufen die Bots</h3>
       <dl class="sd-dl">
         <dt>Läufe</dt><dd>GitHub Actions täglich 05:17 UTC (der US-Schluss vom Vortag liegt vor), Sicherheitsläufe 06:47, 08:47, 11:47, 15:17, 18:47 UTC: jeder rechnet nur, wenn an diesem Tag noch kein Lauf erfolgreich war. GitHub startet geplante Läufe oft Stunden später. Deshalb stößt jede Dashboard-Aktualisierung jeden Bot an, der an diesem Tag noch nicht gelaufen ist (Zeitgeber, 05:15–21:30 UTC); mit dem externen Anstoß alle 30 Minuten (cron-job.org) kommen die Signale pünktlich. Alle vier Bots sofort neu rechnen: im Repo Strategies-dashboard → Actions → Dashboard-Daten aktualisieren → Run workflow mit Haken „Alle vier Bots jetzt neu rechnen lassen“.</dd>
-        <dt>Signal</dt><dd>immer auf 1x-Schlusskursen (Yahoo) der Signal-Ticker, nie auf den gehebelten Produkten; Handel am Handelstag nach dem Signal (NYSE-Kalender).</dd>
+        <dt>Signal</dt><dd>immer auf 1x-Schlusskursen (Yahoo) der Signal-Ticker, nie auf den gehebelten Produkten; Handel am Handelstag nach dem Signal (NYSE-Kalender). Wochenendkurse hat nur Bitcoin: levGTAA nimmt dafür den jüngsten abgeschlossenen Tagesschluss vor dem Handelstag, alle anderen Bausteine und Bots den Schluss des letzten US-Handelstags.</dd>
         <dt>Datenprüfung</dt><dd>letzter Kurs vom erwarteten Handelstag, Lücken, Tagessprünge &gt; 30 % (nicht bei Bitcoin), Mindestlänge der Reihen, abgeschnittene Yahoo-Antworten; sind Kurse veraltet, entscheidet der Bot nicht und versucht es im nächsten Lauf.</dd>
         <dt>Meldungen</dt><dd>Discord bei jedem Lauf. ntfy-Push: levTipsRegime und 1xGTAA nur bei echtem Wechsel, levGTAA und MR-Rebound an jedem Monatswechsel (auch „keine Änderung“); nur an US-Handelstagen, genau einmal (gespeicherter Zustand), schlägt ein Push fehl, wiederholt der nächste Lauf. Das Dashboard meldet zusätzlich, wenn ein Tagessignal kippt oder die Aktualisierung gestört ist.</dd>
         <dt>Tagessignal</dt><dd>das Dashboard rechnet jeden Tag mit dem Code der Bots: levGTAA und MR-Rebound so, als wäre der Tag ein Monatsletzter; levTipsRegime und 1xGTAA ohne Cooldown. Abweichung = Anteil, der umgeschichtet würde.</dd>
@@ -997,11 +997,17 @@
     const b = (rowsOf('build') || [])[0] || {}; const ref = b.last_close || refClose();
     el.textContent = ref ? deDate(ref) + (b.next_close ? ` (nächster ${deDate(b.next_close).slice(0, 6)})` : '') : '—';
   });
+  // levGTAA: Bitcoin-Tagesschluss der Entscheidung (juengster abgeschlossener vor dem Handel) und ob endgueltig
+  const btcNote = (s) => !s || !s.btcDate ? '' : s.btcFinal === false
+    ? `Bitcoin vorläufig mit Schluss ${deDate(s.btcDate)}, endgültig mit Schluss ${deDate(s.btcTarget)}`
+    : `Bitcoin Schluss ${deDate(s.btcDate)}`;
+  window.sdBtcNote = btcNote;
   dash.draw('heldwhen', (el) => {
     const s = (rowsOf('strategies') || []).find((r) => r.key === el.dataset.key);
     if (!s) { el.textContent = '—'; return; }
+    const bt = btcNote(s), fut = s.tradeDate && s.tradeDate > new Date().toISOString().slice(0, 10);
     const base = s.rebalance === 'monthly'
-      ? `Signal vom Schluss ${deDate(s.decisionDate)}, gehandelt ${deDate(s.tradeDate)} · Bot geprüft mit Schluss ${deDate(s.asOf)}`
+      ? `Signal vom Schluss ${deDate(s.decisionDate)}${bt ? ` (${bt})` : ''}, ${fut ? 'Handel am' : 'gehandelt'} ${deDate(s.tradeDate)} · Bot geprüft mit Schluss ${deDate(s.asOf)}`
       : `Position seit ${deDate(s.since)} · Bot geprüft mit Schluss ${deDate(s.asOf)}`;
     freshEl(el, base, s.asOf);
     const n = tdBehind(s.asOf), hint = s.needsRetry ? 'Daten evtl. verspätet, der Bot versucht es erneut'
@@ -1011,7 +1017,8 @@
   dash.draw('todaywhen', (el) => {
     const d = rowsOf(el.dataset.src), r = d && d[d.length - 1];
     if (!r) { el.textContent = '—'; return; }
-    freshEl(el, `Schluss ${deDate(r.date)}`, r.date);
+    const bt = r.btc_date && r.btc_date !== r.date ? ` · Bitcoin ${deDate(r.btc_date)}` : '';
+    freshEl(el, `Schluss ${deDate(r.date)}${bt}${r.btc_final === '0' || r.btc_final === 0 ? ' (Bitcoin vorläufig, jüngster Tagesschluss vor dem Handel folgt)' : ''}`, r.date);
   });
   dash.draw('hpill', (el) => {
     const s = healthState();
@@ -1242,9 +1249,10 @@
   const exLev = (x, box) => {
     const P = x.params, nL = P.n_long, A = x.assets, by = Object.fromEntries(A.map((a) => [a.asset, a]));
     const momOf = (k, a) => (x.rankings[k].rows.find((r) => r.asset === a) || {}).mom;
-    step(box, 1, 'Kennzahlen je Baustein', `Signal auf 1x-Kursen in USD, Schluss ${deDate(x.date)}. 1 Monat = 21 Handelstage. Momentum = Durchschnitt der Monatsrenditen; Trend = SMA${P.sma_short} über SMA L, geprüft für jede Länge L = ${P.sma_long[0]}–${P.sma_long[1]} (${nL} Längen).`);
-    box.appendChild(exTable(['Baustein (Signal)', '1 M', '3 M', '6 M', '9 M', '12 M', 'Momentum Ø 1/3/6/9', 'Momentum Ø 3/6/12', `SMA${P.sma_short} > SMA L`, `Ø SMA${P.sma_short}/SMA L − 1`],
-      A.map((a) => [`${NM(a.asset)} (${a.ticker})`, sv(a.r['1']), sv(a.r['3']), sv(a.r['6']), sv(a.r['9']), sv(a.r['12']),
+    step(box, 1, 'Kennzahlen je Baustein', `Signal auf 1x-Kursen in USD: Nasdaq, US-Treasury und Gold mit dem Schluss vom ${deDate(x.date)}${x.trade ? `, Bitcoin mit dem jüngsten abgeschlossenen Tagesschluss vor dem Handel am ${deDate(x.trade)}` : ''}. 1 Monat = 21 US-Handelstage (auch für Bitcoin). Momentum = Durchschnitt der Monatsrenditen; Trend = SMA${P.sma_short} über SMA L, geprüft für jede Länge L = ${P.sma_long[0]}–${P.sma_long[1]} (${nL} Längen).`);
+    if (x.btc_final === false) box.appendChild(hx('p', 'sd-note sd-badge-warn', `Vorläufig: Bitcoin zählt mit dem Tagesschluss vom ${deDate(x.btc_target)} (UTC); bis der vorliegt, steht hier der letzte abgeschlossene vom ${deDate((A.find((a) => a.asset === 'BTC') || {}).close_date)}. Das Ergebnis kann sich bis dahin noch ändern.`));
+    box.appendChild(exTable(['Baustein (Signal)', 'Kurs vom', '1 M', '3 M', '6 M', '9 M', '12 M', 'Momentum Ø 1/3/6/9', 'Momentum Ø 3/6/12', `SMA${P.sma_short} > SMA L`, `Ø SMA${P.sma_short}/SMA L − 1`],
+      A.map((a) => [`${NM(a.asset)} (${a.ticker})`, a.close_date ? deDate(a.close_date) : deDate(x.date), sv(a.r['1']), sv(a.r['3']), sv(a.r['6']), sv(a.r['9']), sv(a.r['12']),
         {...sv(momOf(0, a.asset), 2), b: true}, {...sv(momOf(1, a.asset), 2), b: true},
         {t: `bei ${Math.round(a.cross_share * nL)} von ${nL}`, s: a.cross_share >= 0.999 ? 1 : a.cross_share <= 0 ? -1 : null}, sv(a.trend)])));
     const total = {};
@@ -1447,7 +1455,9 @@
     else if (s.pendingTrade) t = `Wechsel erkannt — handeln am ${deDate(s.pendingTrade)}`;
     else {
       t = 'heute kein Handel'; trade = false;
-      if (el.dataset.plain) t += s.rebalance === 'monthly' && s.nextRebalance ? ` · nächster Handel ${deDate(s.nextRebalance)} (Signal Schluss ${deDate(s.nextDecision)})`
+      const upcoming = s.tradeDate && s.tradeDate > new Date().toISOString().slice(0, 10);   // Monatssignal steht, Handel noch offen
+      if (el.dataset.plain) t += s.rebalance === 'monthly' && upcoming ? ` · nächster Handel ${deDate(s.tradeDate)} (Signal Schluss ${deDate(s.decisionDate)}${s.btcFinal === false ? `; Bitcoin vorläufig bis Schluss ${deDate(s.btcTarget)}` : ''})`
+        : s.rebalance === 'monthly' && s.nextRebalance ? ` · nächster Handel ${deDate(s.nextRebalance)} (Signal Schluss ${deDate(s.nextDecision)})`
         : ` · täglich geprüft${Number(s.cooldown) > 0 ? `, Cooldown noch ${s.cooldown} Tage` : ''}`;
     }
     el.textContent = el.dataset.plain ? t : t.charAt(0).toUpperCase() + t.slice(1);
@@ -1459,7 +1469,8 @@
     if (!s) { el.textContent = '—'; return; }
     const nb = (rowsOf('build') || [])[0] || {};
     const de = (d) => { const x = window.sdFresh && window.sdFresh.deClosed(d); return x === undefined ? '' : ` (deutsche Börsen zu – im wikifolio am ${deDate(x)} handeln)`; };
-    if (s.rebalance === 'monthly') el.textContent = `Monatssignal auf den Schluss vom ${deDate(s.nextDecision)} → Handel ${deDate(s.nextRebalance)}${de(s.nextRebalance)}`;
+    const btcDay = (t) => { const d = new Date(t + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); };
+    if (s.rebalance === 'monthly') el.textContent = `Monatssignal auf den Schluss vom ${deDate(s.nextDecision)}${s.btcTarget && s.nextRebalance ? ` (Bitcoin: Tagesschluss ${deDate(btcDay(s.nextRebalance))})` : ''} → Handel ${deDate(s.nextRebalance)}${de(s.nextRebalance)}`;
     else el.textContent = 'täglich geprüft · ' + (Number(s.cooldown) > 0 ? `Cooldown: noch ${s.cooldown} Handelstage gesperrt` : 'Cooldown frei (Wechsel möglich)')
       + (nb.next_close && de(nb.next_close) ? ` · nächster US-Handelstag ${deDate(nb.next_close)}${de(nb.next_close)}` : '');
   });
