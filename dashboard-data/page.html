@@ -758,7 +758,8 @@
       const names = {NASDAQ100: 'Nasdaq', BTC: 'Bitcoin', UST_IEF: 'UST 7-10y', TLT_LONG: 'UST 20y+', GOLD: 'Gold', EM: 'EM', INDIA: 'India',
         EM_SMALLCAP: 'EM Small', EMU_VALUE: 'EMU Value', BONDS_7_10: 'UST 7-10y', COMMODITIES: 'Rohstoffe', CASH_USD: 'USD-Geldmarkt', SP500: 'S&P 500'};
       const label = {levgtaa: 'levGTAA', mrreboundgtaa: 'MR-Rebound-GTAA', '1xgtaa': '1xGTAA', levtipsregime: 'levTipsRegime'};
-      const skip = ['date', 'cash', 'vt_factor', 'platz1', 'held', 'cooldown'];
+      const skip = ['date', 'cash', 'vt_factor', 'platz1', 'held', 'cooldown', 'btc_date', 'btc_final'];   // Hilfsspalten
+      const isAsset = (c) => !skip.includes(c) && /^[A-Z][A-Z0-9_]*$/.test(c);   // nur Baustein-Spalten (z. B. NASDAQ100, CASH_USD)
       const p = (w) => (Math.round(w * 1000) / 10).toLocaleString('de-DE') + ' %';
       const text = (w) => {
         const parts = Object.entries(w).filter(([, x]) => x > 0.0005).sort((a, b) => b[1] - a[1]).map(([a, x]) => `${p(x)} ${names[a] || a}`);
@@ -780,7 +781,7 @@
           return {strategy: label[k], key: k, status: statusOf(s), held: tipsText[hs], today: tipsText[ns], turnover: hs === ns ? 0 : 1};
         }
         const rows = daily[k], r = rows[rows.length - 1], now = {};
-        Object.keys(r).forEach((c) => { if (!skip.includes(c)) now[c] = Number(r[c]) || 0; });
+        Object.keys(r).forEach((c) => { if (isAsset(c)) now[c] = Number(r[c]) || 0; });
         let diff = 0;
         new Set([...Object.keys(held), ...Object.keys(now)]).forEach((a) => { diff += Math.abs((now[a] || 0) - (held[a] || 0)); });
         diff += Math.abs((1 - Object.values(now).reduce((a, b) => a + b, 0)) - (1 - Object.values(held).reduce((a, b) => a + b, 0)));
@@ -796,13 +797,14 @@
     fn: (daily_levgtaa, daily_mrrebound, daily_1xgtaa, daily_levtips) => {
       const names = {NASDAQ100: 'Nasdaq', BTC: 'Bitcoin', UST_IEF: 'UST 7-10y', TLT_LONG: 'UST 20y+', GOLD: 'Gold', EM: 'EM', INDIA: 'India',
         EM_SMALLCAP: 'EM Small', EMU_VALUE: 'EMU Value', BONDS_7_10: 'UST 7-10y', COMMODITIES: 'Rohstoffe', CASH_USD: 'USD-Geldmarkt'};
-      const skip = ['date', 'cash', 'vt_factor', 'platz1', 'held', 'cooldown'];
+      const skip = ['date', 'cash', 'vt_factor', 'platz1', 'held', 'cooldown', 'btc_date', 'btc_final'];   // Hilfsspalten
+      const isAsset = (c) => !skip.includes(c) && /^[A-Z][A-Z0-9_]*$/.test(c);   // nur Baustein-Spalten (z. B. NASDAQ100, CASH_USD)
       const p = (w) => (Math.round(w * 1000) / 10).toLocaleString('de-DE') + ' %';
       const out = [];
       const scan = (rows, label) => {
         let prevSet = null, prevText = null;
         rows.forEach((r) => {
-          const w = Object.keys(r).filter((c) => !skip.includes(c)).map((c) => [c, Number(r[c]) || 0]).filter(([, x]) => x > 0.0005).sort((a, b) => b[1] - a[1]);
+          const w = Object.keys(r).filter(isAsset).map((c) => [c, Number(r[c]) || 0]).filter(([, x]) => x > 0.0005).sort((a, b) => b[1] - a[1]);
           const set = w.map(([a]) => a).sort().join('|') || 'CASH';
           const txt = w.map(([a, x]) => `${p(x)} ${names[a] || a}`).join(' · ') || '100 % Cash/Geldmarkt';
           if (prevSet != null && set !== prevSet) out.push({date: r.date, strategy: label, from: prevText, to: txt});
