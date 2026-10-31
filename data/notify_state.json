@@ -1,23 +1,23 @@
 {
  "levgtaa": {
   "key": "BTC|NASDAQ100",
-  "text": "45,0 % Nasdaq · 30,0 % Bitcoin",
-  "date": "2026-10-29"
+  "text": "55,0 % Nasdaq · 20,0 % Bitcoin",
+  "date": "2026-10-30"
  },
  "mrrebound": {
-  "key": "CASH",
-  "text": "100 % Cash",
-  "date": "2026-10-29"
+  "key": "TLT_LONG",
+  "text": "18,3 % UST 20y+",
+  "date": "2026-10-30"
  },
  "1xgtaa": {
-  "key": "COMMODITIES|NASDAQ100",
-  "text": "60,0 % Nasdaq · 40,0 % Rohstoffe",
-  "date": "2026-10-29"
+  "key": "COMMODITIES",
+  "text": "40,0 % Rohstoffe",
+  "date": "2026-10-30"
  },
  "levtips": {
   "key": "CASH",
   "text": "Cash",
-  "date": "2026-10-29"
+  "date": "2026-10-30"
  },
  "wf_levgtaa": "Vorschau",
  "wf_levtipsregime": "Vorschau",
