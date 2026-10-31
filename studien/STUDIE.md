@@ -295,3 +295,18 @@ einer CAGR um 35 %), verschwindet schon bei höheren Spreads und kostet 20 % meh
 Baustein, monatlich wechselnd) und mehr USD-Währungsrisiko. Der einzige größere Effekt (EUR) ist Wechselkurs-Glück in
 Krisen, nicht Hebel-Optimierung. „Ganz oder gar nicht“ betrifft nur 6 Monate und bringt +0,02–0,05 % – ebenfalls nicht
 lohnend.
+
+## Nachtrag 31.10.2026: Wochenendkurse (Bitcoin) – Freitagsschluss oder jüngster Kurs vor dem Handel?
+
+Prüfung aller Signal-Ticker der vier Bots (Yahoo, volle Historie): nur **BTC-USD** hat Wochenendkurse (1.265 Tage seit
+2014); ^NDX, TLT, GC=F, QQQ, IEF, GLD, ^SP500TR, TIP, EEMS, AW1T.DE, EURUSD=X, DBC, BIL, EEM, ^BSESN haben keine. Die Bots
+rechnen auf dem NYSE-Kalender und verwerfen Wochenendwerte (`common.oncal`); das Monatssignal steht damit mit dem
+Schluss des letzten Handelstags fest (Bitcoin: Yahoo-Tagesschluss in UTC desselben Tages) und ändert sich bis zum Handel
+nicht mehr. Ein SMA ist der Mittelwert der letzten N Handelstags-Schlusskurse; ohne neuen Handelstag ändert er sich nicht.
+
+Backtest levGTAA (Bot-Kern, 278 Monatsentscheidungen, Bitcoin ab 10/2014): Bitcoin in der Entscheidung durch den jüngsten
+Tagesschluss vor dem Handelstag ersetzen (z. B. Sonntag statt Freitag; jede Entscheidung einzeln, übrige Historie
+unverändert). 70 Monatsenden lagen vor einer Lücke, nur in **5** ändern sich die Quoten (je ≤ 10 %). Ergebnis (USD und EUR,
+Produkte und Kosten wie in der Hebel-Studie): CAGR −0,20 % p. a., MaxDD gleich, P(besser) 28 % – kein Vorteil, eher Rauschen.
+**Entscheidung: bleibt beim Schlusskurs des letzten Handelstags** (wie im Backtest, für alle Bausteine gleich; das Signal
+steht Freitagabend fest).

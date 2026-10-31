@@ -67,8 +67,24 @@ def load_prices(grid):
         s = pd.to_numeric(s, errors="coerce").dropna()
         s = s[(s > 0) & ~s.index.duplicated(keep="last")].sort_index()
         out[t] = s
+    # Juengste Tage gezielt nachladen: in der Antwort auf period="max" fehlt der letzte Tageskurs zeitweise (z. B. am
+    # 31.10.2026 nachts bei QQQ3.L) – dann wuerde der Vortag fortgeschrieben und die Kurve verfaelscht
+    try:
+        hr = Ticker(tick, asynchronous=True).history(period="1mo", interval="1d", adj_ohlc=True)
+        for t in tick:
+            try:
+                s = hr.loc[t]["close"]
+            except Exception:
+                continue
+            s.index = pd.to_datetime([str(x)[:10] for x in s.index])
+            s = pd.to_numeric(s, errors="coerce").dropna()
+            s = s[(s > 0) & ~s.index.duplicated(keep="last")].sort_index()
+            out[t] = pd.concat([out[t], s]) if t in out else s
+            out[t] = out[t][~out[t].index.duplicated(keep="last")].sort_index()
+    except Exception as e:
+        issues.append(f"juengste Kurse nicht nachgeladen ({type(e).__name__})")
     fx = {"USD": out["EURUSD=X"], "GBp": out["EURGBP=X"] * 100}    # Kurs in Fremdwaehrung je 1 EUR (Pence: x100)
-    prices, last = {}, {}
+    prices, last, own = {}, {}, {}
     for k, (name, isin, t, ccy) in PRODUCTS.items():
         if t not in out:
             continue
@@ -77,6 +93,7 @@ def load_prices(grid):
             f = fx[ccy].reindex(s.index.union(fx[ccy].index)).ffill().reindex(s.index)
             s = (s / f).dropna()
         last[k] = (float(s.iloc[-1]), s.index[-1].date().isoformat())   # echter letzter Kurs in EUR (fuer den Rechner)
+        own[k] = s.index[-1]                                   # letzter Tag mit eigenem Kurs (nicht fortgeschrieben)
         if k in LAST_PX and LAST_PX[k][0] in out and LAST_PX[k][1] == "EUR":
             q = out[LAST_PX[k][0]]
             last[k] = (float(q.iloc[-1]), q.index[-1].date().isoformat())
@@ -89,7 +106,7 @@ def load_prices(grid):
         on = s.reindex(s.index.union(grid)).ffill().reindex(grid)
         on[grid < s.index[0]] = np.nan
         prices[k] = on
-    return prices, last, issues
+    return prices, last, issues, own
 
 
 def targets(mode, dec):
@@ -104,7 +121,7 @@ def targets(mode, dec):
     return rows
 
 
-def simulate(mode, dec, prices, grid):
+def simulate(mode, dec, prices, grid, own=None, issues=None):
     tg = targets(mode, dec)
     used = sorted({p for _, w, _ in tg for p in w} | ({"SPX3", "BTC1", "UST3"} if mode.startswith("levtips") else set()))
     first = max(prices[p].first_valid_index() for p in used)
@@ -123,9 +140,11 @@ def simulate(mode, dec, prices, grid):
         raise RuntimeError(f"{mode}: keine Entscheidungen")
     start = max(grid.searchsorted(first), min(execs))         # erst, wenn alle Produkte Kurse haben und der Bot entschieden hat
     w0 = execs[max(p for p in execs if p <= start)]
-    V, units, out = 100.0, {}, []
+    V, units, out, miss_at = 100.0, {}, [], []
     for j in range(start, len(grid)):
         px = {p: prices[p].iloc[j] for p in used}
+        held = [p for p, u in units.items() if p != "cash" and u > 0]
+        miss_at.append([p for p in held if own and p in own and grid[j] > own[p]])   # Positionen ohne eigenen Kurs an diesem Tag
         if j > start:
             V = units.get("cash", 0.0) + sum(u * px[p] for p, u in units.items() if p != "cash")
         w = w0 if j == start else execs.get(j)
@@ -138,11 +157,22 @@ def simulate(mode, dec, prices, grid):
             units["cash"] = V * (1 - sum(w.values()))
             V = units["cash"] + sum(u * px[p] for p, u in units.items() if p != "cash")
         out.append(V)
-    return pd.Series(out, index=grid[start:])
+    s = pd.Series(out, index=grid[start:])
+    # Am Ende ohne eigenen Kurs einer gehaltenen Position (Kurs noch nicht geliefert): dort enden statt den Vortag
+    # fortzuschreiben (sonst sieht ein Tag mit z. B. -10 % im 3x-Produkt wie ein ruhiger Tag aus)
+    n = len(s)
+    while n > 1 and miss_at[n - 1]:
+        n -= 1
+    if n < len(s):
+        miss = sorted({p for x in miss_at[n:] for p in x})
+        if issues is not None:
+            issues.append(f"{mode}: Kurs vom {s.index[-1].date():%d.%m.} fehlt noch bei {', '.join(PRODUCTS[p][2] for p in miss)} – Kurve endet am {s.index[n - 1].date():%d.%m.}")
+        s = s.iloc[:n]
+    return s
 
 
 def mix(series, weights, grid):
-    idx = grid[grid >= max(series[k].index[0] for k in weights)]
+    idx = grid[(grid >= max(series[k].index[0] for k in weights)) & (grid <= min(series[k].index[-1] for k in weights))]
     eq = pd.DataFrame({k: series[k].reindex(idx) for k in weights}).ffill()
     V, units, out, month = 100.0, None, [], None
     for d, row in eq.iterrows():
@@ -198,12 +228,12 @@ def run(work, out_dir, grid_start="2009-01-01"):
     nxt = grid.searchsorted(last_signal, side="right")            # Handelstag nach dem letzten Signal (falls schon im Kalender)
     if nxt < len(grid):
         grid = grid[grid <= grid[nxt]]
-    prices, last, issues = load_prices(grid)
+    prices, last, issues, own = load_prices(grid)
     series = {}
     for m in ("levgtaa", "levtips", "1xgtaa", "mrrebound"):
-        series[m] = simulate(m, dec[m], prices, grid)
+        series[m] = simulate(m, dec[m], prices, grid, own, issues)
     if "state_old" in dec["levtips"].columns:
-        series["levtips_old"] = simulate("levtips_old", dec["levtips"], prices, grid)
+        series["levtips_old"] = simulate("levtips_old", dec["levtips"], prices, grid, own, issues)
     for k, w in MIXES.items():
         series[k] = mix(series, w, grid)
 
