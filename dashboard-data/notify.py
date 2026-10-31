@@ -18,7 +18,15 @@ NAMES = {"NASDAQ100": "Nasdaq", "BTC": "Bitcoin", "UST_IEF": "UST 7-10y", "GOLD"
          "TLT_LONG": "UST 20y+", "EM_SMALLCAP": "EM Small", "EMU_VALUE": "EMU Value", "BONDS_7_10": "UST 7-10y",
          "COMMODITIES": "Rohstoffe", "CASH_USD": "Geldmarkt"}
 LABEL = {"levgtaa": "levGTAA", "mrrebound": "MR-Rebound-GTAA", "1xgtaa": "1xGTAA", "levtips": "levTipsRegime"}
-SKIP = {"date", "cash", "vt_factor", "platz1", "held", "cooldown"}
+SKIP = {"date", "cash", "vt_factor", "platz1", "held", "cooldown", "btc_date", "btc_final"}
+
+
+def _num(v):
+    """Quote als Zahl; Text (z. B. ein Datum in einer neuen Spalte) -> None statt Abbruch des ganzen Laufs."""
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
 TIPS_TEXT = {"MARKET": "Markt (100 % 3x S&P 500)", "IEF": "3x IEF (US-Treasury 7-10y)", "CASH": "Cash"}
 
 
@@ -32,8 +40,7 @@ def _signal(mode, row):
     if mode == "levtips":
         st = row.get("state") or ("MARKET" if row.get("market") == "1" else "CASH")
         return st, TIPS_TEXT.get(st, st)
-    w = sorted(((k, float(v)) for k, v in row.items() if k not in SKIP and v not in ("", None) and float(v) > 0.0005),
-               key=lambda x: -x[1])
+    w = sorted(((k, _num(v)) for k, v in row.items() if k not in SKIP and (_num(v) or 0) > 0.0005), key=lambda x: -x[1])
     key = "|".join(sorted(k for k, _ in w)) or "CASH"
     txt = " · ".join(f"{x * 100:.1f} % {NAMES.get(k, k)}".replace(".", ",") for k, x in w) or "100 % Cash"
     return key, txt
