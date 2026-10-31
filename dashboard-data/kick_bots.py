@@ -84,7 +84,11 @@ def decide(st, now, exp=None):
     if (now.hour, now.minute) < EARLIEST_UTC or (now.hour, now.minute) > LATEST_UTC:
         return False, "außerhalb 05:15–21:30 UTC (nachts keine Anstöße)"
     upd = dt.datetime.fromisoformat(st.get("updated", "1970-01-01T00:00:00+00:00"))
-    retry = st.get("needsRetry") or st.get("ntfyFailed") or st.get("refreshLater")   # refreshLater: Xetra-Kurs fehlte noch
+    # levGTAA: Monatssignal vorlaeufig, bis der Bitcoin-Tagesschluss (UTC) vor dem Handelstag vorliegt; ist seit dem
+    # letzten Lauf ein neuer Tagesschluss abgeschlossen, nachrechnen (hoechstens einmal je neuem Bitcoin-Tag)
+    btc_new = (st.get("btcFinal") is False and st.get("btcDate")
+               and dt.date.fromisoformat(str(st["btcDate"])[:10]) < now.astimezone(dt.timezone.utc).date() - dt.timedelta(days=1))
+    retry = st.get("needsRetry") or st.get("ntfyFailed") or st.get("refreshLater") or btc_new   # refreshLater: Xetra-Kurs fehlte noch
     recent = (now - upd).total_seconds() < 3600
     if exp is not None:                                  # Regel nach Handelskalender: fehlt der erwartete Schlusskurs?
         asof = dt.date.fromisoformat(str(st.get("asOf") or "1970-01-01")[:10])
@@ -94,6 +98,7 @@ def decide(st, now, exp=None):
             return False, "letzter Lauf vor weniger als 60 min – nächster Versuch später"
         return True, (f"Schluss {exp:%d.%m.} fehlt noch (Bot-Stand {asof:%d.%m.})" if asof < exp
                       else "Xetra-Kurs fehlte beim letzten Lauf – nachrechnen" if st.get("refreshLater") and not st.get("needsRetry")
+                      else "neuer Bitcoin-Tagesschluss – vorläufiges Monatssignal nachrechnen" if btc_new and not st.get("needsRetry")
                       else "Wiederholung gemeldet (veraltete Kurse / Push fehlgeschlagen)")
     today = now.astimezone(TZ).date()
     ran_today = upd.astimezone(TZ).date() == today

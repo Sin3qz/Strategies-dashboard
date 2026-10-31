@@ -184,6 +184,8 @@ def bot_row(key, d):
            "nextRebalance": d.get("nextRebalance"), "cooldown": d.get("cooldown"), "changeType": d.get("changeType"),
            "pendingDecision": d.get("pendingDecision"), "pendingTrade": d.get("pendingTrade"), "late": bool(d.get("late")),
            "needsRetry": bool(d.get("needsRetry")), "refreshLater": bool(d.get("refreshLater")), "warnings": " · ".join(d.get("dataWarnings") or []),
+           # levGTAA: Bitcoin-Tagesschluss der Entscheidung (juengster vor dem Handel), Zieltag und ob endgueltig
+           "btcDate": d.get("btcDate"), "btcTarget": d.get("btcTarget"), "btcFinal": d.get("btcFinal"),
            "weightDecimals": d.get("weightDecimals") or 0, "since": d.get("since"),
            "vola_cap": None, "vola_factor": None, "vola_decision": None, "vola_now": None, "vola_pre": None, "vola_windows": None,
            "note": (d.get("table") or {}).get("note"), "tl_span": (d.get("timeline") or {}).get("span"),
