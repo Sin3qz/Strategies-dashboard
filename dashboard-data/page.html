@@ -823,16 +823,19 @@
     },
   });
 
+  const WF_START_INDEX = 100;                                       // Indexstand jedes wikifolios am Start
+  const isWeekday = (d) => { const x = new Date(String(d).slice(0, 10) + 'T12:00:00Z').getUTCDay(); return x > 0 && x < 6; };
   dash.calc('wf_months', {
     title: 'Monatsperformance der wikifolios',
-    description: 'Je Monat: letzter aufgezeichneter Indexstand gegen den des Vormonats; im Startmonat gegen den Startwert, den wikifolio für „seit Start“ nutzt (Indexstand / (1 + Performance seit Start)).',
+    description: 'Je Monat: letzter aufgezeichneter Indexstand an einem Handelstag gegen den des Vormonats; im Startmonat gegen den Start bei Index 100. Wochenendkurse (wikifolio bewegt den Index am Wochenende mit Bitcoin) zählen nicht als Monatsende.',
     inputs: ['wikifolio_history', 'wikifolios'],
     fn: (wikifolio_history, wikifolios) => {
       const keys = ['levgtaa', 'levtipsregime'], byMonth = {};
       keys.forEach((k) => {
         const w = wikifolios.find((x) => x.key === k);
-        const pts = wikifolio_history.filter((r) => r.key === k && Number(r.price) > 0).map((r) => [String(r.date).slice(0, 10), Number(r.price)]).sort();
-        const start = w && Number(w.price) > 0 ? Number(w.price) / (1 + Number(w.perf_since_start || 0)) : 100;
+        // nur Handelstage: am Wochenende bewegt wikifolio den Kurs mit Bitcoin weiter, die offizielle Performance bleibt auf Freitag
+        const pts = wikifolio_history.filter((r) => r.key === k && Number(r.price) > 0 && isWeekday(r.date)).map((r) => [String(r.date).slice(0, 10), Number(r.price)]).sort();
+        const start = WF_START_INDEX;                                    // jedes wikifolio startet bei Index 100
         if (w && w.created) pts.unshift([w.created, start]);
         const last = {};
         pts.forEach(([d, p]) => { last[d.slice(0, 7)] = p; });
@@ -1751,8 +1754,9 @@
     const pts = {};
     keys.forEach((k) => {
       const w = wfs.find((x) => x.key === k);
-      const start = w && Number(w.price) > 0 ? Number(w.price) / (1 + Number(w.perf_since_start || 0)) : 100;   // auf 100 am Start normiert
-      pts[k] = (w ? [{date: w.created, v: 100}] : []).concat(hist.filter((r) => r.key === k && Number(r.price) > 0).map((r) => ({date: String(r.date).slice(0, 10), v: Number(r.price) / start * 100})));
+      const start = 100;                                               // jedes wikifolio startet bei Index 100
+      const wd = (d) => { const x = new Date(String(d).slice(0, 10) + 'T12:00:00Z').getUTCDay(); return x > 0 && x < 6; };   // Wochenendkurse (Bitcoin) auslassen
+      pts[k] = (w ? [{date: w.created, v: 100}] : []).concat(hist.filter((r) => r.key === k && Number(r.price) > 0 && wd(r.date)).map((r) => ({date: String(r.date).slice(0, 10), v: Number(r.price) / start * 100})));
     });
     const lines = Object.fromEntries(keys.map((k) => [k, tr.filter((r) => r.key === k).map((r) => ({date: r.date, v: Number(r.bot_net != null ? r.bot_net : r.bot)}))]));
     const all = keys.flatMap((k) => lines[k].concat(pts[k]));
