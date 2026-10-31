@@ -310,3 +310,10 @@ unverändert). 70 Monatsenden lagen vor einer Lücke, nur in **5** ändern sich 
 Produkte und Kosten wie in der Hebel-Studie): CAGR −0,20 % p. a., MaxDD gleich, P(besser) 28 % – kein Vorteil, eher Rauschen.
 **Entscheidung: bleibt beim Schlusskurs des letzten Handelstags** (wie im Backtest, für alle Bausteine gleich; das Signal
 steht Freitagabend fest).
+
+**Nachtrag 31.10.2026 (Entscheidung geändert):** Auf Wunsch zählt die jüngste Information – levGTAA nimmt für Bitcoin
+ab sofort den jüngsten **abgeschlossenen** Tagesschluss (UTC) vor dem Handelstag (z. B. Sonntag bei Handel am Montag).
+Umsetzung im Bot (levgtaa-signalbot, `btc_for_trade`/`btc_override`): nur der Bitcoin-Wert der Entscheidungszeile wird
+ersetzt, SMA-Längen und Momentum-Fenster bleiben auf NYSE-Handelstagen; bis der Tagesschluss vorliegt, ist das Signal
+vorläufig und es geht keine ntfy raus. Wirkung im Backtest wie oben (5 von 70 Entscheidungen, −0,2 % p. a., nicht
+signifikant); zwei geänderte Entscheidungen (2020-07, 2025-02) unabhängig nachgerechnet – identisch.
