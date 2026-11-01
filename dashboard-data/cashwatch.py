@@ -70,6 +70,8 @@ def estimate(key, w, hist, strat, alloc, ps, holds, px, today):
     created = _d(w.get("created"))
     trade = _d(s.get("tradeDate")) or (_next_bd(_d(s["since"])) if s.get("since") else None) or created
     trade = max(trade, created) if (trade and created) else trade
+    if trade and trade > today:                     # Handel steht erst noch an (Signal gefallen, Handelstag kommt):
+        trade = created                             # bis dahin bleibt die Eingabe gültig, sie liegt nicht „vor“ ihm
 
     h = [x for x in holds if x.get("wikifolio") == key]
     cash_row = next((x for x in h if x.get("product") == "CASH" and x.get("stand")), None)
