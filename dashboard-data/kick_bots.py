@@ -66,6 +66,17 @@ def busy(repo, wf, token):
     return n > 0
 
 
+def last_run(repo, wf, token):
+    """Start des juengsten Laufs dieses Workflows (egal wie gestartet) oder None."""
+    try:
+        _, d = call(f"https://api.github.com/repos/{USER}/{repo}/actions/workflows/{wf}/runs?per_page=1", token)
+        runs = d.get("workflow_runs") if isinstance(d, dict) else None
+        return dt.datetime.fromisoformat(runs[0]["created_at"].replace("Z", "+00:00")) if runs else None
+    except Exception as e:
+        print("letzter Lauf unbekannt:", repo, e)
+        return None
+
+
 def expected_session(now):
     """Wie die Bots (common.expected_session_date): letzte NYSE-Sitzung <= gestern (Berlin) – deren Schlusskurs muss
     vorliegen. Feiertage/Wochenenden ueber den NYSE-Kalender; ohne Kalender None (dann alte Regel „heute gelaufen?“)."""
@@ -79,8 +90,8 @@ def expected_session(now):
         return None
 
 
-def decide(st, now, exp=None):
-    """-> (anstoßen?, Grund)"""
+def decide(st, now, exp=None, last_run=None):
+    """-> (anstoßen?, Grund). last_run = Start des juengsten Workflow-Laufs (GitHub-API), falls bekannt."""
     if (now.hour, now.minute) < EARLIEST_UTC or (now.hour, now.minute) > LATEST_UTC:
         return False, "außerhalb 05:15–21:30 UTC (nachts keine Anstöße)"
     upd = dt.datetime.fromisoformat(st.get("updated", "1970-01-01T00:00:00+00:00"))
@@ -90,6 +101,18 @@ def decide(st, now, exp=None):
                and dt.date.fromisoformat(str(st["btcDate"])[:10]) < now.astimezone(dt.timezone.utc).date() - dt.timedelta(days=1))
     retry = st.get("needsRetry") or st.get("ntfyFailed") or st.get("refreshLater") or btc_new   # refreshLater: Xetra-Kurs fehlte noch
     recent = (now - upd).total_seconds() < 3600
+    # Handelstag: Die Bots melden einen Wechsel erst am Handelstag (1xGTAA/levTipsRegime: pendingTrade, levGTAA/MR-Rebound:
+    # tradeDate). Hat der Bot seit Beginn dieses Tages noch nicht gerechnet, waere die Meldung bis zum naechsten (oft
+    # stark verspaeteten) GitHub-Lauf liegen geblieben. Massgeblich ist der letzte Workflow-Lauf, nicht die Status-Datei
+    # (ein Lauf ohne Aenderung schreibt sie nicht neu) – so wird je Handelstag hoechstens einmal angestossen.
+    tday = st.get("pendingTrade") or st.get("tradeDate")
+    seen = (last_run or upd).astimezone(TZ).date()
+    trade_due = False
+    if tday:
+        td = dt.date.fromisoformat(str(tday)[:10])
+        trade_due = td <= now.astimezone(TZ).date() and seen < td
+    if trade_due and not st.get("needsRetry"):
+        return True, f"Handelstag {td:%d.%m.}: Bot hat heute noch nicht gerechnet – Handelsmeldung fällig"
     if exp is not None:                                  # Regel nach Handelskalender: fehlt der erwartete Schlusskurs?
         asof = dt.date.fromisoformat(str(st.get("asOf") or "1970-01-01")[:10])
         if asof >= exp and not retry:
@@ -134,7 +157,8 @@ def main():
     for key, name, repo, fn, wf in BOTS:
         rec = {"key": key, "name": name, "at": now.isoformat(timespec="minutes")}
         try:
-            go, why = (True, "manuell erzwungen (Schalter force)") if force else decide(status(repo, fn, token or None), now, exp)
+            go, why = (True, "manuell erzwungen (Schalter force)") if force else decide(status(repo, fn, token or None), now, exp,
+                                                                                          last_run(repo, wf, token or None))
             if go and token and busy(repo, wf, token):
                 go, why = False, "Lauf läuft bereits oder wartet"
             if go and not token:
