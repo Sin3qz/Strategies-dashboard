@@ -2,89 +2,97 @@
  {
   "wikifolio": "levgtaa",
   "product": "NDX3",
-  "stueck": 121.0,
+  "stueck": 144.0,
   "kurs_eur": null,
-  "stand": "2026-11-01",
-  "saved_at": "2026-11-01T19:12+01:00"
+  "stand": "2026-11-02",
+  "saved_at": "2026-11-02T11:31+01:00"
  },
  {
   "wikifolio": "levgtaa",
   "product": "BTC1",
   "stueck": 0.0,
   "kurs_eur": null,
-  "stand": "2026-11-01",
-  "saved_at": "2026-11-01T19:12+01:00"
+  "stand": "2026-11-02",
+  "saved_at": "2026-11-02T11:31+01:00"
  },
  {
   "wikifolio": "levgtaa",
   "product": "UST3",
   "stueck": 0.0,
   "kurs_eur": null,
-  "stand": "2026-11-01",
-  "saved_at": "2026-11-01T19:12+01:00"
+  "stand": "2026-11-02",
+  "saved_at": "2026-11-02T11:31+01:00"
  },
  {
   "wikifolio": "levgtaa",
   "product": "GOLD3",
   "stueck": 0.0,
   "kurs_eur": null,
-  "stand": "2026-11-01",
-  "saved_at": "2026-11-01T19:12+01:00"
+  "stand": "2026-11-02",
+  "saved_at": "2026-11-02T11:31+01:00"
  },
  {
   "wikifolio": "levtipsregime",
   "product": "SPX3",
   "stueck": 0.0,
   "kurs_eur": null,
-  "stand": "2026-11-01",
-  "saved_at": "2026-11-01T19:12+01:00"
+  "stand": "2026-11-02",
+  "saved_at": "2026-11-02T11:31+01:00"
  },
  {
   "wikifolio": "levtipsregime",
   "product": "BTC1",
   "stueck": 0.0,
   "kurs_eur": null,
-  "stand": "2026-11-01",
-  "saved_at": "2026-11-01T19:12+01:00"
+  "stand": "2026-11-02",
+  "saved_at": "2026-11-02T11:31+01:00"
  },
  {
   "wikifolio": "levtipsregime",
   "product": "UST3",
   "stueck": 0.0,
   "kurs_eur": null,
-  "stand": "2026-11-01",
-  "saved_at": "2026-11-01T19:12+01:00"
+  "stand": "2026-11-02",
+  "saved_at": "2026-11-02T11:31+01:00"
  },
  {
   "wikifolio": "levgtaa",
   "product": "CASH",
-  "stueck": -234.722,
+  "stueck": 171.009,
   "kurs_eur": 1.0,
-  "stand": "2026-11-01",
-  "saved_at": "2026-11-01T19:12+01:00"
+  "stand": "2026-11-02",
+  "saved_at": "2026-11-02T11:31+01:00"
  },
  {
   "wikifolio": "levtipsregime",
   "product": "CASH",
   "stueck": 70.337,
   "kurs_eur": 1.0,
-  "stand": "2026-11-01",
-  "saved_at": "2026-11-01T19:12+01:00"
+  "stand": "2026-11-02",
+  "saved_at": "2026-11-02T11:31+01:00"
  },
  {
   "wikifolio": "levgtaa",
   "product": "BTCW",
-  "stueck": 2827.0,
+  "stueck": 1.044,
   "kurs_eur": null,
-  "stand": "2026-11-01",
-  "saved_at": "2026-11-01T19:12+01:00"
+  "stand": "2026-11-02",
+  "saved_at": "2026-11-02T11:31+01:00"
  },
  {
   "wikifolio": "levtipsregime",
   "product": "MM",
   "stueck": 664.0,
   "kurs_eur": null,
-  "stand": "2026-11-01",
-  "saved_at": "2026-11-01T19:12+01:00"
+  "stand": "2026-11-02",
+  "saved_at": "2026-11-02T11:31+01:00"
+ },
+ {
+  "wikifolio": "levgtaa",
+  "product": "MM",
+  "stueck": 143.0,
+  "kurs_eur": null,
+  "stand": "2026-11-02",
+  "saved_at": "2026-11-02T11:31+01:00"
  }
 ]
