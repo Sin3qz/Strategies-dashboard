@@ -522,7 +522,19 @@ def push_status(sent):
                       else prev.get("last_sent")}
 
 
+def gtaa3x():
+    """Vergleichsmodell 3xGTAA (kein Bot): Monatsentscheidungen mit den levGTAA-Bot-Funktionen -> WORK/decisions_3xgtaa.csv.
+    Fehler hier halten die Performance der vier Bots nicht auf (equity.run laesst 3xGTAA dann weg und meldet es)."""
+    try:
+        d, _ = clone("levgtaa-signalbot")
+        attempt(lambda: subprocess.run([sys.executable, os.path.join(HERE, "gtaa3x.py"), d, os.path.join(WORK, "decisions_3xgtaa.csv")],
+                                       check=True, timeout=900), 2, "3xGTAA")
+    except Exception as e:
+        traceback.print_exc(); print("3xGTAA nicht gerechnet:", reason(e))
+
+
 def performance(equity):
+    gtaa3x()
     try:
         issues, n = attempt(lambda: equity.run(WORK, OUT), 2, "Performance")
         for x in issues or []:
