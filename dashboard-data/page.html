@@ -2096,7 +2096,8 @@
       const r = cell(rows, wf, pr) || {stueck: 0}, px = priceOf(pr, r), q = Number(r.stueck) || 0;
       const cur = q * (px || 0), want = total * (tgt[pr] || 0), diffEur = want - cur;
       let diffQ = px ? diffEur / px : null;
-      if (diffQ != null) diffQ = diffQ >= 0 ? Math.floor(diffQ + 1e-9) : -Math.min(q, Math.round(-diffQ));
+      // nur ganze Stücke, beide Richtungen abgerundet: unter einem Stück Abweichung keine Order (Rauschen)
+      if (diffQ != null) diffQ = diffQ >= 0 ? Math.floor(diffQ + 1e-9) : -Math.min(q, Math.floor(-diffQ + 1e-9));
       if (mode === 'cash') diffQ = px ? 0 : null;                       // nur Cash auffuellen: erst einmal nichts umschichten
       return {pr, q, px, cur, w: total ? cur / total : 0, tw: tgt[pr] || 0, want, diffEur, diffQ};
     });
@@ -2108,9 +2109,10 @@
       const buy = lines.filter((l) => l.diffQ > 0).sort((a, b) => b.diffQ * b.px - a.diffQ * a.px)[0];
       if (!buy) break; buy.diffQ -= 1;
     }
-    // Gebuehren-Puffer muss gedeckt sein: notfalls ein Stueck mehr verkaufen (zuerst Kaeufe kuerzen, dann groesste Position)
+    // Gebuehren-Puffer muss gedeckt sein: notfalls ein Stueck mehr verkaufen (zuerst Kaeufe kuerzen, dann groesste Position).
+    // Toleranz 10 % des Puffers: fehlen nur ein paar Euro, lohnt keine eigene Order (der Cash-Waechter warnt rechtzeitig).
     guard = 0;
-    while (total > 0 && cashAfter() < total * reserve - 0.005 && guard++ < 10000) {
+    while (total > 0 && cashAfter() < total * reserve * 0.9 - 0.005 && guard++ < 10000) {
       const buy = lines.filter((l) => l.diffQ > 0).sort((a, b) => b.diffQ * b.px - a.diffQ * a.px)[0];
       if (buy) { buy.diffQ -= 1; continue; }
       // verkauft wird die Position, die am weitesten ueber ihrem Bot-Ziel liegt
@@ -2133,6 +2135,16 @@
     dash.setParams({holdings_rev: Date.now()});
   };
 
+  // Zahlen in deutscher Schreibweise: Komma = Dezimal, Punkt = Tausender. Bei Stückzahlen (ganze Stücke) ist
+  // „1.044“ immer 1044 Stück, nicht 1,044. Ohne Komma und ohne Tausender-Muster gilt der Punkt als Dezimalpunkt.
+  const deNum = (x, whole) => {
+    let t = String(x ?? '').trim().replace(/[\s']/g, '').replace(/−/g, '-');
+    if (!t) return NaN;
+    if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');
+    else if (whole && /^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+    return Number(t);
+  };
+  const deShow = (v) => String(v).replace('.', ',');
   const calcWf = new WeakMap();                                // welches wikifolio die Tabelle gerade zeigt
   dash.draw('wfcalc', (el) => {
     const wf = dash.params().wf === 'levtipsregime' ? 'levtipsregime' : 'levgtaa';
@@ -2156,16 +2168,17 @@
       sub.textContent = p === 'CASH' ? 'Betrag in € eintragen (darf negativ sein)'
         : pr ? `${pr.name} · ${pr.isin} · Ref. ${pr.ticker} ${window.sdFmt.deDate(pr.date)}` : (fix.length ? `${fix[0]} · ${fix[1]} · Kurs bitte eintragen` : '');
       td0.appendChild(sub);
-      const q = document.createElement('input'); q.type = 'number'; if (p !== 'CASH') q.min = '0'; q.step = p === 'CASH' ? '0.01' : 'any'; q.inputMode = p === 'CASH' ? 'text' : 'decimal';
-      q.value = r.stueck || ''; q.placeholder = '0'; q.setAttribute('aria-label', `${NAMES[p] || p} Stück`);
-      q.addEventListener('input', () => { const v = Number(String(q.value).replace(',', '.')); save((rs) => { let c = cell(rs, wf, p); if (!c) rs.push(c = {wikifolio: wf, product: p, kurs_eur: null}); c.stueck = Number.isFinite(v) ? v : 0; }); updateOut(el); });
+      // Textfeld statt type=number: deutsche Schreibweise (1.044 Stück, 1.234,56 €) wird korrekt gelesen
+      const q = document.createElement('input'); q.type = 'text'; q.inputMode = p === 'CASH' ? 'text' : 'decimal'; q.autocomplete = 'off';
+      q.value = r.stueck ? deShow(r.stueck) : ''; q.placeholder = '0'; q.setAttribute('aria-label', `${NAMES[p] || p} Stück`);
+      q.addEventListener('input', () => { const v = deNum(q.value, p !== 'CASH'); save((rs) => { let c = cell(rs, wf, p); if (!c) rs.push(c = {wikifolio: wf, product: p, kurs_eur: null}); c.stueck = Number.isFinite(v) ? v : 0; }); updateOut(el); });
       const tdq = tr.insertCell(); tdq.className = 'n'; tdq.appendChild(q);
       const tdk = tr.insertCell(); tdk.className = 'n';
       if (p !== 'CASH') {
-        const k = document.createElement('input'); k.type = 'number'; k.min = '0'; k.step = 'any'; k.inputMode = 'decimal';
-        k.value = ok(r.kurs_eur) && Number(r.kurs_eur) > 0 ? r.kurs_eur : ''; k.placeholder = pr ? num(pr.price_eur, 2) : 'Kurs';
+        const k = document.createElement('input'); k.type = 'text'; k.inputMode = 'decimal'; k.autocomplete = 'off';
+        k.value = ok(r.kurs_eur) && Number(r.kurs_eur) > 0 ? deShow(r.kurs_eur) : ''; k.placeholder = pr ? num(pr.price_eur, 2) : 'Kurs';
         k.setAttribute('aria-label', `${NAMES[p]} Kurs in Euro`);
-        k.addEventListener('input', () => { save((rs) => { let c = cell(rs, wf, p); if (!c) rs.push(c = {wikifolio: wf, product: p, stueck: 0}); c.kurs_eur = Number(k.value) > 0 ? Number(k.value) : null; }); updateOut(el); });
+        k.addEventListener('input', () => { const v = deNum(k.value, false); save((rs) => { let c = cell(rs, wf, p); if (!c) rs.push(c = {wikifolio: wf, product: p, stueck: 0}); c.kurs_eur = v > 0 ? v : null; }); updateOut(el); });
         tdk.appendChild(k);
       } else tdk.textContent = '1,00';
       ['val', 'w', 'tw', 'want', 'diff', 'order'].forEach((c) => { const td = tr.insertCell(); td.className = 'n'; td.dataset.c = c; });
