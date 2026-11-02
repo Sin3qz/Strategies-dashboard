@@ -22,10 +22,8 @@
  "wf_levgtaa": "Vorschau",
  "wf_levtipsregime": "Vorschau",
  "cash_levgtaa": {
-  "alert_date": "2026-11-01",
-  "alert_cash": -0.002732,
-  "level": "neg",
-  "date": "2026-11-01"
+  "level": "ok",
+  "date": "2026-11-02"
  },
  "cash_levtipsregime": {
   "level": "below",
