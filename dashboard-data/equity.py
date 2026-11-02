@@ -34,6 +34,9 @@ PRODUCTS = {   # key: (Name, ISIN, Yahoo-Ticker, Waehrung)
     "CMDTY": ("WisdomTree Enhanced Commodity UCITS USD Acc", "IE00BYMLZY74", "WCOA.L", "USD"),
     "USDON": ("Xtrackers II USD Overnight Rate Swap 1C", "LU0321465469", "XFFE.DE", "EUR"),
     "MM": ("Xtrackers II EUR Overnight Rate Swap UCITS ETF 1C", "LU0290358497", "XEON.DE", "EUR"),   # Cash-Baustein der wikifolios
+    # nur fuer das Vergleichsmodell 3xGTAA (kein Bot, nicht im Rechner)
+    "EU503": ("WisdomTree EURO STOXX 50 3x Daily Leveraged", "", "3EUL.L", "EUR"),
+    "WTI2": ("WisdomTree WTI Crude Oil 2x Daily Leveraged", "", "LOIL.MI", "EUR"),
 }
 LAST_PX = {"BTC1": ("IB1T.DE", "EUR")}   # Kurs je Stück für den Rechner, wenn der Verlauf von einem anderen Ticker kommt
 
@@ -42,11 +45,12 @@ MAP = {   # Strategie-Baustein -> Produkt
     "mrrebound": {"NASDAQ100": "NDX3", "EM": "EM3", "INDIA": "IND3", "TLT_LONG": "TLT5"},
     "1xgtaa": {"NASDAQ100": "NDX1", "EM_SMALLCAP": "EMSC", "EMU_VALUE": "EMUV", "BONDS_7_10": "UST710", "GOLD": "XGOLD",
                "COMMODITIES": "CMDTY", "CASH_USD": "USDON"},
+    "3xgtaa": {"NASDAQ100": "NDX3", "BTC": "BTC1", "UST_IEF": "UST3", "GOLD": "GOLD3", "EU50": "EU503", "WTI": "WTI2"},
 }
 SPX_SHARE = 1.0     # levTipsRegime im Markt: 100 % 3x S&P 500 (seit 28.10.2026 ohne Bitcoin; Bot: SPX_WEIGHT)
 STATE_W = {"MARKET": {"SPX3": SPX_SHARE, "BTC1": 1 - SPX_SHARE}, "IEF": {"UST3": 1.0}, "CASH": {}}
 LABEL = {"levgtaa": "levGTAA", "levtips": "levTipsRegime", "levtips_old": "levTipsRegime (alte Regel ohne IEF)",
-         "1xgtaa": "1xGTAA", "mrrebound": "MR-Rebound-GTAA",
+         "1xgtaa": "1xGTAA", "mrrebound": "MR-Rebound-GTAA", "3xgtaa": "3xGTAA (Vergleichsmodell, kein Bot)",
          "mix_a": "Mix A: 1/3 levTipsRegime + 2/3 levGTAA", "mix_b": "Mix B: je 1/3 levTipsRegime, 1xGTAA, levGTAA"}
 MIXES = {"mix_a": {"levtips": 1 / 3, "levgtaa": 2 / 3}, "mix_b": {"levtips": 1 / 3, "1xgtaa": 1 / 3, "levgtaa": 1 / 3}}   # gleichgewichtet (ab 29.10.2026)
 WF_START = "2026-10-01"   # Erstellung beider wikifolios (Index 100)
@@ -224,6 +228,9 @@ def run(work, out_dir, grid_start="2009-01-01"):
     sched = mcal.get_calendar("XNYS").schedule(start_date=grid_start, end_date=end)
     grid = pd.DatetimeIndex(pd.to_datetime(sched.index.date))
     dec = {m: pd.read_csv(os.path.join(work, f"decisions_{m}.csv")) for m in ("levgtaa", "mrrebound", "1xgtaa", "levtips")}
+    f3 = os.path.join(work, "decisions_3xgtaa.csv")              # Vergleichsmodell (gtaa3x.py); fehlt es, laufen die anderen weiter
+    if os.path.exists(f3):
+        dec["3xgtaa"] = pd.read_csv(f3)
     last_signal = max(pd.Timestamp(d["date"].iloc[-1]) for d in dec.values())
     nxt = grid.searchsorted(last_signal, side="right")            # Handelstag nach dem letzten Signal (falls schon im Kalender)
     if nxt < len(grid):
@@ -232,6 +239,13 @@ def run(work, out_dir, grid_start="2009-01-01"):
     series = {}
     for m in ("levgtaa", "levtips", "1xgtaa", "mrrebound"):
         series[m] = simulate(m, dec[m], prices, grid, own, issues)
+    if "3xgtaa" in dec:
+        try:
+            series["3xgtaa"] = simulate("3xgtaa", dec["3xgtaa"], prices, grid, own, issues)
+        except Exception as e:
+            issues.append(f"3xGTAA nicht gerechnet ({type(e).__name__}: {e})")
+    else:
+        issues.append("3xGTAA: keine Entscheidungen (gtaa3x.py)")
     if "state_old" in dec["levtips"].columns:
         series["levtips_old"] = simulate("levtips_old", dec["levtips"], prices, grid, own, issues)
     for k, w in MIXES.items():
@@ -251,7 +265,7 @@ def run(work, out_dir, grid_start="2009-01-01"):
     eq.index.name = "date"
     eq.reset_index().assign(date=lambda x: x["date"].dt.strftime("%Y-%m-%d")).to_csv(os.path.join(out_dir, "equity.csv"), index=False)
     # Korrelation der Tagesrenditen (gemeinsamer Zeitraum der vier Strategien)
-    base = ["levgtaa", "levtips", "1xgtaa", "mrrebound"]
+    base = ["levgtaa", "levtips", "1xgtaa", "mrrebound"] + (["3xgtaa"] if "3xgtaa" in series else [])
     R = pd.DataFrame({k: series[k] for k in base}).dropna().pct_change().dropna()
     corr = [{"a": a, "b": b, "corr": round(float(R[a].corr(R[b])), 3)} for a in base for b in base]
     # Bot-Soll ab Erstellung der wikifolios (Index 100 am Schluss des Erstellungstags)
@@ -272,7 +286,7 @@ def run(work, out_dir, grid_start="2009-01-01"):
     # aktuelle Produktkurse (Rechner)
     px = []
     for k, (name, isin, t, ccy) in PRODUCTS.items():
-        if k in last:
+        if k in last and isin:                                 # ohne ISIN: nur Vergleichsmodell, nicht im Rechner
             px.append({"key": k, "name": name, "isin": isin, "ticker": LAST_PX.get(k, (t,))[0], "quote": ccy, "price_eur": round(last[k][0], 4),
                        "date": last[k][1]})
     for name, obj in (("perf_stats.json", st), ("monthly_returns.json", months), ("correlation.json", corr),
