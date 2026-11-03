@@ -5,19 +5,19 @@
   "date": "2026-10-30"
  },
  "mrrebound": {
-  "key": "TLT_LONG",
-  "text": "18,3 % UST 20y+",
-  "date": "2026-10-30"
+  "key": "CASH",
+  "text": "100 % Cash",
+  "date": "2026-11-02"
  },
  "1xgtaa": {
   "key": "COMMODITIES",
   "text": "40,0 % Rohstoffe",
-  "date": "2026-10-30"
+  "date": "2026-11-02"
  },
  "levtips": {
   "key": "CASH",
   "text": "Cash",
-  "date": "2026-10-30"
+  "date": "2026-11-02"
  },
  "wf_levgtaa": "Vorschau",
  "wf_levtipsregime": "Vorschau",
