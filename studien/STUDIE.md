@@ -317,3 +317,55 @@ Umsetzung im Bot (levgtaa-signalbot, `btc_for_trade`/`btc_override`): nur der Bi
 ersetzt, SMA-Längen und Momentum-Fenster bleiben auf NYSE-Handelstagen; bis der Tagesschluss vorliegt, ist das Signal
 vorläufig und es geht keine ntfy raus. Wirkung im Backtest wie oben (5 von 70 Entscheidungen, −0,2 % p. a., nicht
 signifikant); zwei geänderte Entscheidungen (2020-07, 2025-02) unabhängig nachgerechnet – identisch.
+
+## Nachtrag 01.–03.11.2026: QQQ vs. ^NDX, Handels- vs. Kalendertage, 1xGTAA-Nachrücken, MR-Anleihe, Rohstoff-ETF
+
+**levGTAA-Signal QQQ statt ^NDX** (Bot-Kern, 279 Monatsentscheidungen ab 2003, vereinfachte Rechnung ohne Kosten):
+14 Entscheidungen anders (3 um > 10 %), CAGR 40,33 % vs. 40,27 %, MaxDD und Sortino gleich. Dividenden-Stresstest
+(Rendite +1 % bzw. +3 % p. a., Signal mit/ohne Dividende): Vorzeichen wechselt (+0,37 / −0,93 % p. a.) – Rauschen.
+QQQ: Historie erst ab 1999, Schlusskurs-Abweichung zum Index bis 2004, Fondsgebühr, mögliche Fehler in Yahoos
+Dividendenbereinigung. **Entscheidung: ^NDX bleibt.** Neu prüfen, falls die Nasdaq-Dividende deutlich über 2 % steigt.
+
+**SMA auf Handels- oder Kalendertagen** (levGTAA, Kalendertage = Wochenenden mit letztem Kurs aufgefüllt, Bitcoin
+mit echten Wochenendkursen): gleichwertige Längen (×1,45) CAGR 38,4 % vs. 40,3 %, gleiche Zahlen 37,6 %. Raster aus
+9 Kombinationen (SMA15/30/45 × Band 75–175/125–225/175–275): Handelstage in 8 von 9 besser (Sortino), Ø +1,2 % CAGR.
+Grund: Auffüllen gewichtet Freitagskurse dreifach (künstlicher Wochenrhythmus), Fensterlänge schwankt mit Feiertagen.
+**Entscheidung: Handelstage für alle Strategien.**
+
+**1xGTAA – Nachrücken statt Cash** (nicht qualifizierter Top-2-Platz → nächster qualifizierter Platz 3/4), Bot-Regel,
+07/2009–10/2026, 0,1 % Kosten, freies Kapital in BIL:
+
+| Variante | CAGR | MaxDD | Sharpe | Sortino |
+|---|---|---|---|---|
+| Bot (Platz 1/2, sonst Cash) | 15,1 % | −17,1 % | 1,12 | 1,39 |
+| Nachrücken bis Platz 3 | 13,8 % | −28,8 % | 1,02 | 1,27 |
+| Nachrücken bis Platz 4 / unbegrenzt | 13,4 % | −28,8 % | 0,99 | 1,25 |
+
+Bootstrap (63-Tage-Blöcke, 2.000×): Nachrücken in 0 % besser; SMA-Gitter 16 Kombinationen: nur 2 besser.
+**Entscheidung: kein Nachrücken.**
+
+**MR-Rebound – Anleihe-Produkt** (Signal TLT unverändert; synthetisch ab 2004 aus 1x-ETFs: L·r − (L−1)·Geldmarkt − TER,
+übrige Bausteine 3x QQQ/EEM/Sensex in USD, echte Bot-Entscheidungen):
+
+| Anleihe | CAGR | MaxDD | Sharpe | 2022–2026 |
+|---|---|---|---|---|
+| 5x TLT (TER 3,75 %) | 17,8 % | −44,3 % | 0,71 | −2,7 % p. a. |
+| **3x IEF (TER 0,30 %)** | **17,8 %** | **−38,6 %** | **0,84** | **+6,5 % p. a.** |
+| 1x TLT (TER 0,07 %) | 17,5 % | −39,0 % | 0,83 | +7,4 % p. a. |
+
+Mit echten Produkten ab 05/2023 (Dashboard): 3x IEF CAGR +7,7 %, MaxDD −26 % (5x TLT: −4,8 %, −40 %).
+**Entscheidung: 3x IEF ab 02.11.2026** (gleiches Produkt wie levGTAA).
+
+**1xGTAA – Rohstoff-ETF UBS CMCI ex-Agriculture (IE00BZ2GV965, TER 0,34 %) statt WisdomTree Enhanced Commodity
+(IE00BYMLZY74, TER 0,23 %)**, 06/2017–10/2026, Bot-Regel; UBS-Kurse aus CXAU.L (USD; CXAP.L hat fehlerhafte Tage):
+
+| Rohstoff-Baustein | CAGR | MaxDD | Sharpe | Sortino |
+|---|---|---|---|---|
+| **heute: Signal DBC, Invest WisdomTree** | **16,9 %** | −14,9 % | **1,28** | **1,60** |
+| Signal + Invest UBS (wie Kollege) | 16,1 % | −14,9 % | 1,21 | 1,46 |
+| Signal DBC, Invest UBS | 16,6 % | −15,5 % | 1,24 | 1,54 |
+| Signal + Invest WisdomTree | 17,0 % | −14,9 % | 1,28 | 1,56 |
+
+Buy & Hold ab 06/2016: UBS 11,1 % p. a. (Vola 16,2 %, MaxDD −35,9 %), WisdomTree 8,6 % (13,4 %, −27,6 %), DBC 9,9 %.
+Der UBS-ETF lief allein besser (mehr Energie/Metalle, keine Agrar), in der Strategie aber nicht: Rohstoffe sind im
+Mittel nur zu 12 % gehalten, und dann zählt das Timing, nicht die Dauerrendite. **Entscheidung: WisdomTree bleibt.**

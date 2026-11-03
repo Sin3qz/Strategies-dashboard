@@ -25,7 +25,6 @@ PRODUCTS = {   # key: (Name, ISIN, Yahoo-Ticker, Waehrung)
     "BTCW": ("WisdomTree Physical Bitcoin", "GB00BJYDH287", "BTCW.L", "USD"),   # im wikifolio LevGTAA gehalten (nur Rechner)
     "EM3": ("WisdomTree Emerging Markets 3x Daily Leveraged", "IE00BYTYHN28", "3EML.L", "USD"),
     "IND3": ("Leverage Shares 3x Long India", "XS2595675302", "IND3.L", "USD"),
-    "TLT5": ("Leverage Shares 5x Long 20+ Year Treasury Bond", "XS2595672036", "TLT5.L", "USD"),
     "NDX1": ("iShares Nasdaq 100 UCITS", "IE00B53SZB19", "SXRV.DE", "EUR"),
     "EMSC": ("SPDR MSCI EM Small Cap UCITS", "IE00B48X4842", "SPYX.DE", "EUR"),
     "EMUV": ("Amundi MSCI EMU Value UCITS", "LU1598690169", "AW1T.DE", "EUR"),
@@ -42,7 +41,7 @@ LAST_PX = {"BTC1": ("IB1T.DE", "EUR")}   # Kurs je Stück für den Rechner, wenn
 
 MAP = {   # Strategie-Baustein -> Produkt
     "levgtaa": {"NASDAQ100": "NDX3", "BTC": "BTC1", "UST_IEF": "UST3", "GOLD": "GOLD3"},
-    "mrrebound": {"NASDAQ100": "NDX3", "EM": "EM3", "INDIA": "IND3", "TLT_LONG": "TLT5"},
+    "mrrebound": {"NASDAQ100": "NDX3", "EM": "EM3", "INDIA": "IND3", "TLT_LONG": "UST3"},   # Anleihe 3x IEF (bis 10/2026: 5x TLT)
     "1xgtaa": {"NASDAQ100": "NDX1", "EM_SMALLCAP": "EMSC", "EMU_VALUE": "EMUV", "BONDS_7_10": "UST710", "GOLD": "XGOLD",
                "COMMODITIES": "CMDTY", "CASH_USD": "USDON"},
     "3xgtaa": {"NASDAQ100": "NDX3", "BTC": "BTC1", "UST_IEF": "UST3", "GOLD": "GOLD3", "EU50": "EU503", "WTI": "WTI2"},
@@ -264,10 +263,15 @@ def run(work, out_dir, grid_start="2009-01-01"):
     eq = eq[keep].round(3)
     eq.index.name = "date"
     eq.reset_index().assign(date=lambda x: x["date"].dt.strftime("%Y-%m-%d")).to_csv(os.path.join(out_dir, "equity.csv"), index=False)
-    # Korrelation der Tagesrenditen (gemeinsamer Zeitraum der vier Strategien)
+    # Korrelation der Tagesrenditen
     base = ["levgtaa", "levtips", "1xgtaa", "mrrebound"] + (["3xgtaa"] if "3xgtaa" in series else [])
-    R = pd.DataFrame({k: series[k] for k in base}).dropna().pct_change().dropna()
-    corr = [{"a": a, "b": b, "corr": round(float(R[a].corr(R[b])), 3)} for a in base for b in base]
+    # je Paar ueber den gemeinsamen Zeitraum beider Strategien (nicht nur ab dem Start der juengsten von allen)
+    R = pd.DataFrame({k: series[k].pct_change() for k in base})
+
+    def pair(a, b):
+        x = pd.concat([R[a], R[b]], axis=1, keys=["a", "b"]).dropna()
+        return {"a": a, "b": b, "corr": round(float(x["a"].corr(x["b"])), 3), "since": x.index[0].date().isoformat()}
+    corr = [pair(a, b) for a in base for b in base]
     # Bot-Soll ab Erstellung der wikifolios (Index 100 am Schluss des Erstellungstags)
     track = []
     for k, key in (("levgtaa", "levgtaa"), ("levtips", "levtipsregime")):

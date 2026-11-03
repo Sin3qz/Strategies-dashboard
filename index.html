@@ -606,7 +606,7 @@
       </div>
       <div class="sd-card" id="mrreboundgtaa">
         <div class="sd-chead">
-          <div><h3>MR-Rebound-GTAA</h3><div class="sd-kind">Mean-Reversion · monatlich · Duo QQQ/EM/TLT | QQQ/India/TLT · 3x Nasdaq/EM/India · 5x TLT</div></div>
+          <div><h3>MR-Rebound-GTAA</h3><div class="sd-kind">Mean-Reversion · monatlich · Duo QQQ/EM/TLT | QQQ/India/TLT · 3x Nasdaq/EM/India · 3x IEF</div></div>
           <span><span class="sd-badge sd-badge-in" data-badge="in" data-key="mrreboundgtaa" hidden>Investiert</span><span class="sd-badge sd-badge-cash" data-badge="cash" data-key="mrreboundgtaa" hidden>Cash/Geldmarkt</span><span data-draw="badge" data-key="mrreboundgtaa" data-source="allocations"></span></span>
         </div>
         <div class="sd-slot">
@@ -644,7 +644,7 @@
           <div class="sd-block-h"><span>So funktioniert die Strategie (Aufbau &amp; Parameter)</span><span></span></div>
           <dl class="sd-dl">
             <dt>Idee</dt><dd>Mean-Reversion: kauft die zuletzt schwächsten Bausteine, sobald sie wieder drehen.</dd>
-            <dt>Bausteine</dt><dd><span class="sd-dl-h">Signal (1x) → gehandeltes Produkt</span><span class="sd-dl-i">Nasdaq 100 (^NDX) → 3x WisdomTree <span class="sd-isin">IE00BLRPRL42</span></span><span class="sd-dl-i">Emerging Markets (EEM) → 3x WisdomTree <span class="sd-isin">IE00BYTYHN28</span></span><span class="sd-dl-i">India (Sensex ^BSESN) → 3x Leverage Shares <span class="sd-isin">XS2595675302</span></span><span class="sd-dl-i">US-Treasury 20y+ (TLT) → 5x Leverage Shares <span class="sd-isin">XS2595672036</span></span></dd>
+            <dt>Bausteine</dt><dd><span class="sd-dl-h">Signal (1x) → gehandeltes Produkt</span><span class="sd-dl-i">Nasdaq 100 (^NDX) → 3x WisdomTree <span class="sd-isin">IE00BLRPRL42</span></span><span class="sd-dl-i">Emerging Markets (EEM) → 3x WisdomTree <span class="sd-isin">IE00BYTYHN28</span></span><span class="sd-dl-i">India (Sensex ^BSESN) → 3x Leverage Shares <span class="sd-isin">XS2595675302</span></span><span class="sd-dl-i">US-Treasury (Signal TLT) → 3x US-Treasury 7-10y, WisdomTree <span class="sd-isin">IE00BKT09032</span> (bis 10/2026: 5x TLT)</span></dd>
             <dt>Auswahl</dt><dd>Zwei Körbe: A = Nasdaq · EM · TLT, B = Nasdaq · India · TLT. Je Korb die zwei Schwächsten nach SMA<sub>S</sub>/SMA<sub>L</sub> − 1; bestätigt, wenn Rebound &gt; 0 und Kurs über der Gate-SMA.</dd>
             <dt>Gewichtung</dt><dd>Je Korb 50 %: beide bestätigt → 1/3 (schwächstes) + 2/3, nur eines → max(Slot, 50 %), sonst Cash. Mittel über 34.884 Varianten: S 75–125, L 175–250, Rebound 42/50/56 Tage, Gate SMA100/200/250.</dd>
             <dt>Risiko</dt><dd>kein Vol-Target; Anleihe 5x, Rest 3x.</dd>
@@ -710,7 +710,7 @@
       </div>
       <div class="sd-card" id="corr-card">
         <h3>Korrelation der Tagesrenditen</h3>
-        <p class="sd-note">Gemeinsamer Zeitraum aller Strategien (ab Start von MR-Rebound), 3xGTAA zum Vergleich. Niedrige Werte = gute Streuung.</p>
+        <p class="sd-note">Je Paar über den gemeinsamen Zeitraum beider Strategien (levGTAA, levTipsRegime und 3xGTAA ab 12/2014, 1xGTAA ab 08/2022, MR-Rebound ab Start seiner Produkte). Niedrige Werte = gute Streuung.</p>
         <div class="sd-tw">
           <table data-source="corr_grid" data-row-key="a">
             <thead><tr><th data-field="name"></th><th class="n" data-field="levgtaa">levGTAA</th><th class="n" data-field="levtips">levTips</th><th class="n" data-field="1xgtaa">1xGTAA</th><th class="n" data-field="mrrebound">MR-Reb.</th><th class="n" data-field="3xgtaa">3xGTAA</th></tr></thead>
@@ -922,11 +922,11 @@
   const ASSET_COLOR = {NASDAQ100: 0, SP500: 0, BTC: 1, UST_IEF: 2, BONDS_7_10: 2, TLT_LONG: 2, GOLD: 3,
     EM: 4, EM_SMALLCAP: 4, COMMODITIES: 5, INDIA: 6, EMU_VALUE: 6, CASH_USD: 7,
     NDX3: 0, SPX3: 0, BTC1: 1, BTCW: 1, UST3: 2, GOLD3: 3, MM: 7};
-  const NAMES = {NASDAQ100: 'Nasdaq 100', SP500: 'S&P 500', BTC: 'Bitcoin', UST_IEF: 'UST 7-10y', TLT_LONG: 'UST 20y+', GOLD: 'Gold',
+  const NAMES = {NASDAQ100: 'Nasdaq 100', SP500: 'S&P 500', BTC: 'Bitcoin', UST_IEF: 'UST 7-10y', TLT_LONG: 'UST 7-10y', GOLD: 'Gold',
     EM: 'Emerging Markets', INDIA: 'India', EM_SMALLCAP: 'EM Small Caps', EMU_VALUE: 'EMU Value', BONDS_7_10: 'UST 7-10y',
     COMMODITIES: 'Rohstoffe', CASH_USD: 'USD-Geldmarkt', CASH: 'Cash/Geldmarkt', cash: 'Cash/Geldmarkt',
     NDX3: '3x Nasdaq 100', SPX3: '3x S&P 500', BTC1: '1x Bitcoin (iShares Bitcoin ETP)', BTCW: '1x Bitcoin (WisdomTree Physical)', UST3: '3x UST 7-10y', GOLD3: '3x Gold', MM: 'Geldmarkt-ETF (EUR)'};
-  const LEV = {levgtaa: {NASDAQ100: 3, BTC: 1, UST_IEF: 3, GOLD: 3}, mrreboundgtaa: {NASDAQ100: 3, EM: 3, INDIA: 3, TLT_LONG: 5},
+  const LEV = {levgtaa: {NASDAQ100: 3, BTC: 1, UST_IEF: 3, GOLD: 3}, mrreboundgtaa: {NASDAQ100: 3, EM: 3, INDIA: 3, TLT_LONG: 3},
     '1xgtaa': {}, levtipsregime: {SP500: 3, BTC: 1, UST_IEF: 3}};
   const colorOf = (a) => (a === 'CASH' || a === 'cash') ? 'var(--cds-chart-muted)' : dash.colors[(ASSET_COLOR[a] ?? 7) % dash.colors.length];
   const num = (x, d) => { const v = Number(x), r = Math.round(v * 10 ** d) === 0 ? 0 : v;   // kein „−0,0“
@@ -982,7 +982,7 @@
     description: 'Je Strategie die gehaltene Allokation, die simulierte von heute und der Anteil, der umgeschichtet würde (halbe Summe der absoluten Quotendifferenzen inkl. Cash).',
     inputs: ['strategies', 'allocations', 'daily_levgtaa', 'daily_mrrebound', 'daily_1xgtaa', 'daily_levtips'],
     fn: (strategies, allocations, daily_levgtaa, daily_mrrebound, daily_1xgtaa, daily_levtips) => {
-      const names = {NASDAQ100: 'Nasdaq', BTC: 'Bitcoin', UST_IEF: 'UST 7-10y', TLT_LONG: 'UST 20y+', GOLD: 'Gold', EM: 'EM', INDIA: 'India',
+      const names = {NASDAQ100: 'Nasdaq', BTC: 'Bitcoin', UST_IEF: 'UST 7-10y', TLT_LONG: 'UST 7-10y', GOLD: 'Gold', EM: 'EM', INDIA: 'India',
         EM_SMALLCAP: 'EM Small', EMU_VALUE: 'EMU Value', BONDS_7_10: 'UST 7-10y', COMMODITIES: 'Rohstoffe', CASH_USD: 'USD-Geldmarkt', SP500: 'S&P 500'};
       const label = {levgtaa: 'levGTAA', mrreboundgtaa: 'MR-Rebound-GTAA', '1xgtaa': '1xGTAA', levtipsregime: 'levTipsRegime'};
       const skip = ['date', 'cash', 'vt_factor', 'platz1', 'held', 'cooldown', 'btc_date', 'btc_final'];   // Hilfsspalten
@@ -1022,7 +1022,7 @@
     description: 'Tage der letzten 120 Kalendertage, an denen sich die Bausteine des simulierten Signals geändert haben (levTipsRegime: Markt / 3x IEF / Cash).',
     inputs: ['daily_levgtaa', 'daily_mrrebound', 'daily_1xgtaa', 'daily_levtips'],
     fn: (daily_levgtaa, daily_mrrebound, daily_1xgtaa, daily_levtips) => {
-      const names = {NASDAQ100: 'Nasdaq', BTC: 'Bitcoin', UST_IEF: 'UST 7-10y', TLT_LONG: 'UST 20y+', GOLD: 'Gold', EM: 'EM', INDIA: 'India',
+      const names = {NASDAQ100: 'Nasdaq', BTC: 'Bitcoin', UST_IEF: 'UST 7-10y', TLT_LONG: 'UST 7-10y', GOLD: 'Gold', EM: 'EM', INDIA: 'India',
         EM_SMALLCAP: 'EM Small', EMU_VALUE: 'EMU Value', BONDS_7_10: 'UST 7-10y', COMMODITIES: 'Rohstoffe', CASH_USD: 'USD-Geldmarkt'};
       const skip = ['date', 'cash', 'vt_factor', 'platz1', 'held', 'cooldown', 'btc_date', 'btc_final'];   // Hilfsspalten
       const isAsset = (c) => !skip.includes(c) && /^[A-Z][A-Z0-9_]*$/.test(c);   // nur Baustein-Spalten (z. B. NASDAQ100, CASH_USD)
@@ -1385,7 +1385,7 @@
     levtipsregime: {SP500: ['WisdomTree S&P 500 3x Daily Leveraged', 'IE00B7Y34M31'], BTC: ['iShares Bitcoin ETP', 'XS2940466316'],
       UST_IEF: ['WisdomTree US Treasuries 10Y 3x Daily Leveraged', 'IE00BKT09032']},
     mrreboundgtaa: {NASDAQ100: ['WisdomTree NASDAQ 100 3x Daily Leveraged', 'IE00BLRPRL42'], EM: ['WisdomTree Emerging Markets 3x Daily Leveraged', 'IE00BYTYHN28'],
-      INDIA: ['Leverage Shares 3x Long India (INDA)', 'XS2595675302'], TLT_LONG: ['Leverage Shares 5x Long 20+ Year Treasury Bond', 'XS2595672036']},
+      INDIA: ['Leverage Shares 3x Long India (INDA)', 'XS2595675302'], TLT_LONG: ['WisdomTree US Treasuries 10Y 3x Daily Leveraged', 'IE00BKT09032']},
     '1xgtaa': {NASDAQ100: ['iShares Nasdaq 100 UCITS ETF', 'IE00B53SZB19'], EM_SMALLCAP: ['SPDR MSCI EM Small Cap UCITS ETF', 'IE00B48X4842'],
       EMU_VALUE: ['Amundi MSCI EMU Value UCITS ETF', 'LU1598690169'], BONDS_7_10: ['iShares $ Treasury Bond 7-10yr UCITS ETF', 'IE00B1FZS798'],
       GOLD: ['Xetra-Gold', 'DE000A0S9GB0'], COMMODITIES: ['WisdomTree Enhanced Commodity UCITS ETF USD Acc', 'IE00BYMLZY74'],
