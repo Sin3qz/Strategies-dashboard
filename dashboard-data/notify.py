@@ -15,7 +15,7 @@ from send_ntfy import send_ntfy
 
 URL = "https://sin3qz.github.io/Strategies-dashboard/#signale"
 NAMES = {"NASDAQ100": "Nasdaq", "BTC": "Bitcoin", "UST_IEF": "UST 7-10y", "GOLD": "Gold", "EM": "EM", "INDIA": "India",
-         "TLT_LONG": "UST 20y+", "EM_SMALLCAP": "EM Small", "EMU_VALUE": "EMU Value", "BONDS_7_10": "UST 7-10y",
+         "TLT_LONG": "UST 7-10y", "EM_SMALLCAP": "EM Small", "EMU_VALUE": "EMU Value", "BONDS_7_10": "UST 7-10y",
          "COMMODITIES": "Rohstoffe", "CASH_USD": "Geldmarkt"}
 LABEL = {"levgtaa": "levGTAA", "mrrebound": "MR-Rebound-GTAA", "1xgtaa": "1xGTAA", "levtips": "levTipsRegime"}
 SKIP = {"date", "cash", "vt_factor", "platz1", "held", "cooldown", "btc_date", "btc_final"}
