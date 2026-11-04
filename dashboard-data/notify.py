@@ -8,7 +8,8 @@ Mit NTFY_TEST=true (Schalter beim „Run workflow“) geht zusaetzlich eine Test
 Zustand in data/notify_state.json (verhindert Doppelmeldungen bei 5 Laeufen am Tag). Ohne Secret NTFY_TOPIC wird nur
 der Zustand gefuehrt, nichts gesendet. Der erste Lauf meldet nichts, er merkt sich nur den Stand.
 """
-import csv, json, os
+import csv, datetime as dt, json, os
+from zoneinfo import ZoneInfo
 
 import cashwatch
 from send_ntfy import send_ntfy
@@ -18,6 +19,7 @@ NAMES = {"NASDAQ100": "Nasdaq", "BTC": "Bitcoin", "UST_IEF": "UST 7-10y", "GOLD"
          "TLT_LONG": "UST 7-10y", "EM_SMALLCAP": "EM Small", "EMU_VALUE": "EMU Value", "BONDS_7_10": "UST 7-10y",
          "COMMODITIES": "Rohstoffe", "CASH_USD": "Geldmarkt"}
 LABEL = {"levgtaa": "levGTAA", "mrrebound": "MR-Rebound-GTAA", "1xgtaa": "1xGTAA", "levtips": "levTipsRegime"}
+QUIET = (22, 7)        # Nachtruhe (Berlin): keine Hinweise von 22 bis 7 Uhr, sie kommen mit dem ersten Lauf danach
 SKIP = {"date", "cash", "vt_factor", "platz1", "held", "cooldown", "btc_date", "btc_final"}
 
 
@@ -46,7 +48,7 @@ def _signal(mode, row):
     return key, txt
 
 
-def run(out_dir):
+def run(out_dir, now=None):
     path = os.path.join(out_dir, "notify_state.json")
     try:
         state = json.load(open(path, encoding="utf-8"))
@@ -54,6 +56,9 @@ def run(out_dir):
         state = {}
     first = not state
     sent, msgs = [], []
+    h = (now or dt.datetime.now(ZoneInfo("Europe/Berlin"))).hour
+    quiet = h >= QUIET[0] or h < QUIET[1]
+    keep = dict(state)                                    # Nachtruhe: Zustand nicht weiterschreiben, damit nichts verloren geht
     for mode in LABEL:
         f = os.path.join(out_dir, f"daily_{mode}.csv")
         if not os.path.exists(f):
@@ -75,12 +80,17 @@ def run(out_dir):
         if state.get(k) and state[k] != w["status"] and w["status"] == "Investierbar":
             msgs.append((f"wikifolio {w['name']} ist investierbar", f"{w['name']} ({w['symbol']}) ist jetzt investierbar.\n{w['url']}"))
         state[k] = w["status"]
-    if not first:
+    if quiet and not first:
+        if msgs:
+            print(f"Nachtruhe ({h} Uhr): {len(msgs)} Hinweis(e) kommen mit dem ersten Lauf ab {QUIET[1]} Uhr")
+        state = keep
+    elif not first:
         for title, body in msgs:
             ok = send_ntfy(title, body + "\n\n" + URL, tags="chart_with_upwards_trend")
             sent.append((title, ok))
     try:
-        sent += cashwatch.run(out_dir, state, send=send_ntfy)
+        # nachts: cash_watch.json aktualisieren, aber nicht melden und den Meldezustand nicht weiterschreiben
+        sent += cashwatch.run(out_dir, dict(state) if quiet else state, send=None if quiet else send_ntfy)
     except Exception as e:
         print("Cash-Waechter nicht gelaufen:", e)
     if (os.environ.get("NTFY_TEST") or "").lower() == "true":
