@@ -1,32 +1,32 @@
 {
  "levgtaa": {
-  "key": "BTC|NASDAQ100",
-  "text": "55,0 % Nasdaq · 20,0 % Bitcoin",
-  "date": "2026-11-04"
+  "key": "BTC",
+  "text": "50,0 % Bitcoin",
+  "date": "2026-11-05"
  },
  "mrrebound": {
-  "key": "INDIA",
-  "text": "6,5 % India",
-  "date": "2026-11-04"
+  "key": "INDIA|TLT_LONG",
+  "text": "6,5 % India · 6,0 % UST 7-10y",
+  "date": "2026-11-05"
  },
  "1xgtaa": {
   "key": "COMMODITIES",
   "text": "40,0 % Rohstoffe",
-  "date": "2026-11-04"
+  "date": "2026-11-05"
  },
  "levtips": {
   "key": "CASH",
   "text": "Cash",
-  "date": "2026-11-04"
+  "date": "2026-11-05"
  },
  "wf_levgtaa": "Vorschau",
  "wf_levtipsregime": "Vorschau",
  "cash_levgtaa": {
   "level": "ok",
-  "date": "2026-11-05"
+  "date": "2026-11-06"
  },
  "cash_levtipsregime": {
   "level": "below",
-  "date": "2026-11-05"
+  "date": "2026-11-06"
  }
 }
