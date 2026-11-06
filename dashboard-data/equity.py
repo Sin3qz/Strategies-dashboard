@@ -311,7 +311,10 @@ def run(work, out_dir, grid_start="2009-01-01"):
         prods = set(MAP[m].values())
         ends = [prices[p].first_valid_index() for p in prods & set(PROXY) if p in prices_long and prices_long[p] is not prices[p]]
         if m == "1xgtaa" and "proxy" in d.columns and d["proxy"].any():
-            ends.append(pd.Timestamp(d.loc[d["proxy"] == 1, "date"].iloc[-1]) + pd.Timedelta(days=1))
+            last_px = int(np.where(d["proxy"].values == 1)[0][-1])
+            look = 252                                         # laengster Rueckblick des Signals (12-Monats-Momentum)
+            if last_px + look < len(d):                        # bis dahin reicht das Signal noch in die Ersatzreihe
+                ends.append(pd.Timestamp(d["date"].iloc[last_px + look]))
         ends = [e for e in ends if e > series[m].index[0]]
         if ends:
             proxy_until[m] = (max(ends) - pd.Timedelta(days=1)).date().isoformat()
