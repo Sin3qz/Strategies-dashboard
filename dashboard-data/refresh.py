@@ -9,6 +9,8 @@ Laeuft per GitHub Action (.github/workflows/refresh-dashboard.yml) mehrmals taeg
 Quellen:
   - status_*.json / history_levgtaa.txt der vier Bot-Repos (public, letzter Commit auf main)
   - Tagessignal-Simulation fuer levGTAA, MR-Rebound, 1xGTAA, levTipsRegime mit dem Code der Bot-Repos (daily_signals.py, Yahoo-Kurse)
+  - nur Performance-Seite: Vergleichsmodell 3xGTAA (gtaa3x.py) und 1xGTAA mit EMU-Value-Ersatzreihe vor 08/2022
+    (gtaa1x_long.py); die Bots selbst und ihre Signale bleiben unveraendert
   - wikifolio.com: eingebettete Seitendaten (__NEXT_DATA__) von WFXLEVGTAA und WFXTIPSREG
 Faellt eine Quelle aus oder ist unplausibel, bleibt deren letzte gueltige Datei stehen und build.json nennt den Fehler.
 Exit-Code != 0 nur, wenn gar nichts aktualisiert werden konnte.
@@ -533,8 +535,23 @@ def gtaa3x():
         traceback.print_exc(); print("3xGTAA nicht gerechnet:", reason(e))
 
 
+def gtaa1x_long():
+    """1xGTAA mit EMU-Value-Ersatzreihe vor 08/2022 (Bot-Code unveraendert) -> WORK/decisions_1xgtaa_long.csv.
+    Fehlt die Datei, rechnet equity.run 1xGTAA nur mit echten Kursen (ab 08/2022) und meldet es."""
+    f = os.path.join(WORK, "decisions_1xgtaa_long.csv")
+    try:
+        if os.path.exists(f):
+            os.remove(f)                                       # nie eine alte Datei weiterverwenden
+        d, _ = clone("1xgtaa-signalbot")
+        attempt(lambda: subprocess.run([sys.executable, os.path.join(HERE, "gtaa1x_long.py"), d, f], check=True, timeout=900),
+                2, "1xGTAA lang")
+    except Exception as e:
+        traceback.print_exc(); print("1xGTAA lange Historie nicht gerechnet:", reason(e))
+
+
 def performance(equity):
     gtaa3x()
+    gtaa1x_long()
     try:
         issues, n = attempt(lambda: equity.run(WORK, OUT), 2, "Performance")
         for x in issues or []:

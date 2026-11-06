@@ -9,6 +9,12 @@ Ablauf je Strategie:
   - Kurse: Produktkurse von Yahoo (liquideste Notierung); USD- und Pence-Notierungen (London) mit EURUSD bzw. EURGBP
     in EUR umgerechnet. Bitcoin: BTC-EUR als
     Naeherung fuer ein 1x-Bitcoin-ETP (ohne dessen Gebuehr).
+MR-Rebound-GTAA und 1xGTAA mit langer Historie (LONG): vor dem ersten eigenen Kurs eines Produkts wird eine Ersatzreihe
+angehaengt (PROXY: 3x-Produkte synthetisch aus der taeglichen Rendite des Basis-ETFs mal Hebel, minus Finanzierung
+(Hebel-1) x US-T-Bill-Satz (^IRX) und minus der am echten Produkt kalibrierten Restkosten; 1x-Produkte direkt aus dem
+Basis-ETF). Beide Kurven beginnen wie die uebrigen mit dem ersten Kurs des 3x IEF (12/2014). 1xGTAA rechnet dafuer seine
+Entscheidungen mit einer EMU-Value-Ersatzreihe vor 08/2022 (gtaa1x_long.py).
+Benchmark: MSCI ACWI (iShares MSCI ACWI UCITS, Xetra IUSQ, EUR) gekauft und gehalten, ab demselben Starttag.
 Mischungen: Mix A = 1/3 levTipsRegime + 2/3 levGTAA, Mix B = je 1/3 levTipsRegime, 1xGTAA, levGTAA; monatlich
 (1. Handelstag) auf die Zielanteile zurueckgesetzt, mit COST auf den umgeschichteten Anteil.
 """
@@ -36,7 +42,20 @@ PRODUCTS = {   # key: (Name, ISIN, Yahoo-Ticker, Waehrung)
     # nur fuer das Vergleichsmodell 3xGTAA (kein Bot, nicht im Rechner)
     "EU503": ("WisdomTree EURO STOXX 50 3x Daily Leveraged", "", "3EUL.L", "EUR"),
     "WTI2": ("WisdomTree WTI Crude Oil 2x Daily Leveraged", "", "LOIL.MI", "EUR"),
+    # nur Benchmark (kein Bot, nicht im Rechner): iShares MSCI ACWI UCITS ETF USD (Acc), IE00B6R52259, Xetra IUSQ
+    "ACWI": ("iShares MSCI ACWI UCITS ETF USD (Acc)", "", "IUSQ.DE", "EUR"),
 }
+# Ersatzreihen vor dem ersten eigenen Kurs (nur fuer LONG): Produkt -> (Basis-ETF bei Yahoo, USD; Hebel; Restkosten p. a.
+# ueber der Finanzierung). Restkosten so kalibriert, dass die synthetische Reihe im Zeitraum mit echten Kursen dieselbe
+# Rendite p. a. hat wie das Produkt (Stand 11/2026, Wochenrenditen-Korrelation 0,96 bzw. 0,95).
+PROXY = {
+    "EM3": ("EEM", 3, 0.028),     # WisdomTree EM 3x (3EML.L ab 03/2016) <- 3x iShares MSCI Emerging Markets
+    "IND3": ("INDA", 3, 0.066),   # Leverage Shares 3x India (IND3.L ab 05/2023) <- 3x iShares MSCI India (Basis des Produkts)
+    "EMUV": ("EZU", 1, 0.0),      # Amundi MSCI EMU Value (AW1T.DE ab 08/2022) <- iShares MSCI EMU (breiter Index, gleiche Region)
+    "CMDTY": ("DBC", 1, 0.0),     # WisdomTree Enhanced Commodity (WCOA.L ab 04/2016) <- Invesco DB Commodity (Signal-ETF des Bots)
+}
+RF = "^IRX"                       # 13-Wochen-T-Bill (% p. a.) als Finanzierungssatz der Hebelprodukte
+LONG = ("mrrebound", "1xgtaa")
 LAST_PX = {"BTC1": ("IB1T.DE", "EUR")}   # Kurs je Stück für den Rechner, wenn der Verlauf von einem anderen Ticker kommt
 
 MAP = {   # Strategie-Baustein -> Produkt
@@ -50,6 +69,7 @@ SPX_SHARE = 1.0     # levTipsRegime im Markt: 100 % 3x S&P 500 (seit 28.10.2026 
 STATE_W = {"MARKET": {"SPX3": SPX_SHARE, "BTC1": 1 - SPX_SHARE}, "IEF": {"UST3": 1.0}, "CASH": {}}
 LABEL = {"levgtaa": "levGTAA", "levtips": "levTipsRegime", "levtips_old": "levTipsRegime (alte Regel ohne IEF)",
          "1xgtaa": "1xGTAA", "mrrebound": "MR-Rebound-GTAA", "3xgtaa": "3xGTAA (Vergleichsmodell, kein Bot)",
+         "acwi": "MSCI ACWI (Benchmark, iShares IUSQ, EUR)",
          "mix_a": "Mix A: 1/3 levTipsRegime + 2/3 levGTAA", "mix_b": "Mix B: je 1/3 levTipsRegime, 1xGTAA, levGTAA"}
 MIXES = {"mix_a": {"levtips": 1 / 3, "levgtaa": 2 / 3}, "mix_b": {"levtips": 1 / 3, "1xgtaa": 1 / 3, "levgtaa": 1 / 3}}   # gleichgewichtet (ab 29.10.2026)
 WF_START = "2026-10-01"   # Erstellung beider wikifolios (Index 100)
@@ -58,7 +78,8 @@ WF_FEE_CERT, WF_FEE_PERF = 0.0095, 0.05   # wikifolio-Gebuehren beider wikifolio
 
 def load_prices(grid):
     from yahooquery import Ticker
-    tick = sorted({p[2] for p in PRODUCTS.values()} | {t for t, _ in LAST_PX.values()} | {"EURUSD=X", "EURGBP=X"})
+    tick = sorted({p[2] for p in PRODUCTS.values()} | {t for t, _ in LAST_PX.values()} | {"EURUSD=X", "EURGBP=X", RF}
+                  | {b for b, _, _ in PROXY.values()})
     h = Ticker(tick, asynchronous=True).history(period="max", interval="1d", adj_ohlc=True)
     out, issues = {}, []
     for t in tick:
@@ -87,7 +108,7 @@ def load_prices(grid):
     except Exception as e:
         issues.append(f"juengste Kurse nicht nachgeladen ({type(e).__name__})")
     fx = {"USD": out["EURUSD=X"], "GBp": out["EURGBP=X"] * 100}    # Kurs in Fremdwaehrung je 1 EUR (Pence: x100)
-    prices, last, own = {}, {}, {}
+    prices, last, own, lng = {}, {}, {}, {}
     for k, (name, isin, t, ccy) in PRODUCTS.items():
         if t not in out:
             continue
@@ -109,7 +130,36 @@ def load_prices(grid):
         on = s.reindex(s.index.union(grid)).ffill().reindex(grid)
         on[grid < s.index[0]] = np.nan
         prices[k] = on
-    return prices, last, issues, own
+        if k in PROXY:
+            try:
+                lng[k] = _chain(s, k, out, fx["USD"], grid)
+            except Exception as e:
+                issues.append(f"{k}: Ersatzreihe {PROXY[k][0]} nicht verkettet ({type(e).__name__}: {e})")
+    prices_long = {**prices, **lng}
+    return prices, last, issues, own, prices_long
+
+
+def _chain(s, k, out, usd, grid):
+    """Produktreihe s (EUR) vor ihrem ersten Kurs mit der Ersatzreihe aus PROXY[k] verlaengern (auf dem Gitter)."""
+    base, lev, cost = PROXY[k]
+    b = out[base]
+    r = b.pct_change().dropna()
+    if lev != 1:
+        rf = out[RF].reindex(r.index.union(out[RF].index)).ffill().reindex(r.index).fillna(0) / 100 / 252
+        r = lev * r - (lev - 1) * rf - cost / 252
+    else:
+        r = r - cost / 252
+    syn = (1 + r).cumprod()
+    syn = (syn / usd.reindex(syn.index.union(usd.index)).ffill().reindex(syn.index)).dropna()   # USD -> EUR
+    first = s.index[0]
+    at = syn[syn.index <= first]
+    if not len(at) or syn.index[0] >= first:
+        raise RuntimeError(f"keine Kurse vor {first.date()}")
+    pre = syn[syn.index < first] / at.iloc[-1] * s.iloc[0]   # am ersten echten Kurs angeschlossen
+    full = pd.concat([pre, s])
+    on = full.reindex(full.index.union(grid)).ffill().reindex(grid)
+    on[grid < full.index[0]] = np.nan
+    return on
 
 
 def targets(mode, dec):
@@ -124,10 +174,12 @@ def targets(mode, dec):
     return rows
 
 
-def simulate(mode, dec, prices, grid, own=None, issues=None):
+def simulate(mode, dec, prices, grid, own=None, issues=None, not_before=None):
     tg = targets(mode, dec)
     used = sorted({p for _, w, _ in tg for p in w} | ({"SPX3", "BTC1", "UST3"} if mode.startswith("levtips") else set()))
     first = max(prices[p].first_valid_index() for p in used)
+    if not_before is not None:
+        first = max(first, not_before)
     gi = {d: i for i, d in enumerate(grid)}
     execs = {}                                                 # Handelstag-Index -> Zielgewichte
     prev = None
@@ -234,10 +286,40 @@ def run(work, out_dir, grid_start="2009-01-01"):
     nxt = grid.searchsorted(last_signal, side="right")            # Handelstag nach dem letzten Signal (falls schon im Kalender)
     if nxt < len(grid):
         grid = grid[grid <= grid[nxt]]
-    prices, last, issues, own = load_prices(grid)
-    series = {}
-    for m in ("levgtaa", "levtips", "1xgtaa", "mrrebound"):
+    fl = os.path.join(work, "decisions_1xgtaa_long.csv")        # 1xGTAA mit EMU-Value-Ersatzreihe (gtaa1x_long.py)
+    if os.path.exists(fl):
+        dec["1xgtaa_long"] = pd.read_csv(fl)
+    prices, last, issues, own, prices_long = load_prices(grid)
+    series, proxy_until = {}, {}
+    for m in ("levgtaa", "levtips"):
         series[m] = simulate(m, dec[m], prices, grid, own, issues)
+    t0 = prices["UST3"].first_valid_index()                    # gemeinsamer Start der langen Kurven (erster 3x-IEF-Kurs)
+    for m in LONG:
+        d = dec.get("1xgtaa_long") if m == "1xgtaa" else dec[m]
+        if d is None:
+            issues.append("1xGTAA: keine lange Entscheidungshistorie (gtaa1x_long.py) – Kurve nur mit echten Kursen")
+            series[m] = simulate(m, dec[m], prices, grid, own, issues)
+            continue
+        try:
+            series[m] = simulate(m, d, prices_long, grid, own, issues, not_before=t0)
+        except Exception as e:
+            issues.append(f"{LABEL[m]}: lange Historie nicht gerechnet ({type(e).__name__}: {e}) – nur echte Kurse")
+            series[m] = simulate(m, dec[m], prices, grid, own, issues)
+            continue
+        # bis wann Ersatzdaten im Spiel sind: letzter Tag vor dem ersten eigenen Kurs eines Produkts der Strategie
+        # bzw. (1xGTAA) vor dem ersten Signal mit echtem EMU-Value-Kurs
+        prods = set(MAP[m].values())
+        ends = [prices[p].first_valid_index() for p in prods & set(PROXY) if p in prices_long and prices_long[p] is not prices[p]]
+        if m == "1xgtaa" and "proxy" in d.columns and d["proxy"].any():
+            ends.append(pd.Timestamp(d.loc[d["proxy"] == 1, "date"].iloc[-1]) + pd.Timedelta(days=1))
+        ends = [e for e in ends if e > series[m].index[0]]
+        if ends:
+            proxy_until[m] = (max(ends) - pd.Timedelta(days=1)).date().isoformat()
+    if "ACWI" in prices:                                       # Benchmark: gekauft und gehalten ab dem gemeinsamen Start
+        a = prices["ACWI"][(grid >= t0) & (grid <= own["ACWI"])].dropna()
+        series["acwi"] = a / a.iloc[0] * 100
+    else:
+        issues.append("MSCI ACWI (IUSQ.DE): keine Kurse")
     if "3xgtaa" in dec:
         try:
             series["3xgtaa"] = simulate("3xgtaa", dec["3xgtaa"], prices, grid, own, issues)
@@ -249,12 +331,14 @@ def run(work, out_dir, grid_start="2009-01-01"):
         series["levtips_old"] = simulate("levtips_old", dec["levtips"], prices, grid, own, issues)
     for k, w in MIXES.items():
         series[k] = mix(series, w, grid)
+    order = ["levgtaa", "levtips", "1xgtaa", "mrrebound", "3xgtaa", "levtips_old", *MIXES, "acwi"]   # Tabellen-Reihenfolge
+    series = {k: series[k] for k in order if k in series}
 
     # Kennzahlen, Monatsrenditen
     st, months = [], []
     for k, s in series.items():
         d, mr = stats(s)
-        st.append({"key": k, "label": LABEL[k], **{a: (None if v is None or (isinstance(v, float) and not math.isfinite(v)) else
+        st.append({"key": k, "label": LABEL[k], "proxy_until": proxy_until.get(k), **{a: (None if v is None or (isinstance(v, float) and not math.isfinite(v)) else
                                                        (round(v, 5) if isinstance(v, float) else v)) for a, v in d.items()}})
         months += [{"month": i.strftime("%Y-%m"), "key": k, "ret": round(float(v), 5)} for i, v in mr.items()]
     # Equity (Index 100 je Start), woechentlich ausgeduennt bis auf die letzten 400 Tage
@@ -264,7 +348,7 @@ def run(work, out_dir, grid_start="2009-01-01"):
     eq.index.name = "date"
     eq.reset_index().assign(date=lambda x: x["date"].dt.strftime("%Y-%m-%d")).to_csv(os.path.join(out_dir, "equity.csv"), index=False)
     # Korrelation der Tagesrenditen
-    base = ["levgtaa", "levtips", "1xgtaa", "mrrebound"] + (["3xgtaa"] if "3xgtaa" in series else [])
+    base = ["levgtaa", "levtips", "1xgtaa", "mrrebound"] + [k for k in ("3xgtaa", "acwi") if k in series]
     # je Paar ueber den gemeinsamen Zeitraum beider Strategien (nicht nur ab dem Start der juengsten von allen)
     R = pd.DataFrame({k: series[k].pct_change() for k in base})
 
