@@ -251,6 +251,16 @@
     #months-card th, #months-card td { padding: 5px 2px; font-size: 11px; }
     #corr-card th, #corr-card td { padding: 5px 4px; font-size: 12px; }
   }
+  .sd-sh { display: none; }
+  @media (max-width: 520px) {      /* Handy: Monatsrenditen und Korrelation passen ganz auf den Schirm (ACWI ganz rechts sichtbar) */
+    .sd-lg { display: none; } .sd-sh { display: inline; }
+    #months-card .sd-tw, #corr-card .sd-tw { overflow-x: visible; }
+    #months-card table, #corr-card table { width: 100%; table-layout: fixed; }
+    #months-card th, #months-card td { padding: 4px 1px; font-size: 10.5px; letter-spacing: -0.2px; }
+    #months-card th:first-child, #months-card td:first-child { width: 3.1rem; }
+    #corr-card th, #corr-card td { padding: 5px 2px; font-size: 11.5px; }
+    #corr-card th:first-child, #corr-card td:first-child { width: 2.9rem; }
+  }
   @media (max-width: 760px) {      /* Datenstatus auf dem Handy: ein Block je Quelle */
     .sd-htab thead { display: none; }
     .sd-htab tr { display: grid; grid-template-columns: 1fr auto; gap: 2px var(--cds-gap-sm); padding: 6px 0; border-bottom: 1px solid var(--color-border-line); }
@@ -703,7 +713,7 @@
         <h3>Monatsrenditen (letzte 24 Monate)<span class="sd-narrow-only"> · in %</span></h3>
         <div class="sd-tw scroll">
           <table data-source="month_grid" data-row-key="month">
-            <thead><tr><th data-field="month">Monat</th><th class="n" data-field="levgtaa">levGTAA</th><th class="n" data-field="levtips">levTips</th><th class="n" data-field="1xgtaa">1xGTAA</th><th class="n" data-field="mrrebound">MR-Reb.</th><th class="n" data-field="3xgtaa">3xGTAA</th><th class="n" data-field="mix_a">Mix A</th><th class="n" data-field="mix_b">Mix B</th><th class="n" data-field="acwi">ACWI</th></tr></thead>
+            <thead><tr><th data-field="month">Monat</th><th class="n" data-field="levgtaa"><span class="sd-lg">levGTAA</span><span class="sd-sh">levG</span></th><th class="n" data-field="levtips"><span class="sd-lg">levTips</span><span class="sd-sh">levT</span></th><th class="n" data-field="1xgtaa"><span class="sd-lg">1xGTAA</span><span class="sd-sh">1x</span></th><th class="n" data-field="mrrebound"><span class="sd-lg">MR-Reb.</span><span class="sd-sh">MR</span></th><th class="n" data-field="3xgtaa"><span class="sd-lg">3xGTAA</span><span class="sd-sh">3x</span></th><th class="n" data-field="mix_a"><span class="sd-lg">Mix A</span><span class="sd-sh">MixA</span></th><th class="n" data-field="mix_b"><span class="sd-lg">Mix B</span><span class="sd-sh">MixB</span></th><th class="n" data-field="acwi"><span class="sd-lg">ACWI</span><span class="sd-sh">ACWI</span></th></tr></thead>
             <tbody data-draw="monthgrid"></tbody>
           </table>
         </div>
@@ -713,7 +723,7 @@
         <p class="sd-note">Je Paar über den gemeinsamen Zeitraum (alle ab 12/2014; MR-Rebound und 1xGTAA anfangs mit Ersatzreihen, siehe oben). Niedrige Werte = gute Streuung; die Spalte ACWI zeigt, wie stark eine Strategie mit dem Weltaktienmarkt läuft.</p>
         <div class="sd-tw">
           <table data-source="corr_grid" data-row-key="a">
-            <thead><tr><th data-field="name"></th><th class="n" data-field="levgtaa">levGTAA</th><th class="n" data-field="levtips">levTips</th><th class="n" data-field="1xgtaa">1xGTAA</th><th class="n" data-field="mrrebound">MR-Reb.</th><th class="n" data-field="3xgtaa">3xGTAA</th><th class="n" data-field="acwi">ACWI</th></tr></thead>
+            <thead><tr><th data-field="name"></th><th class="n" data-field="levgtaa"><span class="sd-lg">levGTAA</span><span class="sd-sh">levG</span></th><th class="n" data-field="levtips"><span class="sd-lg">levTips</span><span class="sd-sh">levT</span></th><th class="n" data-field="1xgtaa"><span class="sd-lg">1xGTAA</span><span class="sd-sh">1x</span></th><th class="n" data-field="mrrebound"><span class="sd-lg">MR-Reb.</span><span class="sd-sh">MR</span></th><th class="n" data-field="3xgtaa"><span class="sd-lg">3xGTAA</span><span class="sd-sh">3x</span></th><th class="n" data-field="acwi"><span class="sd-lg">ACWI</span><span class="sd-sh">ACWI</span></th></tr></thead>
             <tbody data-draw="corrgrid"></tbody>
           </table>
         </div>
@@ -1813,13 +1823,17 @@
     });
   });
 
+  const CORR_SHORT = {levgtaa: 'levG', levtips: 'levT', '1xgtaa': '1x', mrrebound: 'MR', '3xgtaa': '3x', acwi: 'ACWI'};   // Handy
   dash.draw('corrgrid', (tb) => {
     const rows = rowsOf('corr_grid');
     tb.replaceChildren();
     if (!rows) return;
     rows.forEach((r) => {
       const tr = document.createElement('tr'); tr.dataset.key = r.a;
-      const td0 = document.createElement('td'); td0.className = 'k'; td0.textContent = r.name; tr.appendChild(td0);
+      const td0 = document.createElement('td'); td0.className = 'k';
+      const lg = document.createElement('span'); lg.className = 'sd-lg'; lg.textContent = r.name;
+      const sh = document.createElement('span'); sh.className = 'sd-sh'; sh.textContent = CORR_SHORT[r.a] || r.name;
+      td0.append(lg, sh); tr.appendChild(td0);
       ['levgtaa', 'levtips', '1xgtaa', 'mrrebound', '3xgtaa', 'acwi'].forEach((k) => {
         const td = document.createElement('td'); td.className = 'heat'; const v = Number(r[k]);
         td.textContent = ok(r[k]) ? num(v, 2) : '–';
@@ -2051,7 +2065,7 @@
   // Equity-Kurven (log), Zeitraum und Auswahl per Filter
   const EQ = [['levgtaa', 'levGTAA', 0], ['levtips', 'levTipsRegime', 1], ['1xgtaa', '1xGTAA', 5], ['mrrebound', 'MR-Rebound', 6],
     ['3xgtaa', '3xGTAA (Vergleich)', 2], ['levtips_old', 'levTips alte Regel', 7], ['mix_a', 'Mix A', 3], ['mix_b', 'Mix B', 4],
-    ['acwi', 'MSCI ACWI', 'var(--color-fg-muted)']];   // Benchmark: neutrale Farbe, gepunktet (alle 8 Farben sind belegt)
+    ['acwi', 'MSCI ACWI', 'var(--color-fg-muted)']];   // Benchmark: neutrale Farbe (alle 8 Farben sind belegt)
   const eqCol = (ci) => typeof ci === 'string' ? ci : dash.colors[ci];
   const EQ_DEFAULT_OFF = ['levtips_old', 'mrrebound'];
   const eqOff = () => { const p = dash.params().eq_off; return p == null ? EQ_DEFAULT_OFF : String(p).split(',').filter(Boolean); };
@@ -2102,7 +2116,7 @@
     g.selectAll('text.xt').data(xt).join('text').attr('x', (d) => x(d)).attr('y', Hs - 6).attr('text-anchor', 'middle')
       .attr('fill', 'var(--color-fg-muted)').attr('font-size', CAP).text((d) => span > 800 ? d3.utcFormat('%Y')(d) : d3.utcFormat('%b %y')(d));
     series.forEach((s) => g.append('path').datum(s.pts).attr('fill', 'none').attr('stroke', s.c).attr('stroke-width', s.k.startsWith('mix') ? 2.5 : s.k === 'acwi' ? 2 : 1.75)
-      .attr('stroke-dasharray', s.k === '3xgtaa' ? '6 3' : s.k === 'acwi' ? '2 3' : null)   // Vergleichsmodell gestrichelt, Benchmark gepunktet
+      .attr('stroke-dasharray', s.k === '3xgtaa' ? '6 3' : null)   // Vergleichsmodell gestrichelt
       .attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').attr('d', d3.line().x((p) => X(p.date)).y((p) => y(p.v))));
     const tip = tipBox(el);
     const rule = g.append('line').attr('stroke', 'var(--color-fg)').attr('stroke-width', 1).attr('visibility', 'hidden');
