@@ -4,7 +4,8 @@ Ablauf je Strategie:
   - Entscheidungen aus dem Bot-Code (decisions_<mode>.csv, Signal auf dem Schlusskurs 'date').
   - Handel zum Schlusskurs des naechsten US-Handelstags; monatliche Strategien schichten an jedem Handelstag nach
     einem Monatssignal auf die Zielquoten um, taegliche nur, wenn sich die Allokation aendert.
-  - Zwischen den Umschichtungen laufen die Gewichte mit den Kursen (buy & hold), Cash verzinst sich nicht.
+  - Zwischen den Umschichtungen laufen die Gewichte mit den Kursen (buy & hold). Nicht investiertes Kapital (Cash) liegt
+    wie in den wikifolios im Geldmarkt-ETF XEON (CASH_IN, Tagesrendite des ETF, ohne eigene Handelskosten: Spread ~0,01 %).
   - Kosten: COST je umgeschichtetem Euro (Spread/Gebuehr, Annahme).
   - Kurse: Produktkurse von Yahoo (liquideste Notierung); USD- und Pence-Notierungen (London) mit EURUSD bzw. EURGBP
     in EUR umgerechnet. Bitcoin: BTC-EUR als
@@ -22,6 +23,7 @@ import json, math, os
 import numpy as np, pandas as pd
 
 COST = 0.001
+CASH_IN = "MM"   # Cash der Strategien waechst mit dem Geldmarkt-ETF XEON (None = unverzinst)
 PRODUCTS = {   # key: (Name, ISIN, Yahoo-Ticker, Waehrung)
     "NDX3": ("WisdomTree NASDAQ 100 3x Daily Leveraged", "IE00BLRPRL42", "QQQ3.L", "USD"),
     "SPX3": ("WisdomTree S&P 500 3x Daily Leveraged", "IE00B7Y34M31", "3USL.L", "USD"),
@@ -174,7 +176,7 @@ def targets(mode, dec):
     return rows
 
 
-def simulate(mode, dec, prices, grid, own=None, issues=None, not_before=None):
+def simulate(mode, dec, prices, grid, own=None, issues=None, not_before=None, cash_in=CASH_IN):
     tg = targets(mode, dec)
     used = sorted({p for _, w, _ in tg for p in w} | ({"SPX3", "BTC1", "UST3"} if mode.startswith("levtips") else set()))
     first = max(prices[p].first_valid_index() for p in used)
@@ -195,11 +197,16 @@ def simulate(mode, dec, prices, grid, own=None, issues=None, not_before=None):
         raise RuntimeError(f"{mode}: keine Entscheidungen")
     start = max(grid.searchsorted(first), min(execs))         # erst, wenn alle Produkte Kurse haben und der Bot entschieden hat
     w0 = execs[max(p for p in execs if p <= start)]
+    mm = prices.get(cash_in) if cash_in else None              # Geldmarkt-ETF fuer das Cash (XEON)
     V, units, out, miss_at = 100.0, {}, [], []
     for j in range(start, len(grid)):
         px = {p: prices[p].iloc[j] for p in used}
         held = [p for p, u in units.items() if p != "cash" and u > 0]
         miss_at.append([p for p in held if own and p in own and grid[j] > own[p]])   # Positionen ohne eigenen Kurs an diesem Tag
+        if j > start and mm is not None and units.get("cash", 0.0) > 0:
+            a, b = mm.iloc[j - 1], mm.iloc[j]
+            if np.isfinite(a) and np.isfinite(b) and a > 0:
+                units["cash"] *= b / a                         # Cash verzinst sich mit dem Geldmarkt-ETF
         if j > start:
             V = units.get("cash", 0.0) + sum(u * px[p] for p, u in units.items() if p != "cash")
         w = w0 if j == start else execs.get(j)
