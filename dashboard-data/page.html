@@ -598,7 +598,7 @@
 
   <!-- ===================== Performance ===================== -->
   <section id="performance" data-page="performance" hidden>
-    <p class="sd-sub">Realitätsnah gerechnet mit den gehandelten Produkten in EUR (3x-ETPs von WisdomTree bzw. Leverage Shares, UCITS-ETFs bei 1xGTAA; Bitcoin als BTC-EUR): Handel zum Schluss des Handelstags nach dem Signal, zwischen den Umschichtungen laufen die Gewichte mit, 0,1 % Kosten je umgeschichtetem Euro, Cash ohne Zins, <b>vor wikifolio-Gebühren</b> (Strategievergleich; den Vergleich mit deinen wikifolios nach Gebühren zeigt „wikifolio vs. Bot-Soll“ auf der Seite wikifolios). Jede Kurve startet, sobald alle ihre Produkte Kurse haben. levTipsRegime im Markt mit 100 % 3x S&amp;P 500 (ohne Bitcoin). <b>Mix A</b> = 1/3 levTipsRegime + 2/3 levGTAA, <b>Mix B</b> = je 1/3 levTipsRegime, 1xGTAA und levGTAA; beide am 1. Handelstag jedes Monats auf die Anteile zurückgesetzt (0,1 % Kosten). Mix B beginnt mit den 1xGTAA-Produkten (08/2022). <b>3xGTAA</b> ist ein Vergleichsmodell ohne eigenen Bot: Regel wie levGTAA (monatlich, Bitcoin mit Sonntagsschluss), aber 6er-Korb mit zusätzlich 3x Euro Stoxx 50 und 2x WTI-Rohöl, eine Rangliste (Ø 1/3/6/9 Monate), Trend SMA10 &gt; SMA150, die besten 3 zulässigen je 1/3, kein Vol-Target. Vergangene Ergebnisse sind keine Garantie.</p>
+    <p class="sd-sub">Realitätsnah gerechnet mit den gehandelten Produkten in EUR (3x-ETPs von WisdomTree bzw. Leverage Shares, UCITS-ETFs bei 1xGTAA; Bitcoin als BTC-EUR): Handel zum Schluss des Handelstags nach dem Signal, zwischen den Umschichtungen laufen die Gewichte mit, 0,1 % Kosten je umgeschichtetem Euro, Cash ohne Zins, <b>vor wikifolio-Gebühren</b> (Strategievergleich; den Vergleich mit deinen wikifolios nach Gebühren zeigt „wikifolio vs. Bot-Soll“ auf der Seite wikifolios). Die Kurven beginnen mit dem ersten Kurs des 3x IEF (12/2014). <b>MR-Rebound</b> und <b>1xGTAA</b> reichen so weit zurück, weil Produkte ohne eigene Kurse bis zu deren Start durch Ersatzreihen ergänzt sind: 3x EM und 3x India synthetisch aus 3x der Tagesrendite von iShares MSCI EM (EEM) bzw. MSCI India (INDA, Basis des Produkts) minus Finanzierung (T-Bill-Satz) und minus der am echten Produkt gemessenen Restkosten (2,8 % bzw. 6,6 % p.&nbsp;a.); EMU Value vor 08/2022 durch iShares MSCI EMU (EZU, breiter Index statt Value – auch im 1xGTAA-Signal), Rohstoffe vor 04/2016 durch Invesco DB Commodity (DBC). Bis wann Ersatzdaten im Spiel sind, steht in den Kennzahlen; danach nur echte Produktkurse. Ohne Ersatzreihen begännen MR-Rebound erst 05/2023 und 1xGTAA 08/2022 (mit einem Jahr Vorlauf in Cash). <b>MSCI ACWI</b> = iShares MSCI ACWI UCITS ETF USD (Acc) in EUR (Xetra IUSQ, IE00B6R52259), gekauft und gehalten ab demselben Start, als Vergleich mit dem Weltaktienmarkt. levTipsRegime im Markt mit 100 % 3x S&amp;P 500 (ohne Bitcoin). <b>Mix A</b> = 1/3 levTipsRegime + 2/3 levGTAA, <b>Mix B</b> = je 1/3 levTipsRegime, 1xGTAA und levGTAA; beide am 1. Handelstag jedes Monats auf die Anteile zurückgesetzt (0,1 % Kosten). <b>3xGTAA</b> ist ein Vergleichsmodell ohne eigenen Bot: Regel wie levGTAA (monatlich, Bitcoin mit Sonntagsschluss), aber 6er-Korb mit zusätzlich 3x Euro Stoxx 50 und 2x WTI-Rohöl, eine Rangliste (Ø 1/3/6/9 Monate), Trend SMA10 &gt; SMA150, die besten 3 zulässigen je 1/3, kein Vol-Target. Vergangene Ergebnisse sind keine Garantie.</p>
     <div class="sd-card" id="equity-card">
       <div class="sd-controls">
         <h3>Wertentwicklung (logarithmisch, Start = 100 im gewählten Zeitraum)</h3>
@@ -624,17 +624,17 @@
         <h3>Monatsrenditen (letzte 24 Monate)<span class="sd-narrow-only"> · in %</span></h3>
         <div class="sd-tw scroll">
           <table data-source="month_grid" data-row-key="month">
-            <thead><tr><th data-field="month">Monat</th><th class="n" data-field="levgtaa">levGTAA</th><th class="n" data-field="levtips">levTips</th><th class="n" data-field="1xgtaa">1xGTAA</th><th class="n" data-field="mrrebound">MR-Reb.</th><th class="n" data-field="3xgtaa">3xGTAA</th><th class="n" data-field="mix_a">Mix A</th><th class="n" data-field="mix_b">Mix B</th></tr></thead>
+            <thead><tr><th data-field="month">Monat</th><th class="n" data-field="levgtaa">levGTAA</th><th class="n" data-field="levtips">levTips</th><th class="n" data-field="1xgtaa">1xGTAA</th><th class="n" data-field="mrrebound">MR-Reb.</th><th class="n" data-field="3xgtaa">3xGTAA</th><th class="n" data-field="mix_a">Mix A</th><th class="n" data-field="mix_b">Mix B</th><th class="n" data-field="acwi">ACWI</th></tr></thead>
             <tbody data-draw="monthgrid"></tbody>
           </table>
         </div>
       </div>
       <div class="sd-card" id="corr-card">
         <h3>Korrelation der Tagesrenditen</h3>
-        <p class="sd-note">Je Paar über den gemeinsamen Zeitraum beider Strategien (levGTAA, levTipsRegime und 3xGTAA ab 12/2014, 1xGTAA ab 08/2022, MR-Rebound ab Start seiner Produkte). Niedrige Werte = gute Streuung.</p>
+        <p class="sd-note">Je Paar über den gemeinsamen Zeitraum (alle ab 12/2014; MR-Rebound und 1xGTAA anfangs mit Ersatzreihen, siehe oben). Niedrige Werte = gute Streuung; die Spalte ACWI zeigt, wie stark eine Strategie mit dem Weltaktienmarkt läuft.</p>
         <div class="sd-tw">
           <table data-source="corr_grid" data-row-key="a">
-            <thead><tr><th data-field="name"></th><th class="n" data-field="levgtaa">levGTAA</th><th class="n" data-field="levtips">levTips</th><th class="n" data-field="1xgtaa">1xGTAA</th><th class="n" data-field="mrrebound">MR-Reb.</th><th class="n" data-field="3xgtaa">3xGTAA</th></tr></thead>
+            <thead><tr><th data-field="name"></th><th class="n" data-field="levgtaa">levGTAA</th><th class="n" data-field="levtips">levTips</th><th class="n" data-field="1xgtaa">1xGTAA</th><th class="n" data-field="mrrebound">MR-Reb.</th><th class="n" data-field="3xgtaa">3xGTAA</th><th class="n" data-field="acwi">ACWI</th></tr></thead>
             <tbody data-draw="corrgrid"></tbody>
           </table>
         </div>
@@ -897,7 +897,7 @@
     title: 'Korrelationsmatrix', description: 'Korrelation der Tagesrenditen als Matrix.',
     inputs: ['correlation'],
     fn: (correlation) => {
-      const names = {levgtaa: 'levGTAA', levtips: 'levTipsRegime', '1xgtaa': '1xGTAA', mrrebound: 'MR-Rebound', '3xgtaa': '3xGTAA'};
+      const names = {levgtaa: 'levGTAA', levtips: 'levTipsRegime', '1xgtaa': '1xGTAA', mrrebound: 'MR-Rebound', '3xgtaa': '3xGTAA', acwi: 'MSCI ACWI'};
       return Object.keys(names).filter((a) => correlation.some((c) => c.a === a)).map((a) => {
         const row = {a, name: names[a]};
         correlation.filter((c) => c.a === a).forEach((c) => { row[c.b] = c.corr; });
@@ -1554,6 +1554,11 @@
         const td = document.createElement('td'); td.className = i === 0 ? 'k' : i === 1 ? '' : 'n';
         td.dataset.label = heads[i] || '';                 // Beschriftung für die Handy-Ansicht
         td.textContent = FMT[f](r[c]);
+        if (c === 'label' && r.proxy_until) {             // lange Historie: bis wann Ersatzreihen mitlaufen
+          const sm = document.createElement('small'); sm.style.color = 'var(--color-fg-muted)';
+          sm.textContent = ` · bis ${r.proxy_until.slice(5, 7)}/${r.proxy_until.slice(0, 4)} teils Ersatzreihen`;
+          td.appendChild(sm);
+        }
         if (/^spct/.test(f) && c !== 'maxdd' && c !== 'dd_now' && c !== 'worst_month') signClass(td, r[c]);
         if (c === 'maxdd' || c === 'dd_now' || c === 'worst_month') td.classList.toggle('sd-neg', Number(r[c]) < -0.0005);
         tr.appendChild(td);
@@ -1576,7 +1581,7 @@
     rows.forEach((r) => {
       const tr = document.createElement('tr'); tr.dataset.key = r.month;
       const td0 = document.createElement('td'); td0.className = 'k'; td0.textContent = mn[Number(r.month.slice(5, 7)) - 1] + ' ' + r.month.slice(2, 4); tr.appendChild(td0);
-      ['levgtaa', 'levtips', '1xgtaa', 'mrrebound', '3xgtaa', 'mix_a', 'mix_b'].forEach((k) => { const td = document.createElement('td'); td.className = 'heat'; heat(td, r[k], 0.25); tr.appendChild(td); });
+      ['levgtaa', 'levtips', '1xgtaa', 'mrrebound', '3xgtaa', 'mix_a', 'mix_b', 'acwi'].forEach((k) => { const td = document.createElement('td'); td.className = 'heat'; heat(td, r[k], 0.25); tr.appendChild(td); });
       tb.appendChild(tr);
     });
   });
@@ -1588,7 +1593,7 @@
     rows.forEach((r) => {
       const tr = document.createElement('tr'); tr.dataset.key = r.a;
       const td0 = document.createElement('td'); td0.className = 'k'; td0.textContent = r.name; tr.appendChild(td0);
-      ['levgtaa', 'levtips', '1xgtaa', 'mrrebound', '3xgtaa'].forEach((k) => {
+      ['levgtaa', 'levtips', '1xgtaa', 'mrrebound', '3xgtaa', 'acwi'].forEach((k) => {
         const td = document.createElement('td'); td.className = 'heat'; const v = Number(r[k]);
         td.textContent = ok(r[k]) ? num(v, 2) : '–';
         if (ok(r[k]) && r.a !== k) td.style.background = `color-mix(in srgb, ${dash.colors[0]} ${Math.round(Math.max(0, v) * 55)}%, transparent)`;
@@ -1819,7 +1824,9 @@
 
   // Equity-Kurven (log), Zeitraum und Auswahl per Filter
   const EQ = [['levgtaa', 'levGTAA', 0], ['levtips', 'levTipsRegime', 1], ['1xgtaa', '1xGTAA', 5], ['mrrebound', 'MR-Rebound', 6],
-    ['3xgtaa', '3xGTAA (Vergleich)', 2], ['levtips_old', 'levTips alte Regel', 7], ['mix_a', 'Mix A', 3], ['mix_b', 'Mix B', 4]];
+    ['3xgtaa', '3xGTAA (Vergleich)', 2], ['levtips_old', 'levTips alte Regel', 7], ['mix_a', 'Mix A', 3], ['mix_b', 'Mix B', 4],
+    ['acwi', 'MSCI ACWI', 'var(--color-fg-muted)']];   // Benchmark: neutrale Farbe, gepunktet (alle 8 Farben sind belegt)
+  const eqCol = (ci) => typeof ci === 'string' ? ci : dash.colors[ci];
   const EQ_DEFAULT_OFF = ['levtips_old', 'mrrebound'];
   const eqOff = () => { const p = dash.params().eq_off; return p == null ? EQ_DEFAULT_OFF : String(p).split(',').filter(Boolean); };
   dash.draw('eqlegend', (el) => {
@@ -1828,7 +1835,7 @@
     const off = eqOff(), raw = rowsOf('equity');
     EQ.filter(([k]) => raw.some((r) => ok(r[k]))).forEach(([k, n, ci]) => {   // nur Kurven mit Daten
       const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed', String(!off.includes(k)));
-      b.append(swatch(dash.colors[ci]), n);
+      b.append(swatch(eqCol(ci)), n);
       b.addEventListener('click', () => { const o = eqOff(); dash.setParams({eq_off: (o.includes(k) ? o.filter((x) => x !== k) : o.concat(k)).join(',')}); });
       el.appendChild(b);
     });
@@ -1845,7 +1852,7 @@
     const series = on.map(([k, n, ci]) => {
       const pts = rows.filter((r) => ok(r[k])).map((r) => ({date: r.date, v: Number(r[k])}));
       const base = pts.length ? pts[0].v : 1;
-      return {k, n, c: dash.colors[ci], pts: pts.map((p) => ({date: p.date, v: p.v / base * 100}))};
+      return {k, n, c: eqCol(ci), pts: pts.map((p) => ({date: p.date, v: p.v / base * 100}))};
     }).filter((s) => s.pts.length > 1);
     if (!series.length) return;
     const Hs = 300, W = Math.max(280, el.clientWidth || 600);
@@ -1868,8 +1875,8 @@
     const xt = x.ticks(Math.max(2, Math.floor((W - yw) / 70))).filter((d) => x(d) > 16 && x(d) < W - M.r - yw - 16);
     g.selectAll('text.xt').data(xt).join('text').attr('x', (d) => x(d)).attr('y', Hs - 6).attr('text-anchor', 'middle')
       .attr('fill', 'var(--color-fg-muted)').attr('font-size', CAP).text((d) => span > 800 ? d3.utcFormat('%Y')(d) : d3.utcFormat('%b %y')(d));
-    series.forEach((s) => g.append('path').datum(s.pts).attr('fill', 'none').attr('stroke', s.c).attr('stroke-width', s.k.startsWith('mix') ? 2.5 : 1.75)
-      .attr('stroke-dasharray', s.k === '3xgtaa' ? '6 3' : null)   // Vergleichsmodell gestrichelt
+    series.forEach((s) => g.append('path').datum(s.pts).attr('fill', 'none').attr('stroke', s.c).attr('stroke-width', s.k.startsWith('mix') ? 2.5 : s.k === 'acwi' ? 2 : 1.75)
+      .attr('stroke-dasharray', s.k === '3xgtaa' ? '6 3' : s.k === 'acwi' ? '2 3' : null)   // Vergleichsmodell gestrichelt, Benchmark gepunktet
       .attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').attr('d', d3.line().x((p) => X(p.date)).y((p) => y(p.v))));
     const tip = tipBox(el);
     const rule = g.append('line').attr('stroke', 'var(--color-fg)').attr('stroke-width', 1).attr('visibility', 'hidden');
