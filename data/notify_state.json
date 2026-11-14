@@ -1,32 +1,32 @@
 {
  "levgtaa": {
-  "key": "NASDAQ100",
-  "text": "21,0 % Nasdaq",
-  "date": "2026-11-12"
+  "key": "CASH",
+  "text": "100 % Cash",
+  "date": "2026-11-13"
  },
  "mrrebound": {
   "key": "INDIA",
-  "text": "30,8 % India",
-  "date": "2026-11-12"
+  "text": "31,2 % India",
+  "date": "2026-11-13"
  },
  "1xgtaa": {
   "key": "COMMODITIES|EMU_VALUE",
   "text": "60,0 % EMU Value · 40,0 % Rohstoffe",
-  "date": "2026-11-12"
+  "date": "2026-11-13"
  },
  "levtips": {
   "key": "CASH",
   "text": "Cash",
-  "date": "2026-11-12"
+  "date": "2026-11-13"
  },
  "wf_levgtaa": "Vorschau",
  "wf_levtipsregime": "Vorschau",
  "cash_levgtaa": {
   "level": "ok",
-  "date": "2026-11-13"
+  "date": "2026-11-14"
  },
  "cash_levtipsregime": {
   "level": "below",
-  "date": "2026-11-13"
+  "date": "2026-11-14"
  }
 }
