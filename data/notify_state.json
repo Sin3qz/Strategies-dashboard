@@ -2,31 +2,31 @@
  "levgtaa": {
   "key": "CASH",
   "text": "100 % Cash",
-  "date": "2026-11-18"
+  "date": "2026-11-19"
  },
  "mrrebound": {
   "key": "INDIA",
-  "text": "32,1 % India",
-  "date": "2026-11-18"
+  "text": "32,3 % India",
+  "date": "2026-11-19"
  },
  "1xgtaa": {
-  "key": "EMU_VALUE",
-  "text": "60,0 % EMU Value",
-  "date": "2026-11-18"
+  "key": "CASH_USD",
+  "text": "60,0 % Geldmarkt",
+  "date": "2026-11-19"
  },
  "levtips": {
   "key": "CASH",
   "text": "Cash",
-  "date": "2026-11-18"
+  "date": "2026-11-19"
  },
  "wf_levgtaa": "Vorschau",
  "wf_levtipsregime": "Vorschau",
  "cash_levgtaa": {
   "level": "ok",
-  "date": "2026-11-19"
+  "date": "2026-11-20"
  },
  "cash_levtipsregime": {
   "level": "below",
-  "date": "2026-11-19"
+  "date": "2026-11-20"
  }
 }
