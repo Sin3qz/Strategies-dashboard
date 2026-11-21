@@ -109,6 +109,7 @@ def load_prices(grid):
             out[t] = out[t][~out[t].index.duplicated(keep="last")].sort_index()
     except Exception as e:
         issues.append(f"juengste Kurse nicht nachgeladen ({type(e).__name__})")
+    _quote_fill(tick, out, issues)
     fx = {"USD": out["EURUSD=X"], "GBp": out["EURGBP=X"] * 100}    # Kurs in Fremdwaehrung je 1 EUR (Pence: x100)
     prices, last, own, lng = {}, {}, {}, {}
     for k, (name, isin, t, ccy) in PRODUCTS.items():
@@ -139,6 +140,35 @@ def load_prices(grid):
                 issues.append(f"{k}: Ersatzreihe {PROXY[k][0]} nicht verkettet ({type(e).__name__}: {e})")
     prices_long = {**prices, **lng}
     return prices, last, issues, own, prices_long
+
+
+def _quote_fill(tick, out, issues):
+    """Yahoo liefert den Tagesschluss von London-/Xetra-Notierungen in der Historie teils erst Tage spaeter (z. B. der
+    20.11.2026 am Samstag noch nicht), die Kursabfrage hat ihn kurz nach Handelsschluss. Fehlt der Tag in der Historie,
+    ihn von dort ergaenzen: nur bei geschlossener Boerse, fuer einen Werktag nach dem letzten Historien-Tag und hoechstens
+    bis heute. Waehrung wie in der Historie (Yahoo nennt beide gleich, z. B. GBp)."""
+    try:
+        from yahooquery import Ticker
+        from zoneinfo import ZoneInfo
+        today = pd.Timestamp.now(tz=ZoneInfo("Europe/Berlin")).tz_localize(None).normalize()
+        q = Ticker([t for t in tick if t in out], asynchronous=True).price
+    except Exception as e:
+        issues.append(f"Kursabfrage fuer fehlende Tagesschluesse nicht moeglich ({type(e).__name__})")
+        return
+    added = []
+    for t in tick:
+        x = q.get(t) if isinstance(q, dict) else None
+        if t not in out or not isinstance(x, dict) or x.get("marketState") == "REGULAR":
+            continue
+        try:
+            px, d = float(x.get("regularMarketPrice") or 0), pd.Timestamp(str(x.get("regularMarketTime"))[:10])
+        except (TypeError, ValueError):
+            continue
+        if px > 0 and d > out[t].index[-1] and d <= today and d.dayofweek < 5:
+            out[t] = pd.concat([out[t], pd.Series([px], index=[d])]).sort_index()
+            added.append(t)
+    if added:
+        issues.append(f"Tagesschluss aus der Kursabfrage ergaenzt (Historie bei Yahoo noch ohne): {', '.join(added)}")
 
 
 def _chain(s, k, out, usd, grid):
