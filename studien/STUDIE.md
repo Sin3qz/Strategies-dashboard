@@ -399,18 +399,30 @@ Folgerung: Alle vier Strategien liegen auf breiten Plateaus; keine Alternative i
 überwiegend Rauschen (PBO 45–99 %). Die realistische Erwartung liegt bei den Mittelwerten über die Entscheidungstage, nicht beim Monatsletzten
 (levGTAA ~25 %, MR ~18 %). Grenzen: vor den Produkt- und ETF-Starts Nachbildungen; das TIPS-Signal vor 1999 trägt kaum TIPS-eigene Information.
 
-### Finale Parameter (Entscheidung 22.11.2026, Feinprüfung, ohne Vorrang für bisherige Werte)
+### Finale Parameter (Entscheidung 22.11.2026, gemeinsame Raster ohne Rand, ohne Vorrang für bisherige Werte)
 
-Kriterium für eine einzelne Variante: der Punkt mit der besten **Umgebung** im Feingitter (Mittel über die Nachbarwerte,
-monatliche Strategien gemittelt über alle 21 Entscheidungstage), zusätzlich Drawdown und Abstand zu Klippen; das ist
-die belastbare „Mitte des Plateaus“. Rechnerische Mitten aus einem groben Gitter reichen nicht (1xGTAA: 12 lag nur am Rand).
+**Kriterium:** Alle Parameter einer Strategie werden gemeinsam gerechnet (nicht einzeln), die Sharpe jedes Punkts wird mit seinen
+Nachbarn in allen Dimensionen geglättet (monatliche Strategien zusätzlich über alle 21 Entscheidungstage gemittelt). Gewählt wird die
+Mitte des Bereichs, der höchstens 0,01 unter dem geglätteten Maximum liegt (Plateau), bei gleich guten Bereichen der mit kleinerem
+MaxDD und mehr Abstand zur Klippe. Jedes Raster wurde so weit erweitert, bis das Plateau auf allen Seiten abfällt.
 
-| Strategie | final | Begründung |
-|---|---|---|
-| levGTAA | **1/3/6/12 + 3/6/12, SMA50 vs. L 150–250**, VT 55 %, Tilt 40/60; Stichtag 23.11.2026 (Entscheidungen davor mit 1/3/6/9 + 3/6/12, SMA30, 125–225) | guter Bereich SMA kurz 35–70 bei Band-Mitte 175–225 (Sharpe 0,79–0,80, MaxDD −53…−56 %), ab 80 tieferer MaxDD, ab Band-Mitte 250 schwächer → Mitte 50 / 150–250; 1/3/6/12 in allen Teilzeiträumen ≥ 1/3/6/9. Sharpe 0,80 (0,78), CAGR 26,3 % (25,3 %), MaxDD −53,5 % (−55,4 %) |
-| 1xGTAA | **SMA6 > SMA167**, 1/3/6/12, Cooldown 10, 40/60 | bei den tatsächlichen Einstellungen beste Umgebung kurz 5–8 × lang 160–175 → geometrische Mitte 6/167; Sharpe 0,82 (0,79), CAGR 14,6 % (13,9 %), in allen drei Teilzeiträumen gleich oder besser |
-| levTipsRegime | **S&P 280 / TIPS 210 / TLT 200 / Cooldown 10** (eine Variante) | TIPS 150–220 flach, ab 230 schwächer → 210 (lokales Hoch in 1987+ und 2001+, Abstand zur Kante); S&P: zwei Plateaus 210–230 / 280–300, 280 weit weg von der Klippe ≤ 180 und ohne den tieferen 2001+-MaxDD von 285–300; zwei Varianten (220/210 + 290/210) nicht signifikant besser (Sharpe 0,763 vs. 0,724, P 0,92) |
-| MR-Rebound | unverändert (S 75–125, L 175–250, Rebound 42/50/56, Gate 100/200/250, Tilt 1/3–2/3) | Mitte des 3×3-Umfelds (±12 Tage Bandverschiebung: Sharpe 0,81–0,83) und in S, L, Gate jeweils bester Ø-Wert |
+**Warum sich frühere Angaben verschoben haben:** Die ersten Plateaus (levGTAA SMA kurz 30–50, 1xGTAA 8–20) kamen aus Randmitteln eines
+groben Rasters: für jeden kurzen SMA wurde über *alle* anderen Einstellungen gemittelt (alle Bänder und Ranglisten bzw. alle Cooldowns
+0–20 und Momentum-Sätze), auch über schlechte. Zusätzlich endeten die Raster genau dort, wo es noch gut war (levGTAA bei 50, 1xGTAA bei 20).
+Bei levGTAA gibt es einen schrägen Grat: je länger das Band, desto länger der beste kurze SMA (Band 150–250: Gipfel bei 40–65,
+Band 100–200: bei 35–40). Das Mittel über alle Bänder zieht das Optimum nach unten, das Rasterende schneidet es ab. Bei 1xGTAA verschiebt
+der Cooldown die Handelstage und damit die Sharpe um bis zu 0,07 – das überdeckt die SMA-Wirkung, wenn man über Cooldown 0–20 mittelt.
 
-Alle Änderungen sind nicht signifikant besser als die bisherigen Werte (Plateaus); gewählt wird die robuste Mitte. Umstellung
-ohne Umschichtung: levGTAA per Stichtag, 1xGTAA und levTipsRegime mit unveränderter heutiger Position und Sperre.
+| Strategie | final | Plateau (gemeinsames Raster, geglättet) | Kennzahlen |
+|---|---|---|---|
+| levGTAA | **1/3/6/12 + 3/6/12, SMA50 vs. SMA 150–250**, VT 55 %, Tilt 40/60; Stichtag 23.11.2026 (Entscheidungen davor 1/3/6/9 + 3/6/12, SMA30, 125–225) | Raster SMA kurz 20–140 × Band-Mitte 150–250 × 4 Ranglisten. Sharpe 0,79–0,80 bei kurz 35–80 / Mitte 200–225; MaxDD-Tal (−52…−54 %) bei kurz 50–65; 85–105 etwas höhere Sharpe (0,81–0,82), aber MaxDD −58…−59 %; ab kurz ≈ Band-Untergrenze wird die Regel sinnlos (kurz ≥ lang). 1/3/6/12 + 3/6/12 in jeder Zelle vor 1/3/6/9 + 3/6/12. | 21-Tage-Mittel: Sharpe 0,80 (bisher 0,78), CAGR 26,3 % (25,3 %), MaxDD −53,5 % (−55,4 %); n. s. |
+| 1xGTAA | **1/3/6/9, SMA19 > SMA160**, Cooldown 10, 40/60; Stichtag 01.12.2026 (bis 30.11. 1/3/6/12, SMA8/150) | Raster kurz 3–40 × lang 130–260 × Cooldown 5–15 × 4 Momentum-Sätze (≈ 5.300 Varianten, PBO 95 %). 1/3/6/9: Plateau kurz 13–24 × lang 130–180, Gipfel bei 160, Mitte 19/160; Cooldown-Plateau 8–12 → 10. 3/6/9/12 gleich hoch (0,824 bei 12/250), aber 2006–2015 0,67 statt 0,77 und MaxDD −23,7 statt −22,4 %; 1/3/6/12 max. 0,79. | geglättet Sharpe 0,825 (bisher 8/150, 1/3/6/12: 0,77), MaxDD −22,4 %, Teilzeiträume 0,86 / 0,77 / 0,85; n. s. |
+| levTipsRegime | **S&P 220 / TIPS 190 / TLT 200 / Cooldown 10** (eine Variante); Stichtag 23.11.2026 (davor 280/220) | S&P: Grat 210–230 (180: MaxDD −80 %, 200 schwächer), oberer Bereich 280–340 flach, aber in beiden Zeiträumen niedriger. TIPS (geprüft 60–250): Plateau 160–220, darunter langsam schwächer, ab 230 Klippe → Mitte 190. TLT flach, Cooldown 5–15 → 10. | Sharpe 0,737 (280/220: 0,724), MaxDD −56,4 % (−58,7 %), 2001+ Sharpe 0,87 (0,83); P 0,61, n. s. Zwei Varianten gemischt: P 0,85–0,92, drei: P 0,85 bzw. 0,79 → keine Signifikanz, eine Variante. |
+| MR-Rebound | **Gate SMA150/200/250** statt 100/200/250; S 75–125, L 175–250, Rebound 42/50/56, Tilt 1/3–2/3 unverändert; Stichtag 23.11.2026 (erste neue Entscheidung 30.11.) | Raster S × L × Rebound × Gate (625 + Gate-Erweiterung bis 300/350/400). Gate-Plateau 100/200/250 bis 200/250/300, danach −0,02…−0,05 → Mitte 150/200/250. S, L, Rebound liegen bereits in der Mitte ihrer Plateaus. | Sharpe 0,824 (0,825), MaxDD −32,5 % (−36,2 %), Ø MaxDD über Entscheidungstage −38,5 % (−39,6 %); n. s. |
+
+Keine Änderung ist signifikant besser als die bisherigen Werte (alle Strategien liegen auf breiten Plateaus); gewählt wird jeweils die
+robuste Mitte, damit künftige Abweichungen der Daten möglichst wenig ausmachen. Die Umstellung erzeugt keine Umschichtung zur Unzeit:
+Jede Regel hat einen Stichtag, Entscheidungen davor laufen mit den alten Werten (Historie, Dashboard und gehaltene Positionen bleiben).
+
+Raster und Ergebnisse dieses Abschnitts: `lang1987/joint.py` (+ `joint_lev_ext.py`, `joint1x_ext*.py`, `mr_gate_ext.py`, `tipsfine.py`,
+`tips_low.py`), Tabellen `joint_lev*.csv`, `joint_1x_all*.csv`, `mr_joint_smooth.csv`, `mr_gate_ext.csv`, `tipsfine.csv`, `tips_low.csv`.
