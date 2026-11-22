@@ -512,8 +512,8 @@
           <dl class="sd-dl">
             <dt>Idee</dt><dd>Momentum-Rotation: hält die zwei stärksten von vier gehebelten Bausteinen, solange sie im Aufwärtstrend sind.</dd>
             <dt>Bausteine</dt><dd><span class="sd-dl-h">Signal (1x, USD) → gehandeltes Produkt</span><span class="sd-dl-i">Nasdaq 100 (^NDX) → 3x WisdomTree <span class="sd-isin">IE00BLRPRL42</span></span><span class="sd-dl-i">Bitcoin (BTC-USD) → 1x iShares Bitcoin ETP <span class="sd-isin">XS2940466316</span></span><span class="sd-dl-i">US-Treasury 7-10y (Signal TLT) → 3x WisdomTree <span class="sd-isin">IE00BKT09032</span></span><span class="sd-dl-i">Gold (GC=F) → 3x WisdomTree <span class="sd-isin">IE00B8HGT870</span></span></dd>
-            <dt>Auswahl</dt><dd>Zulässig, wenn Momentum &gt; 0 und SMA50 &gt; SMA<sub>L</sub>. Zwei Ranglisten nach Momentum: Ø der 1/3/6/12- bzw. der 3/6/12-Monatsrenditen (für Entscheidungen ab 23.11.2026, also ab der Monatsentscheidung zum 30.11.2026; vorher 1/3/6/9, SMA30, L = 125–225 – die Herleitung zeigt je Entscheidung die damals gültigen Werte).</dd>
-            <dt>Gewichtung</dt><dd>Platz 1 = 40 %, Platz 2 = 60 %; nur einer zulässig = 50 %; Rest Cash. Endquote = Mittel über L = 150–250 (101 Längen) und beide Ranglisten (202 Teilentscheidungen).</dd>
+            <dt>Auswahl</dt><dd>Zulässig, wenn Momentum &gt; 0 und SMA50 &gt; SMA<sub>L</sub>. Zwei Ranglisten nach Momentum: Ø der 1/3/6/12- bzw. der 3/6/12-Monatsrenditen (für Entscheidungen ab 23.11.2026, also ab der Monatsentscheidung zum 30.11.2026; vorher 1/3/6/9 und SMA30 – die Herleitung zeigt je Entscheidung die damals gültigen Werte).</dd>
+            <dt>Gewichtung</dt><dd>Platz 1 = 40 %, Platz 2 = 60 %; nur einer zulässig = 50 %; Rest Cash. Endquote = Mittel über L = 125–225 (101 Längen) und beide Ranglisten (202 Teilentscheidungen).</dd>
             <dt>Risiko</dt><dd>Vol-Target 55 %: Quoten × Faktor; Faktor = Ø über 42/63/84 Tage von min(1; 55 % ÷ Vola des gehebelten Portfolios).</dd>
             <dt>Zeitplan</dt><dd>Signal auf dem Schluss des letzten US-Handelstags im Monat (Nasdaq, US-Treasury, Gold); Bitcoin handelt auch am Wochenende und zählt mit dem jüngsten abgeschlossenen Tagesschluss (UTC) vor dem Handelstag – z. B. Sonntag bei Handel am Montag. Bis dahin ist das Signal vorläufig; endgültig ab 01:00 Uhr (Winterzeit) am Handelstag. Handel am 1. US-Handelstag des Monats; dazwischen kein Handel. SMA und Momentum laufen auf US-Handelstagen; ersetzt wird nur der Bitcoin-Wert am Entscheidungstag.</dd>
           </dl>
@@ -538,7 +538,7 @@
         </div>
         <div class="sd-slot">
           <div class="sd-chart" data-draw="tips" data-source="daily_levtips"></div>
-          <div class="sd-legend"><span><span class="sd-sw" data-draw="sw" data-i="0"></span>S&amp;P 500 TR / SMA220 (bis 22.11.: 280)</span><span><span class="sd-sw" data-draw="sw" data-i="1"></span>TIPS / SMA190 (bis 22.11.: 220)</span><span><span class="sd-sw" data-draw="sw" data-i="2"></span>TLT / SMA200</span><span><span class="sd-sw" data-draw="sw" data-i="5"></span>Markt-Signal</span><span><span class="sd-sw" data-draw="sw" data-i="2"></span>3x-IEF-Signal (hinterlegt)</span></div>
+          <div class="sd-legend"><span><span class="sd-sw" data-draw="sw" data-i="0"></span>S&amp;P 500 TR / SMA280</span><span><span class="sd-sw" data-draw="sw" data-i="1"></span>TIPS / SMA220</span><span><span class="sd-sw" data-draw="sw" data-i="2"></span>TLT / SMA200</span><span><span class="sd-sw" data-draw="sw" data-i="5"></span>Markt-Signal</span><span><span class="sd-sw" data-draw="sw" data-i="2"></span>3x-IEF-Signal (hinterlegt)</span></div>
         </div>
         <details class="sd-more sd-ex-box" open>
           <summary>So kommt das Signal zustande (alle Werte, &gt; 0 grün, &lt; 0 rot)</summary>
@@ -559,9 +559,9 @@
           <div class="sd-block-h"><span>So funktioniert die Strategie (Aufbau &amp; Parameter)</span><span></span></div>
           <dl class="sd-dl">
             <dt>Idee</dt><dd>Regime-Schalter: Aktien nur, wenn Aktien- und Inflationsanleihen-Trend positiv sind; fallen die TIPS bei steigenden langen Anleihen, in 3x Anleihen; sonst Cash.</dd>
-            <dt>Signale</dt><dd><span class="sd-dl-h">USD, 1x, Abstand zur Linie</span><span class="sd-dl-i">S&amp;P 500 Total Return (^SP500TR) / SMA220</span><span class="sd-dl-i">US-TIPS (TIP) / SMA190</span><span class="sd-dl-i">US-Treasury 20y+ (TLT) / SMA200</span></dd>
+            <dt>Signale</dt><dd><span class="sd-dl-h">USD, 1x, Abstand zur Linie</span><span class="sd-dl-i">S&amp;P 500 Total Return (^SP500TR) / SMA280</span><span class="sd-dl-i">US-TIPS (TIP) / SMA220</span><span class="sd-dl-i">US-Treasury 20y+ (TLT) / SMA200</span></dd>
             <dt>Zustände</dt><dd><span class="sd-dl-h">genau einer, je 100 %</span><span class="sd-dl-i"><b>Markt</b>: S&amp;P und TIPS über der Linie → 3x S&amp;P 500 WisdomTree <span class="sd-isin">IE00B7Y34M31</span></span><span class="sd-dl-i"><b>3x IEF</b>: TIPS unter, TLT über der Linie → 3x US-Treasury 7-10y WisdomTree <span class="sd-isin">IE00BKT09032</span></span><span class="sd-dl-i"><b>Cash</b>: alle übrigen Fälle</span></dd>
-            <dt>Risiko</dt><dd>Cooldown: nach jedem Wechsel 10 Handelstage gesperrt (frühester Gegenwechsel am 11. Tag); kein Bitcoin im Markt. Linien S&amp;P SMA220 / TIPS SMA190 für Entscheidungen ab 23.11.2026 (vorher 280/220; gleicher Zustand bei der Umstellung).</dd>
+            <dt>Risiko</dt><dd>Cooldown: nach jedem Wechsel 10 Handelstage gesperrt (frühester Gegenwechsel am 11. Tag); kein Bitcoin im Markt.</dd>
             <dt>Zeitplan</dt><dd>tägliche Entscheidung auf dem Vortagesschluss, Handel am nächsten Handelstag.</dd>
           </dl>
         </div>
@@ -607,7 +607,7 @@
           <dl class="sd-dl">
             <dt>Idee</dt><dd>Defensive, ungehebelte Rotation über sieben ETFs inklusive US-Geldmarkt.</dd>
             <dt>Bausteine</dt><dd><span class="sd-dl-h">Signal (USD) → UCITS-ETF</span><span class="sd-dl-i">Nasdaq 100 (QQQ) → iShares <span class="sd-isin">IE00B53SZB19</span></span><span class="sd-dl-i">EM Small Caps (EEMS) → SPDR <span class="sd-isin">IE00B48X4842</span></span><span class="sd-dl-i">EMU Value (AW1T in USD) → Amundi <span class="sd-isin">LU1598690169</span></span><span class="sd-dl-i">US-Treasury 7-10y (IEF) → iShares <span class="sd-isin">IE00B1FZS798</span></span><span class="sd-dl-i">Gold (GLD) → Xetra-Gold <span class="sd-isin">DE000A0S9GB0</span></span><span class="sd-dl-i">Rohstoffe (DBC) → WisdomTree Enhanced Commodity <span class="sd-isin">IE00BYMLZY74</span></span><span class="sd-dl-i">US-Geldmarkt (BIL) → Xtrackers USD Overnight <span class="sd-isin">LU0321465469</span></span></dd>
-            <dt>Auswahl</dt><dd>Rangliste aller sieben nach Momentum = Summe der 1/3/6/9-Monatsrenditen; Trendfilter SMA19 &gt; SMA160 (für Entscheidungen ab 01.12.2026; bis 30.11. 1/3/6/12 und SMA8/150).</dd>
+            <dt>Auswahl</dt><dd>Rangliste aller sieben nach Momentum = Summe der 1/3/6/12-Monatsrenditen; Trendfilter SMA19 &gt; SMA160 (für Entscheidungen ab 01.12.2026; bis 30.11. SMA8/150).</dd>
             <dt>Gewichtung</dt><dd>Platz 1 = 40 %, Platz 2 = 60 %. Ein Platz wird nur gefüllt, wenn Trend positiv und Momentum &gt; 0, sonst bleibt sein Anteil Cash (kein Nachrücken).</dd>
             <dt>Risiko</dt><dd>ungehebelt · Cooldown 10 Handelstage nach jeder Umschichtung · kein zusätzliches Rebalancing (getestet: ohne Vorteil).</dd>
             <dt>Zeitplan</dt><dd>tägliche Entscheidung auf dem Vortagesschluss, Handel am nächsten Handelstag.</dd>
@@ -656,7 +656,7 @@
             <dt>Idee</dt><dd>Mean-Reversion: kauft die zuletzt schwächsten Bausteine, sobald sie wieder drehen.</dd>
             <dt>Bausteine</dt><dd><span class="sd-dl-h">Signal (1x) → gehandeltes Produkt</span><span class="sd-dl-i">Nasdaq 100 (^NDX) → 3x WisdomTree <span class="sd-isin">IE00BLRPRL42</span></span><span class="sd-dl-i">Emerging Markets (EEM) → 3x WisdomTree <span class="sd-isin">IE00BYTYHN28</span></span><span class="sd-dl-i">India (Sensex ^BSESN) → 3x Leverage Shares <span class="sd-isin">XS2595675302</span></span><span class="sd-dl-i">US-Treasury (Signal TLT) → 3x US-Treasury 7-10y, WisdomTree <span class="sd-isin">IE00BKT09032</span> (bis 10/2026: 5x TLT)</span></dd>
             <dt>Auswahl</dt><dd>Zwei Körbe: A = Nasdaq · EM · TLT, B = Nasdaq · India · TLT. Je Korb die zwei Schwächsten nach SMA<sub>S</sub>/SMA<sub>L</sub> − 1; bestätigt, wenn Rebound &gt; 0 und Kurs über der Gate-SMA.</dd>
-            <dt>Gewichtung</dt><dd>Je Korb 50 %: beide bestätigt → 1/3 (schwächstes) + 2/3, nur eines → max(Slot, 50 %), sonst Cash. Mittel über 34.884 Varianten: S 75–125, L 175–250, Rebound 42/50/56 Tage, Gate SMA150/200/250 (für Entscheidungen ab 30.11.2026; bis 31.10. SMA100/200/250).</dd>
+            <dt>Gewichtung</dt><dd>Je Korb 50 %: beide bestätigt → 1/3 (schwächstes) + 2/3, nur eines → max(Slot, 50 %), sonst Cash. Mittel über 34.884 Varianten: S 75–125, L 175–250, Rebound 42/50/56 Tage, Gate SMA100/200/250.</dd>
             <dt>Risiko</dt><dd>kein Vol-Target; alle Bausteine 3x (Anleihe seit 11/2026 3x IEF statt 5x TLT).</dd>
             <dt>Zeitplan</dt><dd>Signal auf dem Schluss des letzten Handelstags im Monat, Handel am 1. Handelstag.</dd>
           </dl>
@@ -1979,9 +1979,8 @@
         rule.attr('visibility', 'visible').attr('x1', cx(r)).attr('x2', cx(r)).attr('y1', M.t).attr('y2', H - M.b);
         tip.replaceChildren();
         const dt = document.createElement('div'); dt.className = 'sd-tip-date'; dt.textContent = `Signal Schluss ${deDate(r.date)}`; tip.appendChild(dt);
-        const neu = r.date >= '2026-11-23';                    // Parameter-Stichtag des Bots (vorher SMA280/220)
-        tipLine(tip, dash.colors[0], `S&P 500 TR ${spct(r.spy, 1)} zur SMA${neu ? 220 : 280}`);
-        tipLine(tip, dash.colors[1], `TIPS ${spct(r.tips, 1)} zur SMA${neu ? 190 : 220}`);
+        tipLine(tip, dash.colors[0], `S&P 500 TR ${spct(r.spy, 1)} zur SMA280`);
+        tipLine(tip, dash.colors[1], `TIPS ${spct(r.tips, 1)} zur SMA220`);
         if (r.tlt != null) tipLine(tip, dash.colors[2], `TLT ${spct(r.tlt, 1)} zur SMA200`);
         tipLine(tip, null, `Simuliert: ${name[r.st]} · Bot hielt: ${name[r.held] || r.held}`);
         tip.hidden = false; placeTip(el, tip, cx(r), W);

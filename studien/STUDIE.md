@@ -399,30 +399,45 @@ Folgerung: Alle vier Strategien liegen auf breiten Plateaus; keine Alternative i
 überwiegend Rauschen (PBO 45–99 %). Die realistische Erwartung liegt bei den Mittelwerten über die Entscheidungstage, nicht beim Monatsletzten
 (levGTAA ~25 %, MR ~18 %). Grenzen: vor den Produkt- und ETF-Starts Nachbildungen; das TIPS-Signal vor 1999 trägt kaum TIPS-eigene Information.
 
-### Finale Parameter (Entscheidung 22.11.2026, gemeinsame Raster ohne Rand, ohne Vorrang für bisherige Werte)
+### Finale Parameter (Entscheidung 22.11.2026, nach Gegenprobe außerhalb der Stichprobe)
 
-**Kriterium:** Alle Parameter einer Strategie werden gemeinsam gerechnet (nicht einzeln), die Sharpe jedes Punkts wird mit seinen
-Nachbarn in allen Dimensionen geglättet (monatliche Strategien zusätzlich über alle 21 Entscheidungstage gemittelt). Gewählt wird die
-Mitte des Bereichs, der höchstens 0,01 unter dem geglätteten Maximum liegt (Plateau), bei gleich guten Bereichen der mit kleinerem
-MaxDD und mehr Abstand zur Klippe. Jedes Raster wurde so weit erweitert, bis das Plateau auf allen Seiten abfällt.
+**1. Gemeinsame Raster ohne Rand.** Alle Parameter einer Strategie gemeinsam gerechnet (monatliche Strategien über alle 21
+Entscheidungstage gemittelt) und jedes Raster erweitert, bis es auf allen Seiten abfällt (levGTAA SMA kurz 20–140; 1xGTAA kurz 3–40 ×
+lang 130–260; MR-Gate bis 300/350/400; levTips TIPS 60–250). Warum frühere Angaben falsch lagen: Die ersten Plateaus (levGTAA 30–50,
+1xGTAA 8–20) waren Randmittel über ungeeignete Einstellungen (alle Bänder bzw. Cooldowns 0–20), und die Raster endeten dort, wo es
+noch gut war. levGTAA hat einen schrägen Grat (bester kurzer SMA wächst mit dem Band), 1xGTAA wird vom Cooldown verrauscht.
 
-**Warum sich frühere Angaben verschoben haben:** Die ersten Plateaus (levGTAA SMA kurz 30–50, 1xGTAA 8–20) kamen aus Randmitteln eines
-groben Rasters: für jeden kurzen SMA wurde über *alle* anderen Einstellungen gemittelt (alle Bänder und Ranglisten bzw. alle Cooldowns
-0–20 und Momentum-Sätze), auch über schlechte. Zusätzlich endeten die Raster genau dort, wo es noch gut war (levGTAA bei 50, 1xGTAA bei 20).
-Bei levGTAA gibt es einen schrägen Grat: je länger das Band, desto länger der beste kurze SMA (Band 150–250: Gipfel bei 40–65,
-Band 100–200: bei 35–40). Das Mittel über alle Bänder zieht das Optimum nach unten, das Rasterende schneidet es ab. Bei 1xGTAA verschiebt
-der Cooldown die Handelstage und damit die Sharpe um bis zu 0,07 – das überdeckt die SMA-Wirkung, wenn man über Cooldown 0–20 mittelt.
+**2. Gegenprobe außerhalb der Stichprobe (`verify_oos.py`).** Auswahl auf einer Zeithälfte, Bewertung auf der anderen (beide
+Richtungen). Ergebnis: Weder der Gipfel noch die geglättete Plateau-Mitte sagen die andere Hälfte voraus – die gewählte Variante landet
+dort auf Perzentil 3–57 (Ø unter dem Median), bei allen vier Strategien. Die Optima wandern mit den Marktphasen (z. B. levTips: S&P
+280–300 besser 1987–2006, 210–230 besser 2007–2026). Folgerung: Backtest-Ränge innerhalb der Plateaus sind Rauschen; eine
+Parameteränderung braucht mehr als „im Gesamtzeitraum etwas besser“.
 
-| Strategie | final | Plateau (gemeinsames Raster, geglättet) | Kennzahlen |
+**3. Entscheidungsregel.** Geändert wird nur, was **in beiden unabhängigen Zeithälften** bei der Sharpe besser **und** beim MaxDD
+nicht schlechter ist, über die Nachbarwerte hinweg (`verify_stab*.py`, Anteil der Parameterpaare); sonst bleibt der bisherige Wert.
+Signifikanz einzeln: Block-Bootstrap (`verify_boot.py`) – keine Änderung ist signifikant, was bei Plateaus zu erwarten ist.
+
+| Entscheidung | 1. Hälfte | 2. Hälfte | Ergebnis |
 |---|---|---|---|
-| levGTAA | **1/3/6/12 + 3/6/12, SMA50 vs. SMA 150–250**, VT 55 %, Tilt 40/60; Stichtag 23.11.2026 (Entscheidungen davor 1/3/6/9 + 3/6/12, SMA30, 125–225) | Raster SMA kurz 20–140 × Band-Mitte 150–250 × 4 Ranglisten. Sharpe 0,79–0,80 bei kurz 35–80 / Mitte 200–225; MaxDD-Tal (−52…−54 %) bei kurz 50–65; 85–105 etwas höhere Sharpe (0,81–0,82), aber MaxDD −58…−59 %; ab kurz ≈ Band-Untergrenze wird die Regel sinnlos (kurz ≥ lang). 1/3/6/12 + 3/6/12 in jeder Zelle vor 1/3/6/9 + 3/6/12. | 21-Tage-Mittel: Sharpe 0,80 (bisher 0,78), CAGR 26,3 % (25,3 %), MaxDD −53,5 % (−55,4 %); n. s. |
-| 1xGTAA | **1/3/6/9, SMA19 > SMA160**, Cooldown 10, 40/60; Stichtag 01.12.2026 (bis 30.11. 1/3/6/12, SMA8/150) | Raster kurz 3–40 × lang 130–260 × Cooldown 5–15 × 4 Momentum-Sätze (≈ 5.300 Varianten, PBO 95 %). 1/3/6/9: Plateau kurz 13–24 × lang 130–180, Gipfel bei 160, Mitte 19/160; Cooldown-Plateau 8–12 → 10. 3/6/9/12 gleich hoch (0,824 bei 12/250), aber 2006–2015 0,67 statt 0,77 und MaxDD −23,7 statt −22,4 %; 1/3/6/12 max. 0,79. | geglättet Sharpe 0,825 (bisher 8/150, 1/3/6/12: 0,77), MaxDD −22,4 %, Teilzeiträume 0,86 / 0,77 / 0,85; n. s. |
-| levTipsRegime | **S&P 220 / TIPS 190 / TLT 200 / Cooldown 10** (eine Variante); Stichtag 23.11.2026 (davor 280/220) | S&P: Grat 210–230 (180: MaxDD −80 %, 200 schwächer), oberer Bereich 280–340 flach, aber in beiden Zeiträumen niedriger. TIPS (geprüft 60–250): Plateau 160–220, darunter langsam schwächer, ab 230 Klippe → Mitte 190. TLT flach, Cooldown 5–15 → 10. | Sharpe 0,737 (280/220: 0,724), MaxDD −56,4 % (−58,7 %), 2001+ Sharpe 0,87 (0,83); P 0,61, n. s. Zwei Varianten gemischt: P 0,85–0,92, drei: P 0,85 bzw. 0,79 → keine Signifikanz, eine Variante. |
-| MR-Rebound | **Gate SMA150/200/250** statt 100/200/250; S 75–125, L 175–250, Rebound 42/50/56, Tilt 1/3–2/3 unverändert; Stichtag 23.11.2026 (erste neue Entscheidung 30.11.) | Raster S × L × Rebound × Gate (625 + Gate-Erweiterung bis 300/350/400). Gate-Plateau 100/200/250 bis 200/250/300, danach −0,02…−0,05 → Mitte 150/200/250. S, L, Rebound liegen bereits in der Mitte ihrer Plateaus. | Sharpe 0,824 (0,825), MaxDD −32,5 % (−36,2 %), Ø MaxDD über Entscheidungstage −38,5 % (−39,6 %); n. s. |
+| levGTAA 1/3/6/12 + 3/6/12 mit SMA50 statt 1/3/6/9 + 3/6/12 mit SMA30 (Band 125–225) | Sharpe +0,004, MaxDD besser (Umgebung: 67 % / 100 % der Paare) | +0,014, MaxDD besser (100 % / 100 %) | **ändern** (auch Literaturstandard 12 Monate) |
+| levGTAA Band 150–250 statt 125–225 | schlechter (0 % der Paare) | besser (100 %) | bleibt 125–225 |
+| 1xGTAA SMA19/160 statt 8/150 (1/3/6/12, Umgebung) | Sharpe +0,037 (81 %), MaxDD besser 74 % | +0,035 (67 %), MaxDD 52 % | **ändern** |
+| 1xGTAA 1/3/6/9 statt 1/3/6/12 | Sharpe +0,030, MaxDD nur in 33 % besser | +0,047, MaxDD 67 % | bleibt 1/3/6/12 (MaxDD 1995–2011 schlechter; Studie mit echten Assets 28.10. sprach dagegen) |
+| levTips S&P 210–230 statt 270–290 | schlechter (32 %) | besser (73 %) | bleibt 280 |
+| levTips TIPS 190 bzw. 210 statt 220 | 41 % bzw. 83 % | 10 % bzw. 11 %; mit echten TIPS 2001+ 8 % | bleibt 220 (die Kante ab 230 ist in beiden Hälften stabil, 220 davor in beiden Hälften gut) |
+| MR Gate 150/200/250 statt 100/200/250 | Sharpe schlechter (30 %), MaxDD besser | Sharpe 67 %, MaxDD nie besser | bleibt 100/200/250 |
 
-Keine Änderung ist signifikant besser als die bisherigen Werte (alle Strategien liegen auf breiten Plateaus); gewählt wird jeweils die
-robuste Mitte, damit künftige Abweichungen der Daten möglichst wenig ausmachen. Die Umstellung erzeugt keine Umschichtung zur Unzeit:
-Jede Regel hat einen Stichtag, Entscheidungen davor laufen mit den alten Werten (Historie, Dashboard und gehaltene Positionen bleiben).
+**Final:**
+- **levGTAA:** 1/3/6/12 + 3/6/12, SMA50 > SMA 125–225, VT 55 %, Tilt 40/60; für Entscheidungen ab 23.11.2026 (Monatsentscheidung
+  30.11.). 21-Tage-Mittel: Sharpe 0,79 statt 0,78, MaxDD −52,9 % statt −55,4 %; Bootstrap P 0,61 (n. s.).
+- **1xGTAA:** 1/3/6/12, SMA19 > SMA160, Cooldown 10, 40/60; ab 01.12.2026. 19/160 liegt im Plateau beider Momentum-Sätze
+  (kurz 13–24 × lang 130–180). Bootstrap über Cooldown 8–12 gemittelt P 0,86, MaxDD −20,1 % statt −21,8 %; genau bei Cooldown 10
+  P 0,37 (Sharpe 0,78 statt 0,79) – der Cooldown verschiebt die Handelstage zufällig, deshalb zählt die Umgebung; schwächste der Änderungen.
+- **levTipsRegime:** unverändert S&P 280 / TIPS 220 / TLT 200 / Cooldown 10. Zwei oder drei gemischte Varianten: nicht signifikant
+  (P 0,85–0,92 bzw. 0,79–0,85) → eine Variante.
+- **MR-Rebound:** unverändert.
 
-Raster und Ergebnisse dieses Abschnitts: `lang1987/joint.py` (+ `joint_lev_ext.py`, `joint1x_ext*.py`, `mr_gate_ext.py`, `tipsfine.py`,
-`tips_low.py`), Tabellen `joint_lev*.csv`, `joint_1x_all*.csv`, `mr_joint_smooth.csv`, `mr_gate_ext.csv`, `tipsfine.csv`, `tips_low.csv`.
+Umstellung per Stichtag: Entscheidungen davor laufen mit den alten Werten (Historie, Performance-Seite und gehaltene Positionen bleiben).
+
+Dateien: `lang1987/joint*.py`, `mr_gate_ext.py`, `tipsfine.py`, `tips_low.py` (Raster), `verify_oos.py`, `verify_stab*.py`,
+`verify_boot.py` (Gegenproben) und die zugehörigen CSV-Tabellen.
