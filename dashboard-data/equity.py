@@ -57,6 +57,13 @@ PROXY = {
     "CMDTY": ("DBC", 1, 0.0),     # WisdomTree Enhanced Commodity (WCOA.L ab 04/2016) <- Invesco DB Commodity (Signal-ETF des Bots)
 }
 RF = "^IRX"                       # 13-Wochen-T-Bill (% p. a.) als Finanzierungssatz der Hebelprodukte
+# Fehlerhafte Yahoo-Historie: vor dem Datum statt des Produktkurses die Nachbildung (Basis-ETF, Hebel, Restkosten p. a. ueber
+# der Finanzierung, kalibriert am sauberen Zeitraum 05/2018-11/2026). 3TYL.L: Einheitenwechsel am 20.04.2017 (Kurs -23 %,
+# IEF unveraendert), bis zu 94 Tage eingefrorene Kurse, Sprung am 27.04.2018 (-13 %).
+CLEAN_FROM = {"UST3": ("2018-05-01", ("IEF", 3, 0.0086))}
+# Basis je Hebelprodukt fuer die Ausreisser-Pruefung (Kurs springt und am Folgetag zurueck, die Basis bewegt sich kaum)
+SPIKE_BASE = {"NDX3": ("QQQ", 3), "SPX3": ("SPY", 3), "UST3": ("IEF", 3), "GOLD3": ("GLD", 3), "EM3": ("EEM", 3),
+              "IND3": ("INDA", 3), "EU503": ("FEZ", 3), "WTI2": ("USO", 2)}
 LONG = ("mrrebound", "1xgtaa")
 LAST_PX = {"BTC1": ("IB1T.DE", "EUR")}   # Kurs je Stück für den Rechner, wenn der Verlauf von einem anderen Ticker kommt
 
@@ -81,7 +88,8 @@ WF_FEE_CERT, WF_FEE_PERF = 0.0095, 0.05   # wikifolio-Gebuehren beider wikifolio
 def load_prices(grid):
     from yahooquery import Ticker
     tick = sorted({p[2] for p in PRODUCTS.values()} | {t for t, _ in LAST_PX.values()} | {"EURUSD=X", "EURGBP=X", RF}
-                  | {b for b, _, _ in PROXY.values()})
+                  | {b for b, _, _ in PROXY.values()} | {b for b, _ in SPIKE_BASE.values()}
+                  | {spec[0] for _, spec in CLEAN_FROM.values()})
     h = Ticker(tick, asynchronous=True).history(period="max", interval="1d", adj_ohlc=True)
     out, issues = {}, []
     for t in tick:
@@ -116,6 +124,10 @@ def load_prices(grid):
         if t not in out:
             continue
         s = out[t]
+        if k in SPIKE_BASE and SPIKE_BASE[k][0] in out:
+            s, n = _despike(s, out[SPIKE_BASE[k][0]], SPIKE_BASE[k][1])
+            if n:
+                issues.append(f"{t}: {n} Ausreissertag(e) korrigiert (Kurs sprang und am Folgetag zurueck, Basis kaum bewegt)")
         if ccy in fx:                                          # USD- bzw. Pence-Notierung -> EUR
             f = fx[ccy].reindex(s.index.union(fx[ccy].index)).ffill().reindex(s.index)
             s = (s / f).dropna()
@@ -130,6 +142,11 @@ def load_prices(grid):
             issues.append(f"{t}: {int(bad.sum())} unplausible Tagesbewegungen > 60 % ignoriert")
             r = r.mask(bad, 0.0)
             s = s.iloc[0] * (1 + r.fillna(0)).cumprod()
+        if k in CLEAN_FROM:
+            try:
+                s = _splice(s, CLEAN_FROM[k][0], CLEAN_FROM[k][1], out, fx["USD"])
+            except Exception as e:
+                issues.append(f"{k}: Nachbildung vor {CLEAN_FROM[k][0]} nicht moeglich ({type(e).__name__}: {e})")
         on = s.reindex(s.index.union(grid)).ffill().reindex(grid)
         on[grid < s.index[0]] = np.nan
         prices[k] = on
@@ -169,6 +186,46 @@ def _quote_fill(tick, out, issues):
             added.append(t)
     if added:
         issues.append(f"Tagesschluss aus der Kursabfrage ergaenzt (Historie bei Yahoo noch ohne): {', '.join(added)}")
+
+
+def _despike(s, base, lev, jump=0.08, back=0.03):
+    """Ein-Tages-Ausreisser der Yahoo-Historie (z. B. 3TYL.L 24.10.2025: 6025 -> 8020 -> 6000) durch den Vortageskurs
+    ersetzen: Sprung > 8 %, am Folgetag zurueck (beide Tage zusammen < 3 %) und die Basis erklaert ihn nicht (an beiden
+    Tagen weniger als ein Drittel der Bewegung minus 5 Punkte; echte grosse Tage mit London/New-York-Zeitversatz bleiben)."""
+    s = s.copy(); n = 0
+    rb = base.pct_change().reindex(s.index).fillna(0.0) * lev
+    r = s.pct_change()
+    for i in range(1, len(s) - 1):
+        a, b = r.iloc[i], r.iloc[i + 1]
+        if (abs(a) > jump and abs(b) > jump and a * b < 0 and abs((1 + a) * (1 + b) - 1) < back
+                and abs(a) > 3 * abs(rb.iloc[i]) + 0.05 and abs(b) > 3 * abs(rb.iloc[i + 1]) + 0.05):
+            s.iloc[i] = s.iloc[i - 1]; n += 1
+            r = s.pct_change()
+    return s, n
+
+
+def _synth(spec, out, usd):
+    """Nachbildung in EUR: Hebel x Tagesrendite des Basis-ETFs - (Hebel-1) x T-Bill - Restkosten."""
+    base, lev, cost = spec
+    r = out[base].pct_change().dropna()
+    if lev != 1:
+        rf = out[RF].reindex(r.index.union(out[RF].index)).ffill().reindex(r.index).fillna(0) / 100 / 252
+        r = lev * r - (lev - 1) * rf - cost / 252
+    else:
+        r = r - cost / 252
+    syn = (1 + r).cumprod()
+    return (syn / usd.reindex(syn.index.union(usd.index)).ffill().reindex(syn.index)).dropna()   # USD -> EUR
+
+
+def _splice(s, from_date, spec, out, usd):
+    """Produktreihe s (EUR) vor from_date durch die Nachbildung ersetzen; Beginn der Reihe bleibt gleich."""
+    real = s[s.index >= pd.Timestamp(from_date)]
+    syn = _synth(spec, out, usd)
+    at = syn[syn.index <= real.index[0]]
+    if not len(at) or syn.index[0] > s.index[0]:
+        raise RuntimeError(f"Basis {spec[0]} reicht nicht bis {s.index[0].date()}")
+    pre = syn[(syn.index >= s.index[0]) & (syn.index < real.index[0])] / at.iloc[-1] * real.iloc[0]
+    return pd.concat([pre, real]).sort_index()
 
 
 def _chain(s, k, out, usd, grid):
@@ -371,6 +428,17 @@ def run(work, out_dir, grid_start="2009-01-01"):
         series["levtips_old"] = simulate("levtips_old", dec["levtips"], prices, grid, own, issues)
     for k, w in MIXES.items():
         series[k] = mix(series, w, grid)
+    # Nachbildung fehlerhafter Produkthistorie (CLEAN_FROM) in der Kennzahlen-Tabelle ausweisen
+    for m in [x for x in series if x in MAP or x.startswith("levtips")]:
+        prods = {"SPX3", "BTC1", "UST3"} if m.startswith("levtips") else set(MAP[m].values())
+        for p, (d0, _) in CLEAN_FROM.items():
+            e = (pd.Timestamp(d0) - pd.Timedelta(days=1)).date().isoformat()
+            if p in prods and series[m].index[0] < pd.Timestamp(d0) and e > (proxy_until.get(m) or ""):
+                proxy_until[m] = e
+    for k, w in MIXES.items():
+        ends = [proxy_until[c] for c in w if proxy_until.get(c)]
+        if ends:
+            proxy_until[k] = max(ends)
     order = ["levgtaa", "levtips", "1xgtaa", "mrrebound", "3xgtaa", "levtips_old", *MIXES, "acwi"]   # Tabellen-Reihenfolge
     series = {k: series[k] for k in order if k in series}
 
