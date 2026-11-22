@@ -398,3 +398,16 @@ PBO (CSCV, 16 Blöcke), bei levGTAA zusätzlich Deflated Sharpe, White-/Hansen-B
 Folgerung: Alle vier Strategien liegen auf breiten Plateaus; keine Alternative ist signifikant besser, Optimieren zwischen den Varianten ist
 überwiegend Rauschen (PBO 45–99 %). Die realistische Erwartung liegt bei den Mittelwerten über die Entscheidungstage, nicht beim Monatsletzten
 (levGTAA ~25 %, MR ~18 %). Grenzen: vor den Produkt- und ETF-Starts Nachbildungen; das TIPS-Signal vor 1999 trägt kaum TIPS-eigene Information.
+
+### Finale Parameter (Entscheidung 22.11.2026, nach festgelegter Regel, ohne Vorrang für bisherige Werte)
+
+Regel: Plateau = Werte, deren Ø-Sharpe (über alle 21 Entscheidungstage und die übrigen Parameter) höchstens ~0,01 unter dem
+besten liegt; gewählt wird die Mitte (SMA-Längen als Skalenparameter geometrisch); Kategorien (Momentum-Sätze) nach
+Teilzeitraum-Konsistenz und Literatur; bei gezackter Fläche ist das Mittel über das Plateau (Ensemble) die robuste „Mitte“.
+
+| Strategie | final | Begründung |
+|---|---|---|
+| levGTAA | **1/3/6/12 + 3/6/12, SMA40 vs. L 150–250**, VT 55 %, Tilt 40/60 (ab Entscheidung 30.11.2026) | K-Plateau 30–50 → 40; Band-Mitten 175–225 → 150–250; 1/3/6/12 in allen Teilzeiträumen ≥ 1/3/6/9. Sharpe 0,80 (vorher 0,78), CAGR Ø 21 Tage 26,1 % (25,3 %), MaxDD gleich |
+| 1xGTAA | **SMA12 > SMA175**, 1/3/6/12, Cooldown 10, 40/60 | kurz 8–20 → √(8·20) = 12,6; lang 150–200 → 175; Sharpe 0,81 (0,79), CAGR 14,3 % (13,9 %), MaxDD −22,4 % (−22,8 %) |
+| MR-Rebound | unverändert (S 75–125, L 175–250, Rebound 42/50/56, Gate 100/200/250, Tilt 1/3–2/3) | liegt bereits in jeder Dimension in der Plateau-Mitte |
+| levTipsRegime | wissenschaftlich: **Ensemble S&P-SMA 220–340 × TIPS-SMA 160–220** (je 5 Längen, TLT 200, Cooldown 10 je Teilmaschine, Gewicht = Anteil der Teilmaschinen); Umsetzung offen | Fläche gezackt: Einzel-Mittelpunkte schlechter (270/190: Sharpe 0,68, MaxDD −63 %); Ensemble Sharpe 0,735 (0,724), MaxDD −53 % (−59 %), 2001+ 0,86/−42 % (0,83/−47 %); Teilpositionen, ~15 statt 4 Handelstage/Jahr bei gleichem Umschlag. Bis zur Umsetzung bleibt 280/220/200/10 |
