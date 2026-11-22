@@ -399,45 +399,34 @@ Folgerung: Alle vier Strategien liegen auf breiten Plateaus; keine Alternative i
 überwiegend Rauschen (PBO 45–99 %). Die realistische Erwartung liegt bei den Mittelwerten über die Entscheidungstage, nicht beim Monatsletzten
 (levGTAA ~25 %, MR ~18 %). Grenzen: vor den Produkt- und ETF-Starts Nachbildungen; das TIPS-Signal vor 1999 trägt kaum TIPS-eigene Information.
 
-### Finale Parameter (Entscheidung 22.11.2026, nach Gegenprobe außerhalb der Stichprobe)
+### Finale Parameter (Entscheidung 22.11.2026, unabhängig von früheren Werten)
 
 **1. Gemeinsame Raster ohne Rand.** Alle Parameter einer Strategie gemeinsam gerechnet (monatliche Strategien über alle 21
 Entscheidungstage gemittelt) und jedes Raster erweitert, bis es auf allen Seiten abfällt (levGTAA SMA kurz 20–140; 1xGTAA kurz 3–40 ×
-lang 130–260; MR-Gate bis 300/350/400; levTips TIPS 60–250). Warum frühere Angaben falsch lagen: Die ersten Plateaus (levGTAA 30–50,
-1xGTAA 8–20) waren Randmittel über ungeeignete Einstellungen (alle Bänder bzw. Cooldowns 0–20), und die Raster endeten dort, wo es
-noch gut war. levGTAA hat einen schrägen Grat (bester kurzer SMA wächst mit dem Band), 1xGTAA wird vom Cooldown verrauscht.
+lang 130–260; MR-Gate bis 300/350/400; levTips TIPS 60–250). Frühere Plateau-Angaben (levGTAA 30–50, 1xGTAA 8–20) waren Randmittel über
+ungeeignete Einstellungen in zu kurzen Rastern.
 
-**2. Gegenprobe außerhalb der Stichprobe (`verify_oos.py`).** Auswahl auf einer Zeithälfte, Bewertung auf der anderen (beide
-Richtungen). Ergebnis: Weder der Gipfel noch die geglättete Plateau-Mitte sagen die andere Hälfte voraus – die gewählte Variante landet
-dort auf Perzentil 3–57 (Ø unter dem Median), bei allen vier Strategien. Die Optima wandern mit den Marktphasen (z. B. levTips: S&P
-280–300 besser 1987–2006, 210–230 besser 2007–2026). Folgerung: Backtest-Ränge innerhalb der Plateaus sind Rauschen; eine
-Parameteränderung braucht mehr als „im Gesamtzeitraum etwas besser“.
+**2. Gegenprobe außerhalb der Stichprobe (`verify_oos.py`, `unbiased.py`).** Auswahl auf einem Teil, Bewertung auf dem Rest (Hälften,
+und dreifach mit Dritteln). Geprüfte Auswahlregeln: Gipfel, geglättete Plateau-Mitte, Minimax (bestes schlechtestes Drittel).
+Ergebnis bei allen vier Strategien: Die gewählte Variante landet im Testzeitraum im Schnitt auf Perzentil 3–51, meist **unter** dem
+Zufallswert 50. Die Ränge innerhalb der Plateaus enthalten keine verwertbare Information; Optima wandern mit den Marktphasen.
 
-**3. Entscheidungsregel.** Geändert wird nur, was **in beiden unabhängigen Zeithälften** bei der Sharpe besser **und** beim MaxDD
-nicht schlechter ist, über die Nachbarwerte hinweg (`verify_stab*.py`, Anteil der Parameterpaare); sonst bleibt der bisherige Wert.
-Signifikanz einzeln: Block-Bootstrap (`verify_boot.py`) – keine Änderung ist signifikant, was bei Plateaus zu erwarten ist.
+**3. Entscheidungsregel (ohne Vorrang für bisherige Werte).**
+(a) Standardwerte aus der Literatur bzw. runde Werte, weil feinere Unterschiede unter der Messgenauigkeit liegen;
+(b) verworfen wird ein Wert nur, wenn er an einer Klippe liegt oder im Punktvergleich (Block-Bootstrap) signifikant schlechter ist als
+gleichwertige Nachbarn, oder wenn er in einem Zeitdrittel zu den schlechtesten Varianten gehört;
+(c) unter gleichwertigen Kandidaten entscheidet die Robustheit über die Marktphasen (schlechtere Zeithälfte).
 
-| Entscheidung | 1. Hälfte | 2. Hälfte | Ergebnis |
-|---|---|---|---|
-| levGTAA 1/3/6/12 + 3/6/12 mit SMA50 statt 1/3/6/9 + 3/6/12 mit SMA30 (Band 125–225) | Sharpe +0,004, MaxDD besser (Umgebung: 67 % / 100 % der Paare) | +0,014, MaxDD besser (100 % / 100 %) | **ändern** (auch Literaturstandard 12 Monate) |
-| levGTAA Band 150–250 statt 125–225 | schlechter (0 % der Paare) | besser (100 %) | bleibt 125–225 |
-| 1xGTAA SMA19/160 statt 8/150 (1/3/6/12, Umgebung) | Sharpe +0,037 (81 %), MaxDD besser 74 % | +0,035 (67 %), MaxDD 52 % | **ändern** |
-| 1xGTAA 1/3/6/9 statt 1/3/6/12 | Sharpe +0,030, MaxDD nur in 33 % besser | +0,047, MaxDD 67 % | bleibt 1/3/6/12 (MaxDD 1995–2011 schlechter; Studie mit echten Assets 28.10. sprach dagegen) |
-| levTips S&P 210–230 statt 270–290 | schlechter (32 %) | besser (73 %) | bleibt 280 |
-| levTips TIPS 190 bzw. 210 statt 220 | 41 % bzw. 83 % | 10 % bzw. 11 %; mit echten TIPS 2001+ 8 % | bleibt 220 (die Kante ab 230 ist in beiden Hälften stabil, 220 davor in beiden Hälften gut) |
-| MR Gate 150/200/250 statt 100/200/250 | Sharpe schlechter (30 %), MaxDD besser | Sharpe 67 %, MaxDD nie besser | bleibt 100/200/250 |
+| Strategie | final | Begründung |
+|---|---|---|
+| levGTAA | **1/3/6/12 + 3/6/12, SMA50 > SMA 150–250**, VT 55 %, Tilt 40/60; für Entscheidungen ab 23.11.2026 (vorher 1/3/6/9 + 3/6/12, SMA30, 125–225) | Standard: 12-Monats-Momentum, SMA50 gegen ein Band um die 200-Tage-Linie. Plausibel: in allen drei Zeitdritteln über dem Median (Perzentil 61/78/56), keine Klippe nahe (Grat glatt, da Mittel über 101 Längen). Sharpe 0,80 statt 0,78, MaxDD −53,5 % statt −55,4 %; Bootstrap P 0,67 (n. s.). |
+| 1xGTAA | **1/3/6/12, SMA20 > SMA150**, Cooldown 10, 40/60; ab 01.12.2026 (vorher SMA8/150) | Momentum-Standard 1/3/6/12. Der Trend-Standard SMA50/200 ist für diese tägliche Rotation zu träge (2016–2026 schlechteste Variante des Rasters, MaxDD −25,8 %) → runde Mitte des Plateaus kurz 13–27 × lang 130–180: SMA20 (1 Monat) / SMA150. In allen drei Dritteln über dem Median (61/62/66), MaxDD −22,2 %; auf Punktebene keine Delle (0,80 bei Nachbarn 0,78–0,81). Bootstrap über Cooldown 8–12 P 0,94, MaxDD −20,1 % statt −21,8 %; bei Cooldown 10 P 0,56 (n. s.). Cooldown-Plateau 8–12 → 10. |
+| levTipsRegime | **S&P 280 / TIPS 210 / TLT 200 / Cooldown 10** (eine Variante); ab 23.11.2026 (vorher TIPS 220) | S&P: Der Standard 200 liegt neben der Klippe 170–190 (Bärenmarkt 2000–2003, MaxDD bis −80 %) → Mitte des sicheren Bereichs 220–340 = 280. TIPS: Der Standard 200 liegt in einer Delle (signifikant schlechter als 220: P 0,03, mit echten TIPS ab 2001 P 0,00), ebenso alles ab 230 (Kante). 160/180/210/220 gleichwertig; 210 hat die beste schlechtere Zeithälfte (Sharpe 0,750 statt 0,725) bei gleichem MaxDD. Zwei/drei Varianten: nicht signifikant → eine. |
+| MR-Rebound | **unverändert** (S 75–125, L 175–250, Rebound 42/50/56, Gate 100/200/250, Tilt 1/3–2/3) | Bereits Mittel über 34.884 Varianten um Standardwerte (100, 200). Plausibel in allen Dritteln (Perzentil 47/67/76, MaxDD Perzentil 79). Alternativen (z. B. Gate 150/200/250) nicht besser (P 0,43). |
 
-**Final:**
-- **levGTAA:** 1/3/6/12 + 3/6/12, SMA50 > SMA 125–225, VT 55 %, Tilt 40/60; für Entscheidungen ab 23.11.2026 (Monatsentscheidung
-  30.11.). 21-Tage-Mittel: Sharpe 0,79 statt 0,78, MaxDD −52,9 % statt −55,4 %; Bootstrap P 0,61 (n. s.).
-- **1xGTAA:** 1/3/6/12, SMA19 > SMA160, Cooldown 10, 40/60; ab 01.12.2026. 19/160 liegt im Plateau beider Momentum-Sätze
-  (kurz 13–24 × lang 130–180). Bootstrap über Cooldown 8–12 gemittelt P 0,86, MaxDD −20,1 % statt −21,8 %; genau bei Cooldown 10
-  P 0,37 (Sharpe 0,78 statt 0,79) – der Cooldown verschiebt die Handelstage zufällig, deshalb zählt die Umgebung; schwächste der Änderungen.
-- **levTipsRegime:** unverändert S&P 280 / TIPS 220 / TLT 200 / Cooldown 10. Zwei oder drei gemischte Varianten: nicht signifikant
-  (P 0,85–0,92 bzw. 0,79–0,85) → eine Variante.
-- **MR-Rebound:** unverändert.
+Keine Änderung ist signifikant besser als die bisherigen Werte; das ist bei Plateaus zu erwarten. Die Wahl folgt der Regel oben und nicht
+den Backtest-Rängen. Umstellung per Stichtag: Entscheidungen davor laufen mit den alten Werten (Historie, Performance-Seite und gehaltene
+Positionen bleiben). Am Stichtag zeigen alte und neue Regel bei levTips denselben Zustand (Cash).
 
-Umstellung per Stichtag: Entscheidungen davor laufen mit den alten Werten (Historie, Performance-Seite und gehaltene Positionen bleiben).
-
-Dateien: `lang1987/joint*.py`, `mr_gate_ext.py`, `tipsfine.py`, `tips_low.py` (Raster), `verify_oos.py`, `verify_stab*.py`,
-`verify_boot.py` (Gegenproben) und die zugehörigen CSV-Tabellen.
+Dateien: `lang1987/joint*.py`, `mr_gate_ext.py`, `tipsfine.py`, `tips_low.py` (Raster), `verify_oos.py`, `unbiased.py`,
+`verify_stab*.py`, `verify_boot.py` (Gegenproben) und die zugehörigen CSV-Tabellen.
