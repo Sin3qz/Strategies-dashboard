@@ -399,15 +399,18 @@ Folgerung: Alle vier Strategien liegen auf breiten Plateaus; keine Alternative i
 überwiegend Rauschen (PBO 45–99 %). Die realistische Erwartung liegt bei den Mittelwerten über die Entscheidungstage, nicht beim Monatsletzten
 (levGTAA ~25 %, MR ~18 %). Grenzen: vor den Produkt- und ETF-Starts Nachbildungen; das TIPS-Signal vor 1999 trägt kaum TIPS-eigene Information.
 
-### Finale Parameter (Entscheidung 22.11.2026, nach festgelegter Regel, ohne Vorrang für bisherige Werte)
+### Finale Parameter (Entscheidung 22.11.2026, Feinprüfung, ohne Vorrang für bisherige Werte)
 
-Regel: Plateau = Werte, deren Ø-Sharpe (über alle 21 Entscheidungstage und die übrigen Parameter) höchstens ~0,01 unter dem
-besten liegt; gewählt wird die Mitte (SMA-Längen als Skalenparameter geometrisch); Kategorien (Momentum-Sätze) nach
-Teilzeitraum-Konsistenz und Literatur; bei gezackter Fläche ist das Mittel über das Plateau (Ensemble) die robuste „Mitte“.
+Kriterium für eine einzelne Variante: der Punkt mit der besten **Umgebung** im Feingitter (Mittel über die Nachbarwerte,
+monatliche Strategien gemittelt über alle 21 Entscheidungstage), zusätzlich Drawdown und Abstand zu Klippen; das ist
+die belastbare „Mitte des Plateaus“. Rechnerische Mitten aus einem groben Gitter reichen nicht (1xGTAA: 12 lag nur am Rand).
 
 | Strategie | final | Begründung |
 |---|---|---|
-| levGTAA | **1/3/6/12 + 3/6/12, SMA40 vs. L 150–250**, VT 55 %, Tilt 40/60 (ab Entscheidung 30.11.2026) | K-Plateau 30–50 → 40; Band-Mitten 175–225 → 150–250; 1/3/6/12 in allen Teilzeiträumen ≥ 1/3/6/9. Sharpe 0,80 (vorher 0,78), CAGR Ø 21 Tage 26,1 % (25,3 %), MaxDD gleich |
-| 1xGTAA | **SMA12 > SMA175**, 1/3/6/12, Cooldown 10, 40/60 | kurz 8–20 → √(8·20) = 12,6; lang 150–200 → 175; Sharpe 0,81 (0,79), CAGR 14,3 % (13,9 %), MaxDD −22,4 % (−22,8 %) |
-| MR-Rebound | unverändert (S 75–125, L 175–250, Rebound 42/50/56, Gate 100/200/250, Tilt 1/3–2/3) | liegt bereits in jeder Dimension in der Plateau-Mitte |
-| levTipsRegime | wissenschaftlich: **Ensemble S&P-SMA 220–340 × TIPS-SMA 160–220** (je 5 Längen, TLT 200, Cooldown 10 je Teilmaschine, Gewicht = Anteil der Teilmaschinen); Umsetzung offen | Fläche gezackt: Einzel-Mittelpunkte schlechter (270/190: Sharpe 0,68, MaxDD −63 %); Ensemble Sharpe 0,735 (0,724), MaxDD −53 % (−59 %), 2001+ 0,86/−42 % (0,83/−47 %); Teilpositionen, ~15 statt 4 Handelstage/Jahr bei gleichem Umschlag. Bis zur Umsetzung bleibt 280/220/200/10 |
+| levGTAA | **1/3/6/12 + 3/6/12, SMA50 vs. L 150–250**, VT 55 %, Tilt 40/60; Stichtag 23.11.2026 (Entscheidungen davor mit 1/3/6/9 + 3/6/12, SMA30, 125–225) | guter Bereich SMA kurz 35–70 bei Band-Mitte 175–225 (Sharpe 0,79–0,80, MaxDD −53…−56 %), ab 80 tieferer MaxDD, ab Band-Mitte 250 schwächer → Mitte 50 / 150–250; 1/3/6/12 in allen Teilzeiträumen ≥ 1/3/6/9. Sharpe 0,80 (0,78), CAGR 26,3 % (25,3 %), MaxDD −53,5 % (−55,4 %) |
+| 1xGTAA | **SMA6 > SMA167**, 1/3/6/12, Cooldown 10, 40/60 | bei den tatsächlichen Einstellungen beste Umgebung kurz 5–8 × lang 160–175 → geometrische Mitte 6/167; Sharpe 0,82 (0,79), CAGR 14,6 % (13,9 %), in allen drei Teilzeiträumen gleich oder besser |
+| levTipsRegime | **S&P 280 / TIPS 210 / TLT 200 / Cooldown 10** (eine Variante) | TIPS 150–220 flach, ab 230 schwächer → 210 (lokales Hoch in 1987+ und 2001+, Abstand zur Kante); S&P: zwei Plateaus 210–230 / 280–300, 280 weit weg von der Klippe ≤ 180 und ohne den tieferen 2001+-MaxDD von 285–300; zwei Varianten (220/210 + 290/210) nicht signifikant besser (Sharpe 0,763 vs. 0,724, P 0,92) |
+| MR-Rebound | unverändert (S 75–125, L 175–250, Rebound 42/50/56, Gate 100/200/250, Tilt 1/3–2/3) | Mitte des 3×3-Umfelds (±12 Tage Bandverschiebung: Sharpe 0,81–0,83) und in S, L, Gate jeweils bester Ø-Wert |
+
+Alle Änderungen sind nicht signifikant besser als die bisherigen Werte (Plateaus); gewählt wird die robuste Mitte. Umstellung
+ohne Umschichtung: levGTAA per Stichtag, 1xGTAA und levTipsRegime mit unveränderter heutiger Position und Sperre.

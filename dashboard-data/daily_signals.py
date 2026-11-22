@@ -36,6 +36,7 @@ def last_change(states):
 if mode == "levgtaa":
     from strategies import runner as R, momentum_core as MC, common as U
     from strategies.constants import RANKINGS, SMA_LONG, SMA_SHORT, TILT, VT_TARGET, VT_WINDOWS
+    RANKINGS_C, SMA_LONG_C, SMA_SHORT_C = RANKINGS, SMA_LONG, SMA_SHORT
     raw = R.load_data()
     grid, P, RET, stale, warns, fr = R.prepare(raw)
     rows = np.where(P.index >= pd.Timestamp(START))[0]
@@ -62,6 +63,8 @@ if mode == "levgtaa":
 
     def ex_levgtaa(i):
         Pi, inf = R.btc_override(P, i, btc) if NEW else (P, None)   # Bitcoin: juengster Tagesschluss vor dem Handel
+        # Parameter der jeweiligen Entscheidung (Bot mit Stichtag: alte Werte fuer Entscheidungen vor PARAM_SWITCH)
+        RANKINGS, SMA_LONG, SMA_SHORT = R.params_for(P.index[i]) if hasattr(R, "params_for") else (RANKINGS_C, SMA_LONG_C, SMA_SHORT_C)
         Wd, dd = MC.decision_weights(Pi, [i], RANKINGS, SMA_LONG, SMA_SHORT, TILT)
         w = Wd[0]
         vols = MC.port_vols(RET.values, i, w, VT_WINDOWS)
