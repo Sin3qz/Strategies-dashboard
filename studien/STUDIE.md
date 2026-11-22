@@ -369,3 +369,32 @@ Mit echten Produkten ab 05/2023 (Dashboard): 3x IEF CAGR +7,7 %, MaxDD −26 % (
 Buy & Hold ab 06/2016: UBS 11,1 % p. a. (Vola 16,2 %, MaxDD −35,9 %), WisdomTree 8,6 % (13,4 %, −27,6 %), DBC 9,9 %.
 Der UBS-ETF lief allein besser (mehr Energie/Metalle, keine Agrar), in der Strategie aber nicht: Rohstoffe sind im
 Mittel nur zu 12 % gehalten, und dann zählt das Timing, nicht die Dauerrendite. **Entscheidung: WisdomTree bleibt.**
+
+## Nachtrag 22.11.2026: Langzeit-Backtests ab 1987/1995 und neutrale Parameterprüfung (alle vier Strategien)
+
+Skripte und Ergebnistabellen: `studien/lang1987/`. Regeln: unveränderte Bot-Kerne (`momentum_core`, `dip_core`, `gtaa_botcore`,
+levTips `target_series`/`machine` wörtlich, Identität geprüft). USD, 0,1 % Kosten je umgeschichtetem Betrag, Cash mit T-Bill,
+Hebelprodukte = echte Produkte ab Start (3TYL erst ab 05/2018, Yahoo vorher fehlerhaft), davor Hebel × Basis − (Hebel−1) × T-Bill
+− am echten Produkt kalibrierte Restkosten (3x Nasdaq 1,65 %, 3x IEF 0,86 %, 3x Gold 4,22 %, 3x S&P 3,07 %, 3x EM 2,8 %, 3x India 6,6 % p. a.).
+
+**Daten (echte Reihe ab Verfügbarkeit, Ersatz nur davor; Wochen-Korrelation bzw. Signal-Übereinstimmung mit dem Original):**
+TLT ← VUSTX (0,99) · GC=F ← Bank-of-England-Goldpreis XUDLGPD 1979–2017 (0,94; Bundesbank-Fixing als Gegenprobe) · QQQ ← ^NDX + 0,56 % Dividende ·
+IEF ← Nachbau aus ^TNX, Duration 7,5 (0,98; VFITX nur 0,96 bei Beta 1,35) · S&P 500 TR ← ^GSPC + 3 % · TIPS: TIP ← VIPSX (Signal 98 %) ←
+Fed-TIPS-Kurve 1999 (83 %) ← ^TNX − Cleveland-Fed-Inflationserwartung (80 %, entspricht etwa einer Nominalanleihe) · EEM ← VEIEX (0,97) ·
+EZU ← VEURX (0,97) statt EMU Value (EZU ↔ EMU Value 87 %) · DBC ← S&P GSCI (0,95) · EEM statt EM Small Caps (88 %).
+
+**Verfahren (ohne Vorrang für die aktuellen Parameter):** monatliche Strategien an allen 21 Entscheidungstagen gerechnet und gemittelt
+(Tranchen-Portfolio; der Monatsletzte war bei allen zufällig ein guter Tag), Kennzahlen inkl. Minimax3/Minimax5 (schlechtester von 3/5
+Teilzeiträumen), Plateau-Mitte über die mit den Gitter-Nachbarn geglättete Sharpe, Block-Bootstrap aktuell vs. neutrale Plateau-Wahl,
+PBO (CSCV, 16 Blöcke), bei levGTAA zusätzlich Deflated Sharpe, White-/Hansen-Bootstrap (431 Alternativen), Walk-forward.
+
+| Strategie (Zeitraum) | aktuell | Ergebnis | Entscheidung |
+|---|---|---|---|
+| levGTAA (1987–2026) | 1/3/6/9 + 3/6/12, SMA 30 vs. 125–225, VT 55 %, Tilt 40/60: Sharpe 0,78, CAGR Ø 21 Tage 25,3 % | Rang 75/433; Plateau-Wahl (3/6/12, SMA 50, 200–250) +1,7 Pkt nicht signifikant (KI −0,8…+4,1); PBO 74 %; SPA p = 0,95; Walk-forward schlechter; frühere Parameter (1/3/6/9, SMA 8/150) signifikant schlechter (−1,0…−5,7 Pkt, P = 0,01) | unverändert |
+| levTipsRegime (1987–2026; 2001–2026 echte TIPS) | S&P 280 / TIPS 220 / TLT 200 / Cooldown 10: 24,5 % / −58,7 % / 0,72 (2001+: 25,4 % / 0,83) | S&P-Plateau 200–340 (≤180: MaxDD −80 %), TIPS 160–220 gezackt, ab 230 schwächer, TLT egal, Cooldown 5–15; Plateau-Wahl ±4 Pkt nicht signifikant; Ensemble-Variante gleiche Sharpe, 3–4 Pkt weniger MaxDD; PBO 45 % | unverändert (Ensemble optional) |
+| MR-Rebound (1995–2026) | S 75–125, L 175–250, Rebound 42/50/56, Gate 100/200/250, Tilt 1/3–2/3: 20,1 % / −40,9 % / 0,79 | in S, L und Gate jeweils bester Ø-Wert, Rebound flach; roher Rang 3/625 (damals auf diesen Daten gewählt), geglättet Rang 76 (0,80 vs. max. 0,81); PBO 99 % | unverändert |
+| 1xGTAA (1995–2026, breite Indizes) | SMA 8/150, 1/3/6/12, Cooldown 10, 40/60: 13,9 % / −22,8 % / 0,79 | SMA kurz 8–20 flach, lang 150–200 gut (175 Mitte, +0,5 Pkt n. s.), Cooldown 10 bester Wert; 3/6/12 nur im Gesamtmittel vorn, bei Cooldown 10 in 50 % der Kombinationen, ab 2006 schlechter; PBO 60 % | unverändert (L 175 gleichwertig) |
+
+Folgerung: Alle vier Strategien liegen auf breiten Plateaus; keine Alternative ist signifikant besser, Optimieren zwischen den Varianten ist
+überwiegend Rauschen (PBO 45–99 %). Die realistische Erwartung liegt bei den Mittelwerten über die Entscheidungstage, nicht beim Monatsletzten
+(levGTAA ~25 %, MR ~18 %). Grenzen: vor den Produkt- und ETF-Starts Nachbildungen; das TIPS-Signal vor 1999 trägt kaum TIPS-eigene Information.
