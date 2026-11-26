@@ -2,31 +2,31 @@
  "levgtaa": {
   "key": "CASH",
   "text": "100 % Cash",
-  "date": "2026-11-24"
+  "date": "2026-11-25"
  },
  "mrrebound": {
   "key": "INDIA|TLT_LONG",
-  "text": "32,7 % India · 9,5 % UST 7-10y",
-  "date": "2026-11-24"
+  "text": "32,8 % India · 14,1 % UST 7-10y",
+  "date": "2026-11-25"
  },
  "1xgtaa": {
   "key": "CASH_USD",
   "text": "60,0 % Geldmarkt",
-  "date": "2026-11-24"
+  "date": "2026-11-25"
  },
  "levtips": {
   "key": "CASH",
   "text": "Cash",
-  "date": "2026-11-24"
+  "date": "2026-11-25"
  },
  "wf_levgtaa": "Vorschau",
  "wf_levtipsregime": "Vorschau",
  "cash_levgtaa": {
   "level": "ok",
-  "date": "2026-11-25"
+  "date": "2026-11-26"
  },
  "cash_levtipsregime": {
   "level": "ok",
-  "date": "2026-11-25"
+  "date": "2026-11-26"
  }
 }
