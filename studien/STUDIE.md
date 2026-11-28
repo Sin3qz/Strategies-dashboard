@@ -399,34 +399,51 @@ Folgerung: Alle vier Strategien liegen auf breiten Plateaus; keine Alternative i
 überwiegend Rauschen (PBO 45–99 %). Die realistische Erwartung liegt bei den Mittelwerten über die Entscheidungstage, nicht beim Monatsletzten
 (levGTAA ~25 %, MR ~18 %). Grenzen: vor den Produkt- und ETF-Starts Nachbildungen; das TIPS-Signal vor 1999 trägt kaum TIPS-eigene Information.
 
-### Finale Parameter (Entscheidung 22.11.2026, unabhängig von früheren Werten)
+### Finale Parameter (Entscheidung 28.11.2026)
 
-**1. Gemeinsame Raster ohne Rand.** Alle Parameter einer Strategie gemeinsam gerechnet (monatliche Strategien über alle 21
-Entscheidungstage gemittelt) und jedes Raster erweitert, bis es auf allen Seiten abfällt (levGTAA SMA kurz 20–140; 1xGTAA kurz 3–40 ×
-lang 130–260; MR-Gate bis 300/350/400; levTips TIPS 60–250). Frühere Plateau-Angaben (levGTAA 30–50, 1xGTAA 8–20) waren Randmittel über
-ungeeignete Einstellungen in zu kurzen Rastern.
+**Was die Prüfungen gezeigt haben**
+1. *Ränge innerhalb der Plateaus sagen nichts voraus* (`verify_oos.py`, `unbiased.py`): Auswahl auf einem Teil der Historie, Bewertung
+   auf dem Rest (Hälften, Drittel). Die gewählte Variante landet im Testzeitraum im Schnitt auf Perzentil 3–51, meist unter dem Zufall.
+2. *Das Zickzack über die SMA-Länge ist Rauschen* (`tips_zz.py`, `zz.py`): Die Abweichungen vom geglätteten Verlauf korrelieren zwischen
+   unabhängigen Zeiträumen mit +0,12 / +0,02 / −0,12 / +0,18 (≈ 0). Beispiel TIPS 200: Die „Delle“ fehlt 1987–2006 ganz (±0,000) und
+   stammt zu 40 % aus einer einzigen 11-Tage-Episode im März/April 2026. Ein Punktvergleich mit P-Wert ist bei vielen eng verwandten
+   Varianten irreführend (Mehrfachtests) – bewertet wird deshalb nur der geglättete Verlauf.
+3. *Das Optimum wandert mit den Marktphasen* (z. B. levTips S&P: 1987–2000 lang, 2000–2013 mittel, 2013–2026 kurz; TIPS: 1987–2000 und
+   2009–2017 ≈ 200, 2018–2026 ≈ 150). Ein Bestwert für alle Phasen existiert nicht.
+4. *Ersatzindizes können die Wahl verfälschen*: 1xGTAA auf MSCI EMU/EM spricht für 1/3/6/9, auf den echten Bot-Assets 2012–2026
+   (EM Small Caps, EMU Value) ist 1/3/6/12 in 94 % der Paare besser (`gtaa1x_real.py`).
 
-**2. Gegenprobe außerhalb der Stichprobe (`verify_oos.py`, `unbiased.py`).** Auswahl auf einem Teil, Bewertung auf dem Rest (Hälften,
-und dreifach mit Dritteln). Geprüfte Auswahlregeln: Gipfel, geglättete Plateau-Mitte, Minimax (bestes schlechtestes Drittel).
-Ergebnis bei allen vier Strategien: Die gewählte Variante landet im Testzeitraum im Schnitt auf Perzentil 3–51, meist **unter** dem
-Zufallswert 50. Die Ränge innerhalb der Plateaus enthalten keine verwertbare Information; Optima wandern mit den Marktphasen.
+**Entscheidungsregel (für alle Strategien gleich, ohne Vorrang für bisherige Werte)**
+(a) Nur geglättete Kennzahlen (Nachbarwerte gemittelt, monatliche Strategien über alle 21 Entscheidungstage).
+(b) Robust über die Marktphasen: Minimax-Regret über unabhängige Teilzeiträume (in keiner Phase weit vom jeweiligen Bestwert),
+zusammen mit Ø MaxDD und schlechtestem Teilzeitraum; keine katastrophalen Drawdowns in der Umgebung (Klippen).
+(c) Echte Daten vor Ersatzdaten, wo sie sich widersprechen.
+(d) Mitte des robusten Bereichs, auf natürliche Rasterschritte gerundet. Raster jeweils erweitert, bis sie an allen Seiten abfallen.
 
-**3. Entscheidungsregel (ohne Vorrang für bisherige Werte).**
-(a) Standardwerte aus der Literatur bzw. runde Werte, weil feinere Unterschiede unter der Messgenauigkeit liegen;
-(b) verworfen wird ein Wert nur, wenn er an einer Klippe liegt oder im Punktvergleich (Block-Bootstrap) signifikant schlechter ist als
-gleichwertige Nachbarn, oder wenn er in einem Zeitdrittel zu den schlechtesten Varianten gehört;
-(c) unter gleichwertigen Kandidaten entscheidet die Robustheit über die Marktphasen (schlechtere Zeithälfte).
+| Strategie | Parameter | final | Begründung |
+|---|---|---|---|
+| levGTAA | Momentum | **1/3/6/12 + 3/6/12** | in jeder Rasterzelle vor 1/3/6/9 + 3/6/12 (Sharpe und MaxDD); zwei Ranglisten = Absicherung (nur 3/6/12: tieferer Ø MaxDD) |
+| | SMA kurz | **50** (bisher 30) | beim Band 150–250: Sharpe flach 35–80, Ø MaxDD über 21 Entscheidungstage am besten 50–60, schlechtester Teilzeitraum am besten 40–50 → Schnittmenge 45–55, Mitte 50; Minimax-Regret-Bereich 30–55. SMA30 lag am unteren Rand und ist bei allen drei Kennzahlen etwas schlechter (Sharpe 0,790 statt 0,798, Ø MaxDD −57,0 statt −55,8 %, schlechtester Teilzeitraum 13,1 statt 13,6 %). Die frühere Wahl 30 kam aus einem Randmittel über alle Bänder in einem Raster, das bei 50 endete. |
+| | Band SMA lang | **150–250** (bisher 125–225) | Regret-Bereich Band-Mitte 200–225; Sharpe besser ab Mitte 200, MaxDD besser bei 150–175 → Mitte 200 (= 200-Tage-Linie) |
+| | Vol-Target | **55 %** | Sharpe flach 40–70 % (0,79–0,80), Mitte 55 % (`vt.py`) |
+| | Tilt | 40/60 | deine Festlegung |
+| levTipsRegime | S&P-SMA | **220** (bisher 280) | Minimax-Regret über 1987–2000 / 2001–08 / 2009–17 / 2018–26: 220 hat kleinsten Rückstand (0,197 vs. 0,295 bei 280), höchste geglättete Sharpe (0,794 vs. 0,765) und kleinsten Ø MaxDD (−59,3 vs. −61,6 %); 30 Tage über der Klippe 170–200 (Bärenmarkt 2000–03, MaxDD bis −80 %). 280 fällt 2018–26 deutlich zurück (Ausstieg 2020/2022 zu spät). |
+| | TIPS-SMA | **180** (bisher 220) | geglättet über den Gesamtzeitraum flach 150–200 (0,79–0,80), ab 210 fallend; die Phasen ziehen zu ≈ 200 (1987–2000, 2009–17) bzw. ≈ 150 (2018–26) → Mitte 180; die Delle bei 200 ist Rauschen |
+| | TLT-SMA | **200** | geglättet flach (Zacken bei 160/200/240 nicht persistent) → Standard |
+| | Cooldown | **10** | Plateau 8–12 (5 und 15 schwächer) → Mitte |
+| | Varianten | **eine** | zwei/drei gemischte Varianten nicht signifikant besser |
+| 1xGTAA | Momentum | **1/3/6/12** | echte Assets 2012–2026: in 94 % der Paare vor 1/3/6/9 (Sharpe 1,12 vs. 0,97, Rückstand 0,18 vs. 0,48); auf Ersatzindizes umgekehrt → echte Daten zählen |
+| | Trend | **SMA15 > SMA160** (bisher 8/150) | echte Assets: kleinster Rückstand kurz 12–16 × lang 150–190; Ersatzindizes 1995–2026: Plateau kurz 13–27 × lang 130–180 (nach unten bis 90 erweitert) → Schnittmenge 13–16 × 150–170, Mitte 15/160 |
+| | Cooldown | **10** | Plateau 8–12 → Mitte |
+| | Gewichte | 40/60 | frühere Studie (Turnover) |
+| MR-Rebound | S | **75–125** | erweitert bis 150–200: ab 125–175 deutlich schlechter (Rückstand 0,29–0,33, MaxDD −47…−52 %); 75–125 kleinster mittlerer Rückstand, bester MaxDD |
+| | L | **175–250** | besser als 200–275 (Sharpe 0,811 vs. 0,787) |
+| | Rebound | **42/50/56** | flach (0,797–0,802), bester MaxDD |
+| | Gate | **100/200/250** | gleichwertig mit 150/200/250 (0,802 vs. 0,797, Rückstand 0,230 vs. 0,232) – kein Grund zum Wechsel |
 
-| Strategie | final | Begründung |
-|---|---|---|
-| levGTAA | **1/3/6/12 + 3/6/12, SMA50 > SMA 150–250**, VT 55 %, Tilt 40/60; für Entscheidungen ab 23.11.2026 (vorher 1/3/6/9 + 3/6/12, SMA30, 125–225) | Standard: 12-Monats-Momentum, SMA50 gegen ein Band um die 200-Tage-Linie. Plausibel: in allen drei Zeitdritteln über dem Median (Perzentil 61/78/56), keine Klippe nahe (Grat glatt, da Mittel über 101 Längen). Sharpe 0,80 statt 0,78, MaxDD −53,5 % statt −55,4 %; Bootstrap P 0,67 (n. s.). |
-| 1xGTAA | **1/3/6/12, SMA20 > SMA150**, Cooldown 10, 40/60; ab 01.12.2026 (vorher SMA8/150) | Momentum-Standard 1/3/6/12. Der Trend-Standard SMA50/200 ist für diese tägliche Rotation zu träge (2016–2026 schlechteste Variante des Rasters, MaxDD −25,8 %) → runde Mitte des Plateaus kurz 13–27 × lang 130–180: SMA20 (1 Monat) / SMA150. In allen drei Dritteln über dem Median (61/62/66), MaxDD −22,2 %; auf Punktebene keine Delle (0,80 bei Nachbarn 0,78–0,81). Bootstrap über Cooldown 8–12 P 0,94, MaxDD −20,1 % statt −21,8 %; bei Cooldown 10 P 0,56 (n. s.). Cooldown-Plateau 8–12 → 10. |
-| levTipsRegime | **S&P 280 / TIPS 210 / TLT 200 / Cooldown 10** (eine Variante); ab 23.11.2026 (vorher TIPS 220) | S&P: Der Standard 200 liegt neben der Klippe 170–190 (Bärenmarkt 2000–2003, MaxDD bis −80 %) → Mitte des sicheren Bereichs 220–340 = 280. TIPS: Der Standard 200 liegt in einer Delle (signifikant schlechter als 220: P 0,03, mit echten TIPS ab 2001 P 0,00), ebenso alles ab 230 (Kante). 160/180/210/220 gleichwertig; 210 hat die beste schlechtere Zeithälfte (Sharpe 0,750 statt 0,725) bei gleichem MaxDD. Zwei/drei Varianten: nicht signifikant → eine. |
-| MR-Rebound | **unverändert** (S 75–125, L 175–250, Rebound 42/50/56, Gate 100/200/250, Tilt 1/3–2/3) | Bereits Mittel über 34.884 Varianten um Standardwerte (100, 200). Plausibel in allen Dritteln (Perzentil 47/67/76, MaxDD Perzentil 79). Alternativen (z. B. Gate 150/200/250) nicht besser (P 0,43). |
+Keine Änderung ist signifikant besser – das ist bei Plateaus zu erwarten. Die Wahl folgt der Regel, nicht einzelnen Backtest-Rängen.
+Umstellung per Stichtag: levGTAA und levTips für Entscheidungen ab dem Schluss vom 30.11.2026, 1xGTAA ab 01.12.2026; davor laufen die alten
+Werte (Historie, Performance-Seite, gehaltene Positionen bleiben). Am 27.11. stehen bei levTips alte und neue Regel auf Cash ohne Sperre.
 
-Keine Änderung ist signifikant besser als die bisherigen Werte; das ist bei Plateaus zu erwarten. Die Wahl folgt der Regel oben und nicht
-den Backtest-Rängen. Umstellung per Stichtag: Entscheidungen davor laufen mit den alten Werten (Historie, Performance-Seite und gehaltene
-Positionen bleiben). Am Stichtag zeigen alte und neue Regel bei levTips denselben Zustand (Cash).
-
-Dateien: `lang1987/joint*.py`, `mr_gate_ext.py`, `tipsfine.py`, `tips_low.py` (Raster), `verify_oos.py`, `unbiased.py`,
-`verify_stab*.py`, `verify_boot.py` (Gegenproben) und die zugehörigen CSV-Tabellen.
+Daten neu aufgebaut am 28.11.2026 (`fetch2.py`, Yahoo bis 27.11.; Fed-TIPS-Kurve, Cleveland-Fed-Inflationserwartung, BoE-Gold);
+die gespeicherten Ergebnisse wurden damit exakt reproduziert. Skripte und Tabellen: `lang1987/`.
