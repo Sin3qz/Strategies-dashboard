@@ -36,6 +36,7 @@ def last_change(states):
 if mode == "levgtaa":
     from strategies import runner as R, momentum_core as MC, common as U
     from strategies.constants import RANKINGS, SMA_LONG, SMA_SHORT, TILT, VT_TARGET, VT_WINDOWS
+    RANKINGS_C, SMA_LONG_C, SMA_SHORT_C = RANKINGS, SMA_LONG, SMA_SHORT
     raw = R.load_data()
     grid, P, RET, stale, warns, fr = R.prepare(raw)
     rows = np.where(P.index >= pd.Timestamp(START))[0]
@@ -62,6 +63,8 @@ if mode == "levgtaa":
 
     def ex_levgtaa(i):
         Pi, inf = R.btc_override(P, i, btc) if NEW else (P, None)   # Bitcoin: juengster Tagesschluss vor dem Handel
+        # Parameter der jeweiligen Entscheidung (Bot mit Stichtag: alte Werte fuer Entscheidungen vor PARAM_SWITCH)
+        RANKINGS, SMA_LONG, SMA_SHORT = R.params_for(P.index[i]) if hasattr(R, "params_for") else (RANKINGS_C, SMA_LONG_C, SMA_SHORT_C)
         Wd, dd = MC.decision_weights(Pi, [i], RANKINGS, SMA_LONG, SMA_SHORT, TILT)
         w = Wd[0]
         vols = MC.port_vols(RET.values, i, w, VT_WINDOWS)
@@ -114,10 +117,11 @@ elif mode == "mrrebound":
     from strategies.constants import BASKETS, BASKET_LABELS, SMA_SHORT, SMA_LONG, REBOUND_DAYS, GATE_SMA, TILT
 
     def ex_mr(i):
+        GATE = R.gate_for(P.index[i]) if hasattr(R, "gate_for") else GATE_SMA      # Parameter-Stichtag
         Wt, _ = R.compute(P, [i])
         bks = []
         for b, lab in zip(BASKETS, BASKET_LABELS):
-            Wb, inf = DC.dip_weights(P, [i], [b], SMA_SHORT, SMA_LONG, REBOUND_DAYS, GATE_SMA, TILT)
+            Wb, inf = DC.dip_weights(P, [i], [b], SMA_SHORT, SMA_LONG, REBOUND_DAYS, GATE, TILT)
             J = [R.AL.index(a) for a in b]
             sma = {L: P[b].rolling(L).mean().iloc[i].values for L in set(SMA_SHORT) | set(SMA_LONG)}
             weak = np.zeros(len(b)); weak2 = np.zeros(len(b))
@@ -131,7 +135,7 @@ elif mode == "mrrebound":
             for j, a in enumerate(b):
                 s = P[a]
                 rb = {str(Rd): num(s.iloc[i] / s.iloc[i - Rd] - 1) for Rd in REBOUND_DAYS}
-                gt = {str(G): num(s.iloc[i] / s.rolling(G).mean().iloc[i] - 1) for G in GATE_SMA}
+                gt = {str(G): num(s.iloc[i] / s.rolling(G).mean().iloc[i] - 1) for G in GATE}
                 rows.append({"asset": a, "ticker": R.ASSETS[a]["signal"], "close": num(s.iloc[i], 4),
                              "rank": num(inf["rank"][0][J[j]]), "weak1": num(weak[j] / nv, 4), "weak2": num(weak2[j] / nv, 4),
                              "rebound": rb, "gate": gt, "w": num(Wb[0][J[j]], 4)})
@@ -139,13 +143,15 @@ elif mode == "mrrebound":
         return {"date": iso(P.index[i]), "baskets": bks, "w": {a: num(Wt[0][k], 4) for k, a in enumerate(R.AL)},
                 "cash": num(max(0.0, 1 - float(np.sum(Wt[0]))), 4),
                 "params": {"S": [SMA_SHORT[0], SMA_SHORT[-1]], "L": [SMA_LONG[0], SMA_LONG[-1]], "R": REBOUND_DAYS,
-                           "G": GATE_SMA, "tilt": [round(t / sum(TILT), 4) for t in TILT],
-                           "n": len(SMA_SHORT) * len(SMA_LONG) * len(REBOUND_DAYS) * len(GATE_SMA)}}
+                           "G": list(GATE), "tilt": [round(t / sum(TILT), 4) for t in TILT],
+                           "n": len(SMA_SHORT) * len(SMA_LONG) * len(REBOUND_DAYS) * len(GATE)}}
     EX = {"today": ex_mr(len(P) - 1), "held": ex_mr(int(mrows[-1]))}
 
 elif mode == "1xgtaa":
     from strategies import runner as R, gtaa_botcore as G
-    from strategies.constants import CFG
+    from strategies import constants as C1
+    CFG = C1.CFG
+    cfg_at = C1.cfg_for if hasattr(C1, "cfg_for") else (lambda day: CFG)   # Parameter-Stichtag (alte Werte bis prev.until)
     closes, raw = R._load_closes()
     idx, allocs, cds, ind, _ = G.compute_series(closes, CFG, live=True)
     assets = list(closes.columns)
@@ -167,6 +173,7 @@ elif mode == "1xgtaa":
     dec["rebalance"] = "on_change"
 
     def ex_1x(i):
+        P1 = cfg_at(idx[i])
         mo, tr = ind["mom"].iloc[i], ind["trend"].iloc[i]
         order = sorted([a for a in assets if pd.notna(mo[a])], key=lambda a: mo[a], reverse=True)
         tgt = G.target_gtaa(assets, tr, mo, CFG["N"], CFG.get("weights"), CFG.get("cash_fill", False), CFG.get("fallback", "concentrate"))
@@ -175,28 +182,28 @@ elif mode == "1xgtaa":
             s = closes[a]
             pos = order.index(a) + 1 if a in order else None
             rows.append({"asset": a, "ticker": R.ASSETS[a]["ticker"], "close": num(s.iloc[i], 4),
-                         "r": {str(m): ret_m(s, i, m) for m in CFG["lookbacks"]}, "mom": num(mo[a]),
+                         "r": {str(m): ret_m(s, i, m) for m in P1["lookbacks"]}, "mom": num(mo[a]),
                          "sma_s": num(ind["sma_s"][a].iloc[i], 4), "sma_l": num(ind["sma_l"][a].iloc[i], 4),
                          "trend": num(ind["sma_s"][a].iloc[i] / ind["sma_l"][a].iloc[i] - 1), "trend_ok": bool(tr[a]),
                          "pos": pos, "w": num(tgt.get(a, 0.0), 4)})
         rows.sort(key=lambda r: r["pos"] or 99)
         return {"date": iso(idx[i]), "rows": rows, "cash": num(1 - sum(tgt.values()), 4), "cooldown": int(cds[i]),
-                "params": {"S": CFG["S"], "L": CFG["L"], "N": CFG["N"], "weights": list(CFG["weights"]),
-                           "lookbacks": list(CFG["lookbacks"]), "cooldown": CFG["cooldown_days"]}}
+                "params": {"S": P1["S"], "L": P1["L"], "N": P1["N"], "weights": list(P1["weights"]),
+                           "lookbacks": list(P1["lookbacks"]), "cooldown": P1["cooldown_days"]}}
     sig = [G.alloc_signature(a) for a in allocs]
     EX = {"today": ex_1x(len(idx) - 1), "held": ex_1x(last_change(sig)), "cooldown_now": int(cds[-1])}
 
 else:  # levtips
     from strategies import levspybits as L, common as U
     from strategies import constants as C
-    three = hasattr(C, "TLT_TICKER")                    # neue Regel mit 3x IEF (TIPS < SMA220, TLT > SMA200)
+    three = hasattr(C, "TLT_TICKER")                    # Regel mit 3x IEF (TIPS < SMA_TIPS, TLT > SMA200)
     tick = [C.SPY_TICKER, C.TIPS_TICKER] + ([C.TLT_TICKER] if three else [])
     raw = {t: U.fetch_close(t, C.TRY_COUNT) for t in tick}
     grid = U.build_grid(C.GRID_START, us_series=[raw[t] for t in tick])
     spy, tips = U.oncal(raw[C.SPY_TICKER], grid), U.oncal(raw[C.TIPS_TICKER], grid)
     if three:
         tlt = U.oncal(raw[C.TLT_TICKER], grid)
-        tgt = L.target_series(spy, tips, tlt)
+        tgt = L.target_live(spy, tips, tlt) if hasattr(L, "target_live") else L.target_series(spy, tips, tlt)
         names = L.STATE_NAMES
         tl = (tlt / tlt.rolling(C.TLT_SMA).mean() - 1).values
     else:
@@ -204,7 +211,12 @@ else:  # levtips
         names = {0: "CASH", 1: "MARKET"}
         tl = np.full(len(grid), np.nan)
     alloc, rem = L.machine(tgt)
-    sd = spy / spy.rolling(C.SPY_SMA).mean() - 1; td = tips / tips.rolling(C.TIPS_SMA).mean() - 1
+    sma_at = L.sma_at if hasattr(L, "sma_at") else (lambda day: (C.SPY_SMA, C.TIPS_SMA))   # Parameter-Stichtag
+    old_n, new_n = sma_at(grid[0]), sma_at(grid[-1])
+    sd_o, td_o = spy / spy.rolling(old_n[0]).mean() - 1, tips / tips.rolling(old_n[1]).mean() - 1
+    sd_n, td_n = spy / spy.rolling(new_n[0]).mean() - 1, tips / tips.rolling(new_n[1]).mean() - 1
+    use_old = np.array([sma_at(d) == old_n for d in grid])                  # Abstand zur jeweils geltenden Linie
+    sd, td = sd_n.where(~use_old, sd_o), td_n.where(~use_old, td_o)
     m = grid >= pd.Timestamp(START)
     st = np.array([names[int(x)] for x in tgt]); hd = np.array([names[int(x)] for x in alloc])
     df = pd.DataFrame({"date": [iso(d) for d in grid[m]], "state": st[m], "held_state": hd[m],
@@ -223,11 +235,12 @@ else:  # levtips
             sma = s.rolling(n).mean().iloc[i]
             return {"name": name, "ticker": ticker, "close": num(s.iloc[i], 4), "sma": n, "sma_val": num(sma, 4),
                     "dist": num(s.iloc[i] / sma - 1)}
-        rows = [row("S&P 500 Total Return", C.SPY_TICKER, spy, C.SPY_SMA), row("US-TIPS", C.TIPS_TICKER, tips, C.TIPS_SMA)]
+        n_spy, n_tips = sma_at(grid[i])
+        rows = [row("S&P 500 Total Return", C.SPY_TICKER, spy, n_spy), row("US-TIPS", C.TIPS_TICKER, tips, n_tips)]
         if three:
             rows.append(row("US-Treasury 20y+", C.TLT_TICKER, tlt, C.TLT_SMA))
         return {"date": iso(grid[i]), "rows": rows, "state": names[int(tgt[i])], "held": names[int(alloc[i])],
-                "cooldown": int(rem[i]), "params": {"cooldown": C.COOLDOWN_DAYS}}
+                "cooldown": int(rem[i]), "params": {"cooldown": C.COOLDOWN_DAYS, "spy_sma": n_spy, "tips_sma": n_tips}}
     EX = {"today": ex_tips(len(grid) - 1), "held": ex_tips(last_change(list(alloc))), "cooldown_now": int(rem[-1])}
 
 df.to_csv(out, index=False)

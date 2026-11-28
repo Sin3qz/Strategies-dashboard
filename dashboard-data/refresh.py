@@ -36,7 +36,7 @@ WIKIFOLIOS = {
     "levgtaa": dict(symbol="wfxlevgtaa", strategy="levGTAA", bt_cagr=0.319, bt_maxdd=-0.43, bt_sortino=1.23,
                     bt_label="Backtest 1993+ laut Bot-Repo (Anleihe-Baustein 3x IEF, Signal TLT)"),
     "levtipsregime": dict(symbol="wfxtipsreg", strategy="levTipsRegime", bt_cagr=0.361, bt_maxdd=-0.49, bt_sortino=1.13,
-                          bt_label="Backtest 10/2004+ (studien/STUDIE.md: 100 % 3x S&P 500, 3x IEF bei TIPS < SMA220 und TLT > SMA200, synthetisch)"),
+                          bt_label="Backtest 10/2004+ (studien/STUDIE.md: 100 % 3x S&P 500, 3x IEF bei TIPS < SMA220 und TLT > SMA200, synthetisch; Bot ab Entscheidung 30.11.2026 S&P-SMA 225 / TIPS-SMA 180, vorher 280/220)"),
 }
 TZ = ZoneInfo("Europe/Berlin")
 NOW = dt.datetime.now(TZ)
@@ -458,7 +458,7 @@ MANIFEST = {
     "explain": ("explain.json", "Herleitung der Signale",
                 "Je Strategie alle Zwischenwerte (Renditen, Momentum, Trend, Ranglisten, Plätze, Vol-Target bzw. Abstände und Regeln) für das heute simulierte Signal und die Entscheidung der gehaltenen Position; gerechnet mit dem Code der Bot-Repos."),
     "daily_levtips": ("daily_levtips.csv", "levTipsRegime Tagessignal (simuliert)",
-                      "Für jeden US-Handelstag seit 02.01.2025 Markt (1) oder Cash (0) ohne Cooldown, die gehaltene Position und die Abstände von S&P 500 TR zur SMA280 und TIPS zur SMA220; gerechnet mit levspybits.py aus levtipsregime-signalbot."),
+                      "Für jeden US-Handelstag seit 02.01.2025 Markt (1) oder Cash (0) ohne Cooldown, die gehaltene Position und die Abstände von S&P 500 TR und TIPS zu den SMA des Bots (280/220, ab 30.11.2026 225/180); gerechnet mit levspybits.py aus levtipsregime-signalbot."),
 }
 
 
